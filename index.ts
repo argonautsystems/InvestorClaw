@@ -137,7 +137,7 @@ export default definePluginEntry({
       name: "investorclaw_holdings",
       description:
         "Get a portfolio snapshot with current prices for every holding in " +
-        "master_portfolio.csv. Fetches live quotes via Finnhub → Polygon → " +
+        "master_portfolio.csv. Fetches live quotes via Finnhub → Massive → " +
         "Alpha Vantage → yfinance (first available). Returns JSON saved to " +
         "portfolio_reports/holdings.json.",
       parameters: Type.Object({}),
@@ -211,7 +211,7 @@ export default definePluginEntry({
       name: "investorclaw_analyst",
       description:
         "Get analyst consensus ratings and price targets for portfolio holdings. " +
-        "Uses Finnhub and/or Polygon. Requires holdings.json from " +
+        "Uses Finnhub and/or Massive. Requires holdings.json from " +
         "investorclaw_holdings. Returns JSON saved to portfolio_reports/analyst_data.json.",
       parameters: Type.Object({}),
       async execute(_id, _p) {

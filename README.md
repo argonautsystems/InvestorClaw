@@ -53,7 +53,7 @@ That perspective is part of why the project emphasizes compact agent outputs, ra
 - API keys (all optional, all have free tiers):
   - [Finnhub](https://finnhub.io/register) — real-time quotes and analyst ratings (recommended primary)
   - [NewsAPI](https://newsapi.org/register) — portfolio news correlation
-  - [Polygon.io](https://polygon.io/dashboard/signup) — analyst recommendations and historical data
+  - [Massive](https://polygon.io/dashboard/signup) (`MASSIVE_API_KEY`) — real-time quotes and historical OHLCV (polygon.io-compatible)
   - [Alpha Vantage](https://www.alphavantage.co/support/#api-key) — adjusted historical prices (500 req/day free)
   - [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) — Treasury benchmark yields
 - Without any API keys, InvestorClaw falls back to `yfinance` for quotes — see [Market Data Sources](#market-data-sources) for caveats
@@ -385,7 +385,7 @@ InvestorClaw fetches quotes, historical prices, analyst ratings, and news from a
 
 | Data type | Primary | Fallback chain | Free tier status |
 |-----------|---------|----------------|-----------------|
-| Quotes | `yfinance` (batch, no quota) | Polygon → Finnhub | yfinance: free but unofficial; Finnhub: ✅ tested |
+| Quotes | `yfinance` (batch, no quota) | Massive → Finnhub | yfinance: free but unofficial; Massive paid: ✅ 268ms for 215 symbols |
 | Historical prices | Alpha Vantage (500 req/day) | Finnhub → yfinance | Finnhub candles: ❌ 403 on free tier |
 | News | NewsAPI + Finnhub (aggregated) | — | Both work on free tier |
 | Analyst ratings | Finnhub | yfinance | Finnhub free tier returns unreliable data; auto-falls back to yfinance |
@@ -422,12 +422,12 @@ FINNHUB_KEY=your_key_here
 INVESTORCLAW_PRICE_PROVIDER=auto
 INVESTORCLAW_FALLBACK_CHAIN=finnhub,alpha_vantage,yfinance
 
-# Polygon.io (real-time on paid; prev-day close on free)
-INVESTORCLAW_PRICE_PROVIDER=polygon
+# Massive (polygon.io-compatible, Starter+ plan recommended)
+INVESTORCLAW_PRICE_PROVIDER=massive
 MASSIVE_API_KEY=your_key_here
 ```
 
-For paid upgrades: Finnhub's paid plans (~$50–$200/month) unlock historical candles and reliable analyst data. Polygon.io is the alternative for institutional-grade real-time feeds and deep historical coverage.
+For paid upgrades: Finnhub's paid plans (~$50–$200/month) unlock historical candles and reliable analyst data. Massive is the recommended paid upgrade for quotes and history — faster batch endpoint than Finnhub, full OHLCV history on Starter plan.
 
 ## Local Consultation Model (Optional, Strongly Recommended)
 

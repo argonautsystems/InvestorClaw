@@ -23,8 +23,8 @@
     },
     "MASSIVE_API_KEY": {
       "type": "string",
-      "label": "Polygon.io API Key",
-      "description": "Supplemental market data via Polygon.io. Free key at https://polygon.io/dashboard/signup",
+      "label": "Massive API Key",
+      "description": "Market data via Massive (polygon.io-compatible). Sign up at https://polygon.io/dashboard/signup",
       "secret": true,
       "required": false
     },

@@ -6,7 +6,7 @@ Supported providers:
   finnhub    - Finnhub.io: quotes, historical candles, company news, analyst ratings
   yfinance   - Yahoo Finance (unofficial): batch quotes, historical, news, analyst
   newsapi    - NewsAPI.org: news headlines only (no price data)
-  polygon    - Polygon.io / Massive: quotes, historical (requires paid for real-time)
+  massive    - Massive (polygon.io-compatible): quotes, historical, news
 
 Provider priority is resolved at runtime from INVESTORCLAW_PRICE_PROVIDER env var
 or passed explicitly to PriceProvider(primary=...).
@@ -394,20 +394,20 @@ class NewsAPIProvider:
         raise NotImplementedError("NewsAPI does not provide analyst ratings")
 
 
-class PolygonProvider:
+class MassiveProvider:
     """
-    Polygon.io / Massive provider.
-    Free tier: previous-day data only (no real-time streaming).
+    Massive (polygon.io-compatible) market data provider.
+    Starter plan: real-time quotes, full OHLCV history, news.
     Docs: https://polygon.io/docs/stocks
     """
     BASE = "https://api.polygon.io"
-    NAME = "polygon"
+    NAME = "massive"
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("MASSIVE_API_KEY") or os.getenv("POLYGON_API_KEY")
         if not self.api_key:
             raise ValueError("MASSIVE_API_KEY / POLYGON_API_KEY not set")
-        self._rl = _RateLimiter(5)  # free tier: 5 calls/minute
+        self._rl = _RateLimiter(100)  # Starter+ plan; free tier was 5/min
 
     def _get(self, path: str, params: dict = None) -> Optional[dict]:
         self._rl.wait()
@@ -441,7 +441,7 @@ class PolygonProvider:
     def get_quotes(self, symbols: List[str]) -> Dict[str, Dict]:
         """
         Batch quotes via snapshot endpoint (Starter+ plan) or prev-day individual calls.
-        Free tier: snapshot returns 403 → falls back to individual /v2/aggs/ticker/{sym}/prev.
+        Starter+ plan uses batch snapshot; free tier snapshot returns 403 → individual fallback.
         """
         # Try batch snapshot (requires paid plan)
         joined = ",".join(symbols)
@@ -515,7 +515,7 @@ class PolygonProvider:
         return articles
 
     def get_analyst_ratings(self, symbols: List[str]) -> Dict[str, Dict]:
-        raise NotImplementedError("Polygon free tier does not include analyst ratings")
+        raise NotImplementedError("Massive/Polygon does not provide analyst recommendations — use Finnhub or yfinance")
 
 
 class AlphaVantageProvider:
@@ -661,13 +661,17 @@ class AlphaVantageProvider:
         return results
 
 
+# Backwards-compat alias
+PolygonProvider = MassiveProvider
+
 # ─── Unified PriceProvider facade ─────────────────────────────────────────────
 
 PROVIDER_CLASSES = {
     "finnhub":       FinnhubProvider,
     "yfinance":      YFinanceProvider,
     "newsapi":       NewsAPIProvider,
-    "polygon":       PolygonProvider,
+    "massive":       MassiveProvider,
+    "polygon":       MassiveProvider,  # backwards-compat alias
     "alpha_vantage": AlphaVantageProvider,
 }
 
@@ -688,7 +692,7 @@ class PriceProvider:
     Data-type-aware, quota-sharding financial data provider facade.
 
     Different operation types are routed to optimal providers:
-      quotes     → yfinance (1 batch call, no quota) → Polygon (1 batch call, prev-day)
+      quotes     → yfinance (1 batch call, no quota) → Massive (1 batch call, Starter+)
                    → Finnhub (sequential, 60/min, no daily limit)
       history    → Alpha Vantage (adjusted close, 500/day) → Finnhub (candles, unlimited)
                    → yfinance
@@ -700,22 +704,23 @@ class PriceProvider:
       INVESTORCLAW_QUOTA_NEWSAPI=100
 
     Override routing via env vars:
-      INVESTORCLAW_PRICE_PROVIDER=auto|finnhub|yfinance|polygon|alpha_vantage
-      INVESTORCLAW_FALLBACK_CHAIN=yfinance,polygon  (comma-separated)
+      INVESTORCLAW_PRICE_PROVIDER=auto|finnhub|yfinance|massive|polygon|alpha_vantage
+      INVESTORCLAW_FALLBACK_CHAIN=yfinance,massive  (comma-separated)
     """
 
     # Per-provider daily call budgets (free tier defaults)
     _DEFAULT_QUOTAS: Dict[str, int] = {
         "finnhub":       999_999,   # no daily limit; rate-limited at 60/min
         "yfinance":      999_999,   # no limit; batch-friendly
-        "polygon":       999_999,   # no explicit daily limit; free = prev-day only
+        "massive":       999_999,   # no explicit daily limit on Starter+
+        "polygon":       999_999,   # backwards-compat alias
         "alpha_vantage": 500,       # 500/day with free key
         "newsapi":       100,       # 100/day free tier
     }
 
     # Preferred provider order per operation type (first available wins)
     _OP_ROUTING: Dict[str, List[str]] = {
-        "quotes":   ["yfinance", "polygon", "finnhub"],
+        "quotes":   ["yfinance", "massive", "finnhub"],
         "history":  ["alpha_vantage", "finnhub", "yfinance"],
         "news":     ["newsapi", "finnhub"],         # both used; results aggregated
         "analyst":  ["finnhub", "yfinance"],
@@ -1057,7 +1062,7 @@ class PortfolioUpdatePriority:
             0: {
                 "label":            "EOD Verification (all positions, once/day)",
                 "ttl_minutes":      1440,            # once per day
-                "quote_provider":   "polygon",       # prev-day cross-check
+                "quote_provider":   "massive",       # prev-day cross-check
                 "history_provider": None,
                 "news_providers":   [],
                 "quota_calls_per_refresh": len(self.tier1_symbols)
