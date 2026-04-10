@@ -51,11 +51,12 @@ That perspective is part of why the project emphasizes compact agent outputs, ra
 - Python 3.9+
 - OpenClaw >= 2026.0.0
 - API keys (all optional, all have free tiers):
-  - [Finnhub](https://finnhub.io/register) — real-time quotes and analyst ratings
+  - [Finnhub](https://finnhub.io/register) — real-time quotes and analyst ratings (recommended primary)
   - [NewsAPI](https://newsapi.org/register) — portfolio news correlation
-  - [Polygon.io](https://polygon.io/dashboard/signup) — analyst recommendations
-  - [Alpha Vantage](https://www.alphavantage.co/support/#api-key) — supplemental price data
+  - [Polygon.io](https://polygon.io/dashboard/signup) — analyst recommendations and historical data
+  - [Alpha Vantage](https://www.alphavantage.co/support/#api-key) — adjusted historical prices (500 req/day free)
   - [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) — Treasury benchmark yields
+- Without any API keys, InvestorClaw falls back to `yfinance` for quotes — see [Market Data Sources](#market-data-sources) for caveats
 
 ### Practical installation requirements
 
@@ -377,6 +378,47 @@ See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deploym
 | `nvidia/nemotron-3-super-120b-a12b` | 262K | NVIDIA NIM | On-premise / air-gapped; reasoning enabled |
 | `groq/llama-3.3-70b-versatile` | 128K | Groq | Fast inference; small portfolios only |
 | `openai/gpt-4.1-nano` | ~1M | OpenAI | ❌ **Not recommended** — 30K TPM Tier 1 limit |
+
+## Market Data Sources
+
+InvestorClaw fetches quotes, historical prices, analyst ratings, and news from a layered set of providers. The default routing is:
+
+| Data type | Primary | Fallback chain |
+|-----------|---------|----------------|
+| Quotes | `yfinance` (batch, no quota) | Polygon → Finnhub |
+| Historical prices | Alpha Vantage (500/day free) | Finnhub → yfinance |
+| News | NewsAPI + Finnhub (aggregated) | — |
+| Analyst ratings | Finnhub (unlimited) | yfinance |
+
+### The yfinance caveat
+
+`yfinance` is an **unofficial, reverse-engineered** library that scrapes Yahoo Finance's internal website endpoints. It is not sanctioned by Yahoo and has no SLA. Yahoo has broken these endpoints without notice in the past and may do so again.
+
+**There is no official paid Yahoo Finance API.** Yahoo discontinued their developer API in 2017 and has not replaced it. What is sometimes sold as "Yahoo Finance API" through marketplaces like RapidAPI is third-party data licensed separately — not a Yahoo product.
+
+For personal use and research, yfinance works well and has no API key requirement. For production or commercial use it carries ToS risk and availability uncertainty.
+
+### Upgrading to a more reliable data source
+
+InvestorClaw already supports paid-tier alternatives without code changes. Switch providers by setting `INVESTORCLAW_PRICE_PROVIDER` in `.env`:
+
+```bash
+# Use Finnhub as primary (real-time quotes on paid plan; solid free tier)
+INVESTORCLAW_PRICE_PROVIDER=finnhub
+FINNHUB_KEY=your_key_here
+
+# Use Polygon.io (real-time on paid; prev-day close on free)
+INVESTORCLAW_PRICE_PROVIDER=polygon
+MASSIVE_API_KEY=your_key_here
+
+# Fall back through multiple providers
+INVESTORCLAW_PRICE_PROVIDER=auto
+INVESTORCLAW_FALLBACK_CHAIN=finnhub,polygon,yfinance
+```
+
+**Finnhub** is the recommended upgrade path — it has a generous free tier, real-time quotes on paid plans, and is already the primary source for analyst ratings. Polygon.io is strong for historical data and institutional-grade real-time feeds.
+
+> Note: Finnhub's free tier does not include historical candles (returns 403). Set `INVESTORCLAW_PRICE_PROVIDER=auto` and provide both a Finnhub key and an Alpha Vantage key to cover the full data surface on free tiers.
 
 ## Local Consultation Model (Optional, Strongly Recommended)
 
