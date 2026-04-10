@@ -12,6 +12,7 @@ Provides holdings snapshots, performance metrics, bond analytics, analyst rating
 
 - Python 3.9+
 - OpenClaw >= 2026.0.0
+- **LLM with 128K+ context window** — 200K+ recommended; see [Choosing Your LLM](#choosing-your-operational-llm) below
 - API keys (all optional, all have free tiers):
   - [Finnhub](https://finnhub.io/register) for real-time quotes and analyst ratings
   - [NewsAPI](https://newsapi.org/register) for portfolio news correlation
@@ -100,8 +101,9 @@ Always invoke through `investorclaw.py`. The entry point loads `.env`, bootstrap
 | `session` | `session-init`, `risk-profile`, `calibrate` | `session_profile.json` |
 | `lookup` | `query`, `detail` | targeted stdout lookup |
 | `guardrails` | `guardrail`, `guardrails-prime`, `guardrails-status` | stdout |
-| `ollama-setup` | `model-setup`, `consult-setup` | stdout |
+| `update-identity` | `update_identity`, `identity` | — |
 | `run` | `pipeline` | pipeline stdout + artifacts |
+| `ollama-setup` | `model-setup`, `consult-setup` | stdout |
 | `setup` | `auto-setup`, `init`, `initialize` | setup output |
 
 Output files are written to `$INVESTOR_CLAW_REPORTS_DIR` (default: `~/portfolio_reports/`).
@@ -115,33 +117,79 @@ InvestorClaw follows a dual-output pattern:
 | `stdout` | Compact, token-aware JSON or human-readable command output | OpenClaw agent context |
 | Disk artifact | Full JSON, CSV, or Excel output | Human review and downstream tools |
 
-In practice, the core artifact names currently include `holdings.json`, `performance.json`, `bond_analysis.json`, `analyst_data.json`, `portfolio_news.json`, `portfolio_analysis.json`, `fixed_income_analysis.json`, and `session_profile.json`.
+The core artifact names are `holdings.json`, `performance.json`, `bond_analysis.json`, `analyst_data.json`, `portfolio_news.json`, `portfolio_analysis.json`, `fixed_income_analysis.json`, and `session_profile.json`.
 
 ## Choosing Your Operational LLM
 
 InvestorClaw uses a single-model architecture: one LLM handles routing, analysis, and guardrail enforcement via OpenClaw.
 
+### Context window requirements
+
+| Portfolio size | Typical token load | Minimum context |
+|---------------|-------------------|----------------|
+| Small (< 20 positions) | 10K–30K tokens | 64K |
+| Medium (20–100 positions) | 30K–80K tokens | 128K |
+| Large (100+ positions) | 80K–200K+ tokens | **200K** |
+| Multi-account with enrichment | 150K–400K+ tokens | **1M+** |
+
+> **Hard minimum: 128K.** Models below this will truncate mid-analysis. 200K+ is strongly recommended for any realistic portfolio. Multi-account or fully-enriched runs regularly exceed 300K tokens.
+
 ### Recommended: xAI Grok 4.1 Fast
 
 Model ID: `xai/grok-4-1-fast`
 
-- 2M token context window, handles large portfolios and long sessions without truncation
-- Fast reasoning mode with strong financial analysis quality
+- **2M token context window** — handles the largest portfolios, long sessions, and full enrichment without truncation
+- Strong financial reasoning; fastest response time among frontier models tested
 - Sign up at [console.x.ai](https://console.x.ai)
-- Cost: ~$10–20/month for typical portfolio analysis workloads
 
-### Alternative: OpenAI GPT-4.1-nano
+> **Compliance note**: `xai/grok-4-1-fast` requires running `/portfolio update-identity` at the start of each session. Without this step, guardrail disclaimer compliance drops to near zero — the model ignores its financial advice restrictions. This is an xAI quirk, not an InvestorClaw bug. The `update-identity` command patches the agent's `IDENTITY.md` with the active ruleset.
+>
+> Config aliases: `xai/grok-4-1-fast-reasoning` and `grok-reasoning` both resolve to the same model.
 
-Model ID: `openai/gpt-4.1-nano`
+### Alternative: Anthropic Claude Sonnet / Opus 4.x
 
-- 1M token context window, sufficient for most individual portfolios
-- Tier 1 rate limit is **30K TPM shared across all session activity**
+Model IDs: `anthropic/claude-sonnet-4-6`, `anthropic/claude-opus-4-6`
+
+- **200K token context window** — sufficient for most individual and small-account portfolios
+- Strong instruction-following and disclaimer compliance out of the box; does not require `update-identity`
+- Sonnet 4.6 is the cost-performance sweet spot for everyday analysis; Opus 4.6 for complex multi-factor synthesis
+- Sign up at [console.anthropic.com](https://console.anthropic.com)
+
+### Alternative: Google Gemini 2.5 Pro
+
+Model ID: `google/gemini-2.5-pro` (via OpenClaw Google provider)
+
+- **1M+ token context window** — best choice for very large multi-account portfolios that exceed Claude's window
+- Strong quantitative reasoning; useful for bond math and multi-factor correlation
+- Sign up at [aistudio.google.com](https://aistudio.google.com)
+
+### Alternative: OpenAI GPT-4.1
+
+Model ID: `openai/gpt-4.1`
+
+- **1M token context window** on GPT-4.1 (full)
+- Adequate financial reasoning; reliable disclaimer compliance
 - Sign up at [platform.openai.com](https://platform.openai.com)
-- Cost: ~$10–20/month for typical workloads
+
+> ⚠️ **Do not use GPT-4.1-nano** (`openai/gpt-4.1-nano`). Its Tier 1 rate limit is **30K TPM shared across all OpenClaw session activity**. Any concurrent agentic work will exhaust the budget before a full portfolio analysis completes. The context window and reasoning quality are also insufficient for complex multi-position analysis.
 
 ### On-Premise: NemoClaw (NVIDIA NIM)
 
-For organizations that cannot send portfolio data to external APIs, NemoClaw distributes NVIDIA Nemotron models via the OpenClaw NVIDIA NIM integration. See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deployment details.
+For organizations that cannot send portfolio data to external APIs, NemoClaw distributes NVIDIA Nemotron models via the OpenClaw NVIDIA NIM integration. Requires a GPU-capable inference host (CUDA 8.0+ recommended).
+
+See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deployment details.
+
+### Frontier model comparison
+
+| Model | Context | Compliance | Notes |
+|-------|---------|-----------|-------|
+| `xai/grok-4-1-fast` ⭐ | 2M | Needs `update-identity` each session | Primary recommendation |
+| `anthropic/claude-sonnet-4-6` | 200K | Excellent out of the box | Best for everyday use |
+| `anthropic/claude-opus-4-6` | 200K | Excellent out of the box | Best for complex synthesis |
+| `google/gemini-2.5-pro` | 1M+ | Good | Best for very large portfolios |
+| `openai/gpt-4.1` | 1M | Good | Solid alternative |
+| `openai/gpt-4.1-nano` | 128K | Unreliable | **Not recommended — rate limits too tight** |
+| NemoClaw (NIM) | varies | Good | On-premise / air-gapped deployments |
 
 ## Local Consultation Model (Optional)
 
@@ -157,7 +205,11 @@ INVESTORCLAW_CONSULTATION_ENDPOINT=http://localhost:11434
 INVESTORCLAW_CONSULTATION_MODEL=gemma4-consult
 ```
 
-`gemma4-consult` is the default recommended model. The consultation policy lives in `services/consultation_policy.py`. Today, tier-3 consultation is injected for analyst commands when enabled.
+`gemma4-consult` is the recommended default — a tuned Ollama derivative of `gemma4:e4b` (num_ctx=2048, num_predict=600, ~65 tok/s on RTX Ada Lovelace). Other tested models: `gemma4:e4b`, `nemotron-3-nano`, `qwen2.5:14b`. Run `/portfolio ollama-setup` to auto-detect available models and build the `gemma4-consult` Modelfile on your endpoint.
+
+**Hardware requirements for consultation**: 12+ GB VRAM, CUDA compute capability ≥ 8.0 (RTX 30xx / A-series / Ada Lovelace or newer), Ollama ≥ 0.20.x.
+
+The consultation policy lives in `services/consultation_policy.py`. Consultation is injected for analyst commands (tier-3 enrichment) when enabled; results are HMAC-signed to prevent fabrication.
 
 ## Portfolio File Format
 
