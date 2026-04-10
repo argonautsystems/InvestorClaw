@@ -383,12 +383,12 @@ See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deploym
 
 InvestorClaw fetches quotes, historical prices, analyst ratings, and news from a layered set of providers. The default routing is:
 
-| Data type | Primary | Fallback chain |
-|-----------|---------|----------------|
-| Quotes | `yfinance` (batch, no quota) | Polygon → Finnhub |
-| Historical prices | Alpha Vantage (500/day free) | Finnhub → yfinance |
-| News | NewsAPI + Finnhub (aggregated) | — |
-| Analyst ratings | Finnhub (unlimited) | yfinance |
+| Data type | Primary | Fallback chain | Free tier status |
+|-----------|---------|----------------|-----------------|
+| Quotes | `yfinance` (batch, no quota) | Polygon → Finnhub | yfinance: free but unofficial; Finnhub: ✅ tested |
+| Historical prices | Alpha Vantage (500 req/day) | Finnhub → yfinance | Finnhub candles: ❌ 403 on free tier |
+| News | NewsAPI + Finnhub (aggregated) | — | Both work on free tier |
+| Analyst ratings | Finnhub | yfinance | Finnhub free tier returns unreliable data; auto-falls back to yfinance |
 
 ### The yfinance caveat
 
@@ -398,27 +398,36 @@ InvestorClaw fetches quotes, historical prices, analyst ratings, and news from a
 
 For personal use and research, yfinance works well and has no API key requirement. For production or commercial use it carries ToS risk and availability uncertainty.
 
-### Upgrading to a more reliable data source
+### Finnhub free tier — what actually works
 
-InvestorClaw already supports paid-tier alternatives without code changes. Switch providers by setting `INVESTORCLAW_PRICE_PROVIDER` in `.env`:
+Finnhub has a free tier (60 req/min, no daily cap) that was tested against a live 215-symbol portfolio:
+
+| Endpoint | Free tier | Notes |
+|----------|-----------|-------|
+| Real-time quotes | ✅ Works | Batch-capable; 215-symbol portfolio in ~8s |
+| Company news | ✅ Works | Returns recent headlines |
+| Historical OHLCV candles | ❌ 403 | Requires paid plan (~$50+/month) |
+| Analyst recommendations | ⚠️ Unreliable | Free tier returns demo/placeholder data for many tickers; InvestorClaw auto-falls back to yfinance |
+
+The practical effect: with a free Finnhub key, quotes are resolved faster and more reliably than yfinance; analyst ratings still depend on yfinance as fallback. Historical price analysis still routes through Alpha Vantage (500 req/day free).
+
+### Switching providers
 
 ```bash
-# Use Finnhub as primary (real-time quotes on paid plan; solid free tier)
+# Finnhub as primary for quotes (recommended with free key)
 INVESTORCLAW_PRICE_PROVIDER=finnhub
 FINNHUB_KEY=your_key_here
 
-# Use Polygon.io (real-time on paid; prev-day close on free)
+# Full fallback chain (best coverage across free tiers)
+INVESTORCLAW_PRICE_PROVIDER=auto
+INVESTORCLAW_FALLBACK_CHAIN=finnhub,alpha_vantage,yfinance
+
+# Polygon.io (real-time on paid; prev-day close on free)
 INVESTORCLAW_PRICE_PROVIDER=polygon
 MASSIVE_API_KEY=your_key_here
-
-# Fall back through multiple providers
-INVESTORCLAW_PRICE_PROVIDER=auto
-INVESTORCLAW_FALLBACK_CHAIN=finnhub,polygon,yfinance
 ```
 
-**Finnhub** is the recommended upgrade path — it has a generous free tier, real-time quotes on paid plans, and is already the primary source for analyst ratings. Polygon.io is strong for historical data and institutional-grade real-time feeds.
-
-> Note: Finnhub's free tier does not include historical candles (returns 403). Set `INVESTORCLAW_PRICE_PROVIDER=auto` and provide both a Finnhub key and an Alpha Vantage key to cover the full data surface on free tiers.
+For paid upgrades: Finnhub's paid plans (~$50–$200/month) unlock historical candles and reliable analyst data. Polygon.io is the alternative for institutional-grade real-time feeds and deep historical coverage.
 
 ## Local Consultation Model (Optional, Strongly Recommended)
 
