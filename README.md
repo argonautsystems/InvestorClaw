@@ -138,58 +138,78 @@ InvestorClaw uses a single-model architecture: one LLM handles routing, analysis
 
 Model ID: `xai/grok-4-1-fast`
 
-- **2M token context window** — handles the largest portfolios, long sessions, and full enrichment without truncation
+- **~2M token context window** — handles the largest portfolios, long sessions, and full enrichment without truncation
 - Strong financial reasoning; fastest response time among frontier models tested
 - Sign up at [console.x.ai](https://console.x.ai)
 
 > **Compliance note**: `xai/grok-4-1-fast` requires running `/portfolio update-identity` at the start of each session. Without this step, guardrail disclaimer compliance drops to near zero — the model ignores its financial advice restrictions. This is an xAI quirk, not an InvestorClaw bug. The `update-identity` command patches the agent's `IDENTITY.md` with the active ruleset.
 >
-> Config aliases: `xai/grok-4-1-fast-reasoning` and `grok-reasoning` both resolve to the same model.
+> Config aliases: `xai/grok-4-1-fast-reasoning` and `grok-reasoning` both resolve to the same model. `xai/grok-4` (250K context) is a separate, smaller model — do not confuse them.
 
-### Alternative: Anthropic Claude Sonnet / Opus 4.x
+### High-context alternative: Google Gemini 3 Flash
 
-Model IDs: `anthropic/claude-sonnet-4-6`, `anthropic/claude-opus-4-6`
+Model ID: `google/gemini-3-flash-preview`
 
-- **200K token context window** — sufficient for most individual and small-account portfolios
-- Strong instruction-following and disclaimer compliance out of the box; does not require `update-identity`
-- Sonnet 4.6 is the cost-performance sweet spot for everyday analysis; Opus 4.6 for complex multi-factor synthesis
-- Sign up at [console.anthropic.com](https://console.anthropic.com)
-
-### Alternative: Google Gemini 2.5 Pro
-
-Model ID: `google/gemini-2.5-pro` (via OpenClaw Google provider)
-
-- **1M+ token context window** — best choice for very large multi-account portfolios that exceed Claude's window
-- Strong quantitative reasoning; useful for bond math and multi-factor correlation
+- **~1M token context window** — excellent for very large multi-account portfolios or fully-enriched analyst runs
+- Fast inference; good quantitative reasoning for bond math and multi-factor correlation
 - Sign up at [aistudio.google.com](https://aistudio.google.com)
+
+Lighter variant: `google/gemini-3.1-flash-lite-preview` — same context window, lower cost, reduced synthesis depth.
+
+### High-context alternative: Together AI / Llama 4 Maverick
+
+Model ID: `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
+
+- **~1M token context window** — handles large multi-account portfolios at competitive cost
+- Good general reasoning via Together AI hosted inference
+- Sign up at [together.ai](https://together.ai)
 
 ### Alternative: OpenAI GPT-4.1
 
 Model ID: `openai/gpt-4.1`
 
-- **1M token context window** on GPT-4.1 (full)
-- Adequate financial reasoning; reliable disclaimer compliance
+- **~1M token context window** — adequate for most individual and multi-account portfolios
+- Multimodal (text + image); solid instruction-following and disclaimer compliance
 - Sign up at [platform.openai.com](https://platform.openai.com)
 
-> ⚠️ **Do not use GPT-4.1-nano** (`openai/gpt-4.1-nano`). Its Tier 1 rate limit is **30K TPM shared across all OpenClaw session activity**. Any concurrent agentic work will exhaust the budget before a full portfolio analysis completes. The context window and reasoning quality are also insufficient for complex multi-position analysis.
+Newer OpenAI variants `openai/gpt-5.3-chat-latest` (391K context) and `openai/gpt-5.4` (266K context) are available but have smaller context windows — verify your full enriched session fits before using.
 
-### On-Premise: NemoClaw (NVIDIA NIM)
+> ⚠️ **Do not use GPT-4.1-nano** (`openai/gpt-4.1-nano`). Its Tier 1 rate limit is **30K TPM shared across all OpenClaw session activity**. Any concurrent agentic work exhausts the budget before a full portfolio analysis completes. Do not use it for InvestorClaw regardless of cost appeal.
 
-For organizations that cannot send portfolio data to external APIs, NemoClaw distributes NVIDIA Nemotron models via the OpenClaw NVIDIA NIM integration. Requires a GPU-capable inference host (CUDA 8.0+ recommended).
+### Fast inference: Groq (Llama)
 
-See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deployment details.
+For applications where latency matters more than context depth — dashboards, quick status checks, polling loops — Groq provides exceptionally fast Llama inference:
 
-### Frontier model comparison
+| Model | Context | Use case |
+|-------|---------|---------|
+| `groq/llama-3.3-70b-versatile` | 128K | Best Groq quality; small–medium portfolios |
+| `groq/llama-3.1-8b-instant` | 128K | Fastest response; limited reasoning depth |
+| `groq/openai/gpt-oss-120b` | 128K | OpenAI OSS 120B via Groq |
+| `groq/openai/gpt-oss-20b` | 128K | OpenAI OSS 20B via Groq |
 
-| Model | Context | Compliance | Notes |
-|-------|---------|-----------|-------|
-| `xai/grok-4-1-fast` ⭐ | 2M | Needs `update-identity` each session | Primary recommendation |
-| `anthropic/claude-sonnet-4-6` | 200K | Excellent out of the box | Best for everyday use |
-| `anthropic/claude-opus-4-6` | 200K | Excellent out of the box | Best for complex synthesis |
-| `google/gemini-2.5-pro` | 1M+ | Good | Best for very large portfolios |
-| `openai/gpt-4.1` | 1M | Good | Solid alternative |
-| `openai/gpt-4.1-nano` | 128K | Unreliable | **Not recommended — rate limits too tight** |
-| NemoClaw (NIM) | varies | Good | On-premise / air-gapped deployments |
+> 128K context caps these to small-to-medium portfolios. Not suitable for multi-account or fully-enriched sessions.
+
+### On-Premise: NVIDIA NIM
+
+Model ID: `nvidia/nemotron-3-super-120b-a12b`
+
+- **256K token context window** — suitable for medium-to-large individual portfolios
+- Runs via NVIDIA NIM inference infrastructure; ideal for air-gapped or on-premise deployments where portfolio data cannot leave the network
+- Also available through NemoClaw (NVIDIA's OpenClaw integration): see the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw)
+
+### Provider comparison
+
+| Model | Context | Provider | Notes |
+|-------|---------|---------|-------|
+| `xai/grok-4-1-fast` ⭐ | ~2M | xAI | **Primary recommendation**; needs `update-identity` each session |
+| `google/gemini-3-flash-preview` | ~1M | Google | Best high-context alternative |
+| `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | ~1M | Together AI | Good cost/context ratio |
+| `openai/gpt-4.1` | ~1M | OpenAI | Solid; multimodal |
+| `openai/gpt-5.3-chat-latest` | 391K | OpenAI | Newer; verify context fits |
+| `openai/gpt-5.4` | 266K | OpenAI | Newer; verify context fits |
+| `nvidia/nemotron-3-super-120b-a12b` | 256K | NVIDIA NIM | On-premise / air-gapped |
+| `groq/llama-3.3-70b-versatile` | 128K | Groq | Fast inference; small portfolios only |
+| `openai/gpt-4.1-nano` | ~1M | OpenAI | ❌ **Not recommended** — 30K TPM Tier 1 limit |
 
 ## Local Consultation Model (Optional)
 
