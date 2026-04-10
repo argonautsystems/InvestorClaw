@@ -129,38 +129,31 @@ Although development and validation were done on relatively powerful systems, In
 
 ## Installation
 
-> **ClawHub marketplace listing is in progress.** Until then, install directly from GitHub using the steps below.
+> **ClawHub marketplace listing is in progress.** Until then, install from GitHub.
 
-### Installing from GitHub (current method)
+### Ask your agent (easiest)
+
+If you have an OpenClaw or Claude agent available, just say:
+
+> Install InvestorClaw from https://github.com/perlowja/InvestorClaw.git
+
+The agent will clone the repo, register the plugin with `openclaw plugins install --link`, install Python dependencies, and restart the gateway.
+
+### Manual steps
 
 ```bash
-# 1. Clone the repository to a stable local path
 git clone https://github.com/perlowja/InvestorClaw.git ~/Projects/InvestorClaw
-
-# 2. Install Python dependencies
 pip install -r ~/Projects/InvestorClaw/requirements.txt
-
-# 3. Register the plugin with OpenClaw
 openclaw plugins install --link ~/Projects/InvestorClaw
-
-# 4. Configure API keys
 cp ~/Projects/InvestorClaw/.env.example ~/Projects/InvestorClaw/.env
 # Edit .env — add at minimum FINNHUB_KEY for market data
-
-# 5. Run first-time setup
 python3 ~/Projects/InvestorClaw/investorclaw.py setup
-
-# 6. Restart the OpenClaw gateway to load the plugin
 openclaw gateway restart
 ```
 
-Verify the plugin loaded after restart:
+Verify the plugin loaded:
 ```bash
 openclaw plugins inspect investorclaw
-```
-
-Run the smoke test to confirm the skill is fully operational:
-```bash
 python3 ~/Projects/InvestorClaw/tests_smoke.py
 ```
 
@@ -171,7 +164,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 pytest tests/ -v
 ```
 
-Guided setup and first-run helpers live under `setup/` and are invoked through the entry point. API key configuration is managed through `.env` (copied from `.env.example`) and optionally through the OpenClaw plugin config schema (`INVESTOR_CLAW_REPORTS_DIR`, `INVESTOR_CLAW_PORTFOLIO_DIR`, and provider key overrides).
+API key configuration is managed through `.env` (copied from `.env.example`) and optionally through the OpenClaw plugin config schema (`INVESTOR_CLAW_REPORTS_DIR`, `INVESTOR_CLAW_PORTFOLIO_DIR`, and provider key overrides).
 
 ## What Gets Installed
 
