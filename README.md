@@ -90,18 +90,21 @@ That perspective is part of why the project emphasizes compact agent outputs, ra
 
 InvestorClaw was developed and tested on the following reference systems:
 
-**STUDIO**
-- OS: macOS 26.5 (Apple Silicon, M1 Max)
+**Developer Workstation**
+- OS: macOS 26.5 (build 25F5042g, Apple Silicon M1 Max)
+- Python: 3.14.3
+- OpenClaw: 2026.4.9 (0512059)
 - role: primary development, control-path testing, OpenClaw-side workflow validation
 
-**CERBERUS**
-- OS: Debian 13 Linux
+**Inference Host**
+- OS: Debian GNU/Linux 13 (trixie)
+- Python: 3.13.5
 - CPU: AMD Ryzen Threadripper PRO 5945WX
-- GPU: NVIDIA RTX 4500 Ada Generation (24 GB VRAM), driver 595.58.03
+- GPU: NVIDIA RTX 4500 Ada Generation (23034 MiB VRAM), driver 595.58.03
 - Ollama: 0.20.3
 - role: local consultation model and GPU-backed enrichment testing
 
-Observed consultation models on CERBERUS: `gemma4-consult`, `gemma4:e4b`, `gemma4:e2b`, `nemotron-3-nano:30b-a3b-q4_K_M`
+Observed consultation models on the Inference Host: `gemma4-consult`, `gemma4:e4b`, `gemma4:e2b`, `nemotron-3-nano:30b-a3b-q4_K_M`
 
 ### Complexity note
 
@@ -302,7 +305,7 @@ Important cost guidance:
 
 ### Profile 3 — modest single-system deployment
 
-For a modest single-machine OpenClaw setup, InvestorClaw can still be useful without the full STUDIO/CERBERUS reference environment.
+For a modest single-machine OpenClaw setup, InvestorClaw can still be useful without the full Developer Workstation / Inference Host reference environment.
 
 Recommended practical approach:
 - start with **xAI Grok 4.1 Fast** as the operational model
