@@ -1,6 +1,8 @@
 # InvestorClaw
 
-![InvestorClaw Logo](assets/investorclaw-logo.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/perlowja/InvestorClaw/main/assets/investorclaw-logo.png" alt="InvestorClaw Logo" width="200"/>
+</p>
 
 Portfolio analysis skill for OpenClaw agents. **v1.0.0** | FINOS CDM 5.x | MIT License
 
