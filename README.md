@@ -406,28 +406,42 @@ Finnhub has a free tier (60 req/min, no daily cap) that was tested against a liv
 |----------|-----------|-------|
 | Real-time quotes | ✅ Works | Batch-capable; 215-symbol portfolio in ~8s |
 | Company news | ✅ Works | Returns recent headlines |
-| Historical OHLCV candles | ❌ 403 | Requires paid plan (~$50+/month) |
+| Historical OHLCV candles | ❌ 403 | Requires paid plan (see pricing note below) |
 | Analyst recommendations | ⚠️ Unreliable | Free tier returns demo/placeholder data for many tickers; InvestorClaw auto-falls back to yfinance |
 
 The practical effect: with a free Finnhub key, quotes are resolved faster and more reliably than yfinance; analyst ratings still depend on yfinance as fallback. Historical price analysis still routes through Alpha Vantage (500 req/day free).
 
+### Provider ranking by price and functionality
+
+| Provider | Free tier | Paid pricing | Quotes | History | News | Analyst | Notes |
+|----------|-----------|-------------|--------|---------|------|---------|-------|
+| **Massive** ⭐ | prev-day only | Starter plan (affordable) | ✅ Batch, 268ms/215 symbols | ✅ Full OHLCV | ✅ | ❌ | **Recommended paid upgrade** — best batch performance; polygon.io-compatible |
+| **Finnhub** | 60 req/min, no cap | ~$3,500/month | ✅ ~8s/215 symbols | ❌ 403 | ✅ | ⚠️ unreliable | Free tier useful for quotes/news; paid tier is expensive and not recommended |
+| **Alpha Vantage** | 500 req/day | Various | ✅ Sequential only | ✅ Adjusted daily | ⚠️ paid | ✅ Earnings proxy | Free tier limited to 500 req/day; good historical prices |
+| **yfinance** | Free (unofficial) | No paid tier | ✅ Batch, fast | ✅ | ✅ | ✅ | Unofficial Yahoo scraper; no SLA, no ToS support; default fallback |
+| **NewsAPI** | 100 req/day | Tiered | ❌ | ❌ | ✅ | ❌ | News headlines only |
+
+**Recommendation**:
+- **Free path**: use `INVESTORCLAW_PRICE_PROVIDER=auto` with `INVESTORCLAW_FALLBACK_CHAIN=finnhub,alpha_vantage,yfinance` — best coverage across free tiers
+- **Paid path**: use Massive (Starter plan) for quotes and history; yfinance as free fallback for analyst data
+
+> ⚠️ **Finnhub paid pricing note**: Finnhub's paid plans that unlock historical candles and reliable analyst data start at approximately **$3,500/month**. This is not suitable for personal or small-team use. For paid historical data, Massive (Starter plan) is the appropriate upgrade.
+
 ### Switching providers
 
 ```bash
-# Finnhub as primary for quotes (recommended with free key)
+# Massive (polygon.io-compatible, Starter plan — recommended for paid use)
+INVESTORCLAW_PRICE_PROVIDER=massive
+MASSIVE_API_KEY=your_key_here
+
+# Finnhub as primary for quotes (free tier — good for quotes/news)
 INVESTORCLAW_PRICE_PROVIDER=finnhub
 FINNHUB_KEY=your_key_here
 
-# Full fallback chain (best coverage across free tiers)
+# Full fallback chain (best free-tier coverage)
 INVESTORCLAW_PRICE_PROVIDER=auto
 INVESTORCLAW_FALLBACK_CHAIN=finnhub,alpha_vantage,yfinance
-
-# Massive (polygon.io-compatible, Starter+ plan recommended)
-INVESTORCLAW_PRICE_PROVIDER=massive
-MASSIVE_API_KEY=your_key_here
 ```
-
-For paid upgrades: Finnhub's paid plans (~$50–$200/month) unlock historical candles and reliable analyst data. Massive is the recommended paid upgrade for quotes and history — faster batch endpoint than Finnhub, full OHLCV history on Starter plan.
 
 ## Local Consultation Model (Optional, Strongly Recommended)
 

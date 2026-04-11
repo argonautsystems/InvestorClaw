@@ -27,17 +27,17 @@ Portfolio analysis for OpenClaw agents. **v1.0.0** | FINOS CDM 5.x | Educational
 |---------|---------|----------------------|
 | `/portfolio holdings` | `snapshot`, `prices` | `holdings.json` |
 | `/portfolio performance` | `analyze`, `returns` | `performance.json` |
-| `/portfolio bonds` | `bond-analysis` | `bond_analysis.json` |
+| `/portfolio bonds` | `bond-analysis`, `analyze-bonds` | `bond_analysis.json` |
 | `/portfolio analyst` | `analysts`, `ratings` | `analyst_data.json` |
 | `/portfolio news` | `sentiment` | `portfolio_news.json` |
 | `/portfolio analysis` | `portfolio-analysis` | `portfolio_analysis.json` |
-| `/portfolio synthesize` | `multi-factor`, `recommend` | *(compact stdout)* |
-| `/portfolio fixed-income` | `bond-strategy` | `fixed_income_analysis.json` |
+| `/portfolio synthesize` | `multi-factor`, `recommend`, `recommendations` | `portfolio_analysis.json` |
+| `/portfolio fixed-income` | `fixed-income-analysis`, `bond-strategy` | `fixed_income_analysis.json` |
 | `/portfolio report` | `export`, `csv`, `excel` | `portfolio_report.{csv,xlsx}` |
-| `/portfolio session` | `risk-profile`, `calibrate` | `session_profile.json` |
+| `/portfolio session` | `session-init`, `risk-profile`, `calibrate` | `session_profile.json` |
 | `/portfolio lookup` | `query`, `detail` | *(compact stdout — targeted .raw read)* |
-| `/portfolio guardrails` | `guardrail` | — |
-| `/portfolio setup` | `init`, `initialize` | — |
+| `/portfolio guardrails` | `guardrail`, `guardrails-prime`, `guardrails-status` | — |
+| `/portfolio setup` | `auto-setup`, `init`, `initialize` | — |
 | `/portfolio update-identity` | `update_identity`, `identity` | — |
 | `/portfolio run` | `pipeline` | *(compact stdout)* |
 | `/portfolio ollama-setup` | `model-setup`, `consult-setup` | *(stdout: model status)* |
