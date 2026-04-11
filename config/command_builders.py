@@ -6,13 +6,14 @@ Auto-detects input files and synthesizes output paths based on command type.
 
 import os
 from pathlib import Path
+from typing import Optional
 from services.consultation_policy import should_inject_tier3, get_consultation_limit
 
 _ERR_NO_HOLDINGS = "No holdings.json found. Run '/portfolio holdings' first."
 _ERR_NO_BONDS = "No bond_analysis.json found. Run '/portfolio bonds' first."
 
 
-def _find_holdings_file(reports_dir: Path) -> str | None:
+def _find_holdings_file(reports_dir: Path) -> Optional[str]:
     """Return the path to holdings.json, checking .raw/ first (new CDM location)."""
     raw_path = reports_dir / ".raw" / "holdings.json"
     if raw_path.exists():
