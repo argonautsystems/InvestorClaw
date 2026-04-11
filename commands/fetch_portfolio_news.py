@@ -442,9 +442,10 @@ class PortfolioNewsAnalyzer:
                 logger.warning(f"Could not apply mode-specific guardrails: {e}")
 
         if output_file:
-            result = DisclaimerWrapper.wrap_output(compact_report, "Portfolio News Analysis")
+            compact_for_file = dict(compact_report)
+            compact_for_file['output_file'] = output_file
             with open(output_file, 'w') as f:
-                json.dump(result, f, indent=2, default=str)
+                json.dump(serialize_news_compact(compact_for_file), f, indent=2, default=str)
             logger.info(f"Compact news digest saved to {output_file}")
 
         return compact_report
