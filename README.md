@@ -381,79 +381,82 @@ See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deploym
 
 ## Market Data Sources
 
-InvestorClaw fetches quotes, historical prices, analyst ratings, and news from a layered set of providers. **Massive is the recommended paid provider** — real-time batch quotes, full OHLCV history, and news on a single Starter plan key. For users who want to start for free, yfinance (no key required) and Finnhub free provide a solid no-cost baseline.
+InvestorClaw supports multiple market data providers. No single provider covers every data type at every price point — the sections below explain what each provider actually delivers, where the gaps are, and which configuration to use.
 
-### Free tier comparison
+### Provider capabilities (honest assessment)
 
-| Provider | Quotes | History | News | Analyst | Limits | Notes |
-|----------|--------|---------|------|---------|--------|-------|
-| **yfinance** | ✅ Batch, fast | ✅ | ✅ | ✅ | No quota | No API key required; unofficial scraper — see caveat below |
-| **Finnhub** | ✅ ~8s/215 symbols | ❌ 403 | ✅ | ⚠️ unreliable | 60 req/min, no daily cap | Real-time quotes and news work well; history and analyst data require paid tier |
-| **Massive** (free) | ⚠️ Prev-day only | ❌ | ✅ | ❌ | Limited | Free tier: no real-time quotes; Starter plan unlocks everything |
-| **Alpha Vantage** | ✅ Sequential only | ✅ Adjusted daily | ❌ | ✅ Earnings proxy | 500 req/day | Best free-tier source for adjusted historical prices |
-| **NewsAPI** | ❌ | ❌ | ✅ | ❌ | 100 req/day | News headlines only; no price data |
+All rows reflect live testing or published free-tier specs. "Tested" means a real API call was made against a live portfolio.
 
-**Best free-tier path**: `INVESTORCLAW_PRICE_PROVIDER=auto` with `INVESTORCLAW_FALLBACK_CHAIN=finnhub,alpha_vantage,yfinance` — Finnhub handles real-time quotes, Alpha Vantage covers historical prices (500 req/day), yfinance fills in everything else.
+| Provider | Quotes | History | News | Analyst | Free tier | Paid tier |
+|----------|--------|---------|------|---------|-----------|-----------|
+| **Massive** ⭐ | ✅ Batch — 268ms/215 symbols (tested) | ✅ Full OHLCV | ✅ | ❌ | Prev-day only | Starter plan — affordable, recommended |
+| **yfinance** | ✅ Batch, fast | ✅ | ✅ | ✅ | Unlimited — no key | No paid tier exists |
+| **Finnhub** | ✅ ~8s/215 symbols (tested) | ❌ 403 on free | ✅ (tested) | ⚠️ unreliable on free | 60 req/min, no daily cap | ~$3,500/month — enterprise only |
+| **Alpha Vantage** | ✅ Sequential only | ✅ Adjusted EOD | ❌ | ✅ Earnings proxy | 25 req/day (5/min) | Tiered paid plans |
+| **NewsAPI** | ❌ | ❌ | ✅ | ❌ | 100 req/day | Tiered paid plans |
 
-### Massive — recommended paid provider ⭐
+**Key gaps no free provider fills cleanly:**
+- Reliable analyst buy/sell/hold consensus: yfinance works but is unofficial; Finnhub free returns placeholder data for many tickers
+- Real-time batch quotes at speed: requires Massive Starter or better
+- Historical OHLCV beyond Alpha Vantage's 25-req/day limit: requires Massive Starter
 
-Massive (polygon.io-compatible API) is the recommended paid upgrade for InvestorClaw. A single Starter plan key covers real-time batch quotes, full OHLCV history, and news — everything needed for a complete portfolio workflow without patching together multiple free tiers.
+**Notes on providers not listed:**
+- **Finnhub paid**: ~$3,500/month enterprise pricing — no personal tier, not a realistic upgrade path
+- **Financial Modeling Prep (FMP)**: Free tier was gutted in August 2025 migration; quotes, history, and news all return 402 on new accounts. Not supported.
+- **Google Finance, Bing**: No usable API for either. Google's official finance API was discontinued in 2012; Bing Search API shut down in 2025.
+- **IEX Cloud**: Shut down August 2024. Do not use.
 
-Live test results on Starter plan: **268ms for a 215-symbol portfolio** via the batch snapshot endpoint.
+### Recommended configurations
+
+#### Config A — No API keys (zero cost)
+
+Uses yfinance for everything. Works immediately with no registration. Suitable for getting started and testing the skill before committing to any API keys.
 
 ```bash
-INVESTORCLAW_PRICE_PROVIDER=massive
-MASSIVE_API_KEY=your_key_here
+INVESTORCLAW_PRICE_PROVIDER=yfinance
 ```
 
-When a Massive key is configured, InvestorClaw routes quotes and history through Massive first, with yfinance as the free fallback for analyst data (Massive does not provide analyst recommendations).
+**Caveat**: yfinance is an unofficial Yahoo Finance scraper with no SLA. Yahoo has broken it without notice before. There is no official paid Yahoo Finance API — Yahoo discontinued their developer API in 2017 and never replaced it. For personal use it is fine; treat it as a convenience, not infrastructure.
 
-### Paid tier comparison
+---
 
-| Provider | Quotes | History | News | Analyst | Approx. cost | Notes |
-|----------|--------|---------|------|---------|-------------|-------|
-| **Massive** ⭐ | ✅ Batch, 268ms/215 symbols | ✅ Full OHLCV | ✅ | ❌ | Starter plan — affordable for personal use | **Recommended** |
-| **Alpha Vantage** | ✅ Sequential | ✅ Premium adjusted | ✅ | ✅ | Tiered — free tier usually sufficient | Free tier covers most InvestorClaw history needs |
-| **Finnhub** | ✅ | ✅ | ✅ | ✅ | ~$3,500/month | Enterprise pricing only — no personal tier |
+#### Config B — Free with API keys (better reliability)
 
-> ⚠️ **Finnhub paid pricing**: Finnhub's paid plans start at approximately **$3,500/month**. There is no personal or small-team tier. Do not treat Finnhub as a paid upgrade path — use Massive (Starter plan) for paid quotes and history instead.
-
-### The yfinance caveat
-
-`yfinance` is an **unofficial, reverse-engineered** library that scrapes Yahoo Finance's internal website endpoints. It is not sanctioned by Yahoo and has no SLA. Yahoo has broken these endpoints without notice in the past and may do so again.
-
-**There is no official paid Yahoo Finance API.** Yahoo discontinued their developer API in 2017 and has not replaced it. What is sometimes sold as "Yahoo Finance API" through marketplaces like RapidAPI is third-party data licensed separately — not a Yahoo product.
-
-For personal use and research, yfinance works well and has no API key requirement. For production or commercial use it carries ToS risk and availability uncertainty.
-
-### Finnhub free tier — what actually works
-
-Finnhub has a free tier (60 req/min, no daily cap) that was tested against a live 215-symbol portfolio:
-
-| Endpoint | Free tier | Notes |
-|----------|-----------|-------|
-| Real-time quotes | ✅ Works | Batch-capable; 215-symbol portfolio in ~8s |
-| Company news | ✅ Works | Returns recent headlines |
-| Historical OHLCV candles | ❌ 403 | Requires paid plan (~$3,500/month — not viable for personal use) |
-| Analyst recommendations | ⚠️ Unreliable | Free tier returns demo/placeholder data for many tickers; InvestorClaw auto-falls back to yfinance |
-
-The practical effect: with a free Finnhub key, quotes are resolved faster and more reliably than yfinance alone; analyst ratings still depend on yfinance as fallback. Historical price analysis routes through Alpha Vantage (500 req/day free).
-
-### Switching providers
+Splits responsibilities across free tiers: Finnhub for real-time quotes and news, Alpha Vantage for historical prices, yfinance as the analyst and fallback layer.
 
 ```bash
-# Massive — recommended paid configuration
-INVESTORCLAW_PRICE_PROVIDER=massive
-MASSIVE_API_KEY=your_key_here
-
-# Finnhub free — good for quotes and news, no cost
-INVESTORCLAW_PRICE_PROVIDER=finnhub
-FINNHUB_KEY=your_key_here
-
-# Auto fallback chain — best free-tier coverage
 INVESTORCLAW_PRICE_PROVIDER=auto
 INVESTORCLAW_FALLBACK_CHAIN=finnhub,alpha_vantage,yfinance
+FINNHUB_KEY=your_key_here
+ALPHA_VANTAGE_KEY=your_key_here
+NEWSAPI_KEY=your_key_here        # optional — adds supplemental news sources
 ```
+
+Register free keys at:
+- Finnhub: https://finnhub.io/register (60 req/min, no daily cap)
+- Alpha Vantage: https://www.alphavantage.co/support/#api-key (25 req/day, 5/min)
+- NewsAPI: https://newsapi.org/register (100 req/day)
+
+**What this buys over Config A**: Finnhub quotes are faster and more reliable than yfinance (~8s vs variable for 215 symbols); Alpha Vantage provides officially-licensed adjusted historical prices. Analyst ratings still fall back to yfinance — no free provider delivers reliable consensus ratings.
+
+**Limit to watch**: Alpha Vantage's 25 req/day cap. Historical analysis on large portfolios can exhaust this quickly. yfinance picks up the slack but with unofficial data.
+
+---
+
+#### Config C — Massive Starter (recommended for regular use) ⭐
+
+Massive (polygon.io-compatible) handles real-time quotes and full OHLCV history on a single Starter plan key. Finnhub free adds news. yfinance covers analyst ratings, which no paid provider at a personal price point provides.
+
+```bash
+INVESTORCLAW_PRICE_PROVIDER=massive
+MASSIVE_API_KEY=your_key_here
+FINNHUB_KEY=your_key_here        # free — adds news aggregation alongside Massive
+```
+
+Live benchmark on Starter plan: **268ms for a 215-symbol portfolio** via the batch snapshot endpoint.
+
+**What Massive covers**: real-time quotes (batch), full OHLCV history, news.  
+**What still uses yfinance**: analyst ratings — Massive does not provide analyst recommendations.
 
 ## Local Consultation Model (Optional, Strongly Recommended)
 
