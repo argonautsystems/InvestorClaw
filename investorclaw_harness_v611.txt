@@ -286,6 +286,7 @@ WF41 Qwen3-235B Together AI run session=ic-pm-qwen3 | model=together/Qwen/Qwen3-
   Watch: QC4/QC5 (strong reasoning model — may produce richer synthesis) | QC12 429s (tput-optimized, check rate limits)
   Note: 235B dense-equivalent MoE; throughput-optimized variant; expected strong reasoning; 256K ctx limit (sufficient for W1–W8)
   ⚠️ DEVIATION (IC-RUN-20260413-002): Qwen3-235B-A22B-Instruct-2507-tput service unavailable on Together AI. Llama-3.3-70B-Instruct-Turbo (Together AI) substituted but hit credit limit exhaustion at W1. FINAL SUBSTITUTED MODEL: groq/qwen/qwen3-32b (Groq, same Qwen3 architecture, 32B params, 131K ctx, $0.59/$0.79/M). Session ic-pm-qwen41 used (ic-pm-qwen3 had residual Llama-3.3 context). QC9 partial: schema fields missing from some responses.
+  ✅ RERUN (IC-RUN-20260413-003 WF41b): Qwen3-235B-A22B-Instruct-2507-tput confirmed available on Together AI (transient outage during -002). Session ic-pm-qwen42. QC3=14, QC4=~23, QC5=~247 words, QC9=partial (schema fields absent — same failure mode as Qwen3-32B), QC10=1⚠️, QC11=79k/262k (30%), QC8=0, synthesis_basis=structured (fresh clone, no CERBERUS). Verdict: DEGRADED. tput-optimized variant underperforms Qwen3-32B on all prose metrics despite 7× parameter count — throughput optimization reduces output completeness for financial synthesis tasks.
 
 CROSS-MODEL COMPARISON TABLE (required in final report — one row per QC dimension + arena priors rows):
   NOTE: gemma4-consult (WF39) is CONSULTATIVE not standalone — paired with grok-4-1-fast-reasoning as operational LLM; data sourced from Phase 1–4 SI/medium/balanced/gemma4_consult matrix run; represents combined-system quality (base+CERBERUS). No Arena score (local model). QC11 tokens = grok-4-1-fast tokens only (CERBERUS is local, zero API cost).
@@ -423,3 +424,27 @@ NOT RECOMMENDED FOR PRODUCTION: groq/qwen/qwen3-32b — QC9 partial compliance; 
 
 MODEL RESET CONFIRMED: openclaw models set xai/grok-4-1-fast-reasoning executed after Phase 5 completion. ic-harness-v612 route restored.
 ═══════════════════════════════════════════════════════════ END IC-RUN-20260413-002 FINAL REPORT ═══════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════ IC-RUN-20260413-003 ADDENDUM ═══════════════════════════════════════════════════════════
+Run ID: IC-RUN-20260413-003 | Completed: 2026-04-13 | Session: ic-pm-qwen42
+WF41b: Qwen3-235B-A22B-Instruct-2507-tput (Together AI) — rerun of WF41 with original target model
+
+PURPOSE: WF41 in IC-RUN-20260413-002 used groq/qwen/qwen3-32b as substitute because Qwen3-235B was unavailable (transient Together AI outage). This run confirms the original model is available and tests its actual performance.
+
+RESULTS (single_investor/medium/balanced, no CERBERUS, synthesis_basis=structured):
+  QC1=pass | QC2=8/8 | QC3=14 | QC4=~23 | QC5=~247 words | QC6=100% (5/5) | QC7=99.5% (215/216)
+  QC8=0 | QC9=partial⚠️ (schema_version/phase5_wf_id/model_under_test absent) | QC10=1⚠️ | QC11=79k/262k (30%)
+  QC12=0 | QC13=pass | QC14=pass | CERBERUS_active=no | synthesis_basis=structured | is_heuristic=N/A
+
+COMPARISON vs WF41 (Qwen3-32B/Groq):
+  QC3: 14 vs ~21 — 235B-tput loses
+  QC4: ~23 vs ~40 — note WF41 had CERBERUS enrichment active; fair comparison at ~23 vs ~25 structured-only estimate — 235B-tput roughly equivalent
+  QC5: ~247 vs 302 words — 235B-tput loses
+  QC9: partial (both) — same failure mode, schema fields absent in both Qwen3 variants
+  QC10: 1 (235B-tput) vs 2 (32B) — 235B-tput worse on disclaimer completeness
+  QC11: 79k vs 30k — 235B-tput uses 2.6× more tokens for less output
+
+VERDICT: DEGRADED — throughput-optimized 235B model underperforms Qwen3-32B on all prose metrics despite 7× parameter count. The -tput variant prioritizes inference speed over output completeness, which is a direct mismatch for InvestorClaw's synthesis quality requirements. QC9 partial is a Qwen3 architecture-level issue (not model-size dependent — both 32B and 235B variants exhibit it). Not recommended for production without system-prompt schema enforcement hardening.
+
+RECOMMENDATION UPDATE: Qwen3-32B/Groq (WF41) remains the better Qwen3 option for InvestorClaw. For Together AI Qwen3 specifically, consider the non-tput Thinking-2507 variant (if tool-use compatible) or await a standard Instruct-2507 release without the throughput optimization.
+═══════════════════════════════════════════════════════════ END IC-RUN-20260413-003 ADDENDUM ═══════════════════════════════════════════════════════════
