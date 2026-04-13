@@ -19,7 +19,7 @@ InvestorClaw is an OpenClaw skill with two distinct use cases:
 
 Both modes share the same guardrails that enforce educational-only output.
 
-- **What it does**: fetches live quotes (Finnhub → Massive → Alpha Vantage → yfinance), analyst consensus, news summaries, fixed-income analytics, and optional LLM consultation synthesis via a local Ollama model (CERBERUS tier-3 enrichment).
+- **What it does**: fetches live quotes (Finnhub → Massive → Alpha Vantage → yfinance), analyst consensus, news summaries, fixed-income analytics, and optional LLM consultation synthesis via a local Ollama model (tier-3 enrichment).
 - **What it does not do**: execute trades, replace your broker portal, or give investment advice.
 - **Time to first report**: roughly 5 minutes from `git clone` to `holdings.json` on an existing OpenClaw install.
 - **No API keys required to start**: falls back to `yfinance` automatically; add keys later for better reliability.
@@ -318,7 +318,7 @@ Not every portfolio benefits equally from the local consultation model. The synt
 **Operational LLM**: xAI Grok 4.1 Fast  
 Model ID: `xai/grok-4-1-fast` (alias: `grok-reasoning`)
 
-**Consultative LLM**: `gemma4-consult` on local Ollama (CERBERUS or equivalent ~16 GB VRAM GPU)
+**Consultative LLM**: `gemma4-consult` on local Ollama (~16 GB VRAM GPU or equivalent)
 
 This is the recommended deployment for initial release. It is the configuration InvestorClaw was designed around and the one validated by the test harness. It gives:
 - persistent-session context headroom (~2M tokens — no session truncation on large portfolios)
@@ -441,7 +441,7 @@ The headline finding is that **a local 10B-parameter model running on a single G
 
 | Configuration | Operational LLM | Enrichment model | Mode |
 |---------------|-----------------|------------------|------|
-| **Combined (recommended)** | `xai/grok-4-1-fast-reasoning` | `gemma4-consult` (CERBERUS, Ollama) | Tier-3 enriched |
+| **Combined (recommended)** | `xai/grok-4-1-fast-reasoning` | `gemma4-consult` (local Ollama) | Tier-3 enriched |
 | True baseline | `xai/grok-4-1-fast-reasoning` | none | Heuristic |
 | WF36 | `openai/gpt-5.4` | none | Heuristic |
 | WF37 | `xai/grok-4.20-0309-non-reasoning` | none | Heuristic |
@@ -451,7 +451,7 @@ The headline finding is that **a local 10B-parameter model running on a single G
 
 Scores are measured against the portfolio synthesis command output — the highest-value single response in a typical InvestorClaw session.
 
-| Metric | Combined (grok + CERBERUS) | Grok 4.20 | True baseline | GPT-5.4 | Gemini 3.1 Pro |
+| Metric | Combined (grok + gemma4-consult) | Grok 4.20 | True baseline | GPT-5.4 | Gemini 3.1 Pro |
 |--------|:--------------------------:|:---------:|:-------------:|:-------:|:--------------:|
 | **QC3** Ticker mentions | **8** | 8 | 7 | 2 | 0 |
 | **QC4** Metric citations | **120** | 11 | 8 | 6 | 5 |
@@ -478,7 +478,7 @@ These controls are absent in all cloud-only configurations regardless of model c
 
 When tier-3 enrichment is not available and the operational model must do all synthesis work directly, the ranking from this harness run is:
 
-**1. Grok 4.20** (`xai/grok-4.20-0309-non-reasoning`) — best premium-only result. Matched CERBERUS on ticker density (QC3=8), highest metric count of the cloud-only group (QC4=11), and uniquely added cross-holding news sentiment correlation (TXG, AMD, AEIS, AIR) that no other model surfaced. Synthesis remained portfolio-specific throughout all workflow steps.
+**1. Grok 4.20** (`xai/grok-4.20-0309-non-reasoning`) — best premium-only result. Matched the enriched configuration on ticker density (QC3=8), highest metric count of the cloud-only group (QC4=11), and uniquely added cross-holding news sentiment correlation (TXG, AMD, AEIS, AIR) that no other model surfaced. Synthesis remained portfolio-specific throughout all workflow steps.
 
 **2. grok-4-1-fast-reasoning (true baseline)** — marginally below Grok 4.20 on density metrics (QC3=7, QC4=8) but noticeably more compact. No padding. Functions as the reliable operational default.
 
@@ -510,7 +510,7 @@ The harness is at `investorclaw_harness_v611.txt` in the repository root. To rep
 
 ```bash
 # Requires OpenClaw gateway running with investorclaw plugin loaded
-# Requires CERBERUS (or equivalent Ollama host) for tier-3 enrichment steps
+# Requires a local Ollama host for tier-3 enrichment steps
 # Full run covers 39 workflow checkpoints across 5 phases
 ```
 
