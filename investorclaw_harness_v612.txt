@@ -1,4 +1,4 @@
-INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | Min commit: 33e5442 | Session: ic-harness-v612
+INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260413-007 (LATEST 2026-04-13) | Min commit: 33e5442 | Session: ic-harness-v612
 ═══════════════════════════════════════════════════════════ CAPABILITIES ═══════════════════════════════════════════════════════════
 CAP1 ORCHESTRATION openclaw agent --session-id ic-harness-v612 -m "<instruction>" (W0.4+)
 CAP2 REMEDIATION Claude directly: edit source → commit ARGONAS → push GitHub → restart W0 OpenClaw detects+suggests. Claude verifies then acts. Not optional.
