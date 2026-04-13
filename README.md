@@ -349,14 +349,18 @@ Why `gemma4-consult` specifically:
 
 **For simple portfolios this caveat does not apply.** If your holdings are primarily ETFs, broad index funds, and a small number of ESPPs, there is little per-holding analyst data to enrich in the first place. Cloud-only output quality for allocation analysis, bond analytics, and sector breakdown is good.
 
-**Recommended cloud-only models** (ranked by harness performance for complex portfolios):
+**Recommended cloud-only models** (ranked by harness performance; QC scores from Harness V6.1.2 synthesis step):
 
-1. **xAI Grok 4.1 Fast** — `xai/grok-4-1-fast` (~2M context) — primary recommendation even without local enrichment; best agentic session calibration of the group
-2. **xAI Grok 4.20** — `xai/grok-4.20-0309-non-reasoning` — best synthesis density of any cloud-only configuration tested; uniquely added cross-holding news sentiment in harness runs
-3. **Together AI / Llama 4 Maverick** — `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` (~1M context) — good cost/context ratio; untested in harness
-4. **Together AI / Qwen3-235B** — `together/Qwen/Qwen3-235B-A22B-FP8-tput` (262K context) — strong reasoning; throughput-optimized; untested in harness
-5. **OpenAI GPT-5.4** — `openai/gpt-5.4` (~272K context) — produced shallower synthesis than the default baseline in harness testing despite higher cost; see [Benchmark Results](#benchmark-results--harness-v612-2026-04-13)
-6. **Google Gemini 3.1 Pro** — `google/gemini-3.1-pro-preview` (~1M context) — diverged to generic educational content in the synthesis step during harness testing; individual commands worked correctly; not recommended as primary for complex portfolios
+| Rank | Model | Context | QC3 | QC4 | QC5 | Notes |
+|------|-------|---------|:---:|:---:|:---:|-------|
+| 1 | `xai/grok-4.20-0309-non-reasoning` | ~1M | 8 | 11 | 260 | **Best cloud-only synthesis tested** — matched enriched tier on ticker density; uniquely added cross-holding news sentiment (TXG, AMD, AIR) |
+| 2 | `xai/grok-4-1-fast-reasoning` | ~2M | 7 | 8 | 200 | **Reliable operational default** — concise, accurate, best agentic session calibration; 2M context handles any portfolio size |
+| 3 | `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | ~1M | — | — | — | Good cost/context ratio; not harness-tested |
+| 4 | `together/Qwen/Qwen3-235B-A22B-FP8-tput` | 262K | — | — | — | Strong reasoning, throughput-optimized; not harness-tested |
+| 5 | `openai/gpt-5.4` | ~272K | 2 | 6 | 180 | ⚠️ **Scored below the free baseline on all synthesis metrics** despite higher cost — synthesis collapsed to high-level talking points; not recommended for complex portfolios |
+| 6 | `google/gemini-3.1-pro-preview` | ~1M | 0 | 5 | 175 | ❌ **Failed synthesis task** — produced generic allocation scenario table instead of portfolio-specific analysis; zero ticker mentions; individual commands work correctly but synthesis routing diverges on complex portfolios |
+
+> **Harness context**: QC3 = ticker mentions in synthesis output, QC4 = metric citations, QC5 = word count. Tested on a 270-holding, $2.59M multi-account portfolio. Simple ETF portfolios will not show the same divergence — see [Benchmark Results](#benchmark-results--harness-v612-2026-04-13).
 
 Important cost guidance:
 - frontier models are often reasonable for **specific InvestorClaw sessions**
@@ -369,7 +373,7 @@ Important cost guidance:
 
 If you are new to InvestorClaw or running a modest single-machine OpenClaw setup:
 
-1. **Start with Profile 2** using `xai/grok-4-1-fast` as the operational model. Run through the basic portfolio workflows and assess whether synthesis depth meets your needs.
+1. **Start with Profile 2** using `xai/grok-4-1-fast-reasoning` as the operational model. Run through the basic portfolio workflows and assess whether synthesis depth meets your needs.
 2. **Add local enrichment when ready**: if you have or acquire a compatible GPU, install Ollama, pull `gemma4-consult`, and set `INVESTORCLAW_CONSULTATION_ENABLED=true` in `.env`. The enrichment layer activates automatically on the next session.
 3. **Use premium frontier models selectively** for high-value InvestorClaw sessions rather than as the always-on OpenClaw default.
 
@@ -410,17 +414,18 @@ See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deploym
 
 ### Provider comparison
 
-| Model | Context | Provider | Notes |
-|-------|---------|---------|-------|
-| `xai/grok-4-1-fast` | ~2M | xAI | **Primary recommendation**; needs `update-identity` each session |
-| `google/gemini-3.1-pro-preview` | ~1M | Google | Best high-context alternative; reasoning enabled |
-| `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | ~1M | Together AI | Good cost/context ratio |
-| `together/Qwen/Qwen3-235B-A22B-FP8-tput` | 262K | Together AI | Strong reasoning; throughput-optimized |
-| `openai/gpt-5.4` | ~272K | OpenAI | Strong reasoning; verify session fits |
-| `openai/gpt-5.3-chat-latest` | ~400K | OpenAI | Verify session fits |
-| `nvidia/nemotron-3-super-120b-a12b` | 262K | NVIDIA NIM | On-premise / air-gapped; reasoning enabled |
-| `groq/llama-3.3-70b-versatile` | 128K | Groq | Fast inference; small portfolios only |
-| `openai/gpt-4.1-nano` | ~1M | OpenAI | Not recommended — 30K TPM Tier 1 limit |
+| Model | Context | Provider | Harness | Notes |
+|-------|---------|---------|:-------:|-------|
+| `xai/grok-4-1-fast-reasoning` | ~2M | xAI | ✅ QC4=8 | **Hybrid config operational model**; reliable cloud-only baseline; needs `update-identity` each session |
+| `xai/grok-4.20-0309-non-reasoning` | ~1M | xAI | ✅ QC4=11 | **Best cloud-only synthesis tested**; added news sentiment cross-referencing |
+| `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | ~1M | Together AI | — | Good cost/context ratio |
+| `together/Qwen/Qwen3-235B-A22B-FP8-tput` | 262K | Together AI | — | Strong reasoning; throughput-optimized |
+| `openai/gpt-5.4` | ~272K | OpenAI | ⚠️ QC4=6 | Scored below free baseline on synthesis density in harness testing |
+| `openai/gpt-5.3-chat-latest` | ~400K | OpenAI | — | Verify session fits |
+| `google/gemini-3.1-pro-preview` | ~1M | Google | ❌ QC4=5 | Synthesis diverged to generic content in harness; zero ticker mentions |
+| `nvidia/nemotron-3-super-120b-a12b` | 262K | NVIDIA NIM | — | On-premise / air-gapped; reasoning enabled |
+| `groq/llama-3.3-70b-versatile` | 128K | Groq | — | Fast inference; small portfolios only |
+| `openai/gpt-4.1-nano` | ~1M | OpenAI | — | Not recommended — 30K TPM Tier 1 limit |
 
 ---
 
