@@ -448,3 +448,36 @@ VERDICT: DEGRADED — throughput-optimized 235B model underperforms Qwen3-32B on
 
 RECOMMENDATION UPDATE: Qwen3-32B/Groq (WF41) remains the better Qwen3 option for InvestorClaw. For Together AI Qwen3 specifically, consider the non-tput Thinking-2507 variant (if tool-use compatible) or await a standard Instruct-2507 release without the throughput optimization.
 ═══════════════════════════════════════════════════════════ END IC-RUN-20260413-003 ADDENDUM ═══════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════ IC-RUN-20260413-004 ADDENDUM (Groq Extended Testing) ═══════════════════════════════════════════════════════════
+Run ID: IC-RUN-20260413-004 | Completed: 2026-04-13 | Session prefix: ic-pm-{kimi-groq,scout,llama33-groq}
+Groq provider extended test — 3 additional models; config fixes: llama-4-scout ID corrected (added meta-llama/ prefix + -instruct suffix); kimi-k2-instruct added to Groq models + aliases.
+
+WF42 — groq/moonshotai/kimi-k2-instruct | Session: ic-pm-kimi-groq | QC11: 26k/131k (20%)
+  QC1=pass | QC2=8/8 | QC3=~5 | QC4=~9 | QC5=~144 words | QC6=100% | QC7=99.5% | QC8=0 | QC9=partial (schema JSON absent) | QC10=2 | QC12=0 | QC13=pass | QC14=pass
+  synthesis_basis=structured | CERBERUS_active=no
+  VERDICT: DEGRADED — Kimi-K2 (base) significantly shorter synthesis than Kimi-K2.5 on Together AI (144 vs ~1450 words). K2 < K2.5 quality gap is substantial. Not recommended as substitute for WF40 result.
+
+WF43 — groq/meta-llama/llama-4-scout-17b-16e-instruct | Session: ic-pm-scout | QC11: 24k/131k (18%)
+  QC1=pass | QC2=8/8 | QC3=0 | QC4=0 | QC5=~32 words | QC6=100% | QC7=99.5% | QC8=0 | QC9=FAIL (heat_level type error string→int on W0+W7; W6 returned file pointer not prose) | QC10=2 | QC12=0
+  synthesis_basis=structured | CERBERUS_active=no
+  DEVIATION: W6 /portfolio synthesize returned file path reference only — no 5-section prose synthesis generated. Model delegated output to file rather than generating required prose. heat_level schema type error (string vs integer) recurring at W0 and W7.
+  VERDICT: DEGRADED — QC9 fail (tool schema violation + W6 no-prose). Smallest model (17B MoE) — insufficient capacity for structured financial synthesis prose generation at required depth.
+
+WF44 — groq/llama-3.3-70b-versatile | Session: ic-pm-llama33-groq | QC11: 29k/131k (22%)
+  NOTE: Originally assigned groq/openai/gpt-oss-120b — 403 Forbidden (access-restricted tier, not available with current Groq key). Substituted with llama-3.3-70b-versatile.
+  QC1=pass | QC2=8/8 | QC3=0 | QC4=~2 | QC5=~86 words | QC6=100% | QC7=99.5% | QC8=0 | QC9=partial (W6 file pointer; W7 interactive questionnaire loop repeated) | QC10=2 | QC12=0
+  synthesis_basis=structured | CERBERUS_active=no
+  DEVIATION: W6 same file-pointer behavior as Scout. W7 /portfolio session re-triggered interactive questionnaire despite prior identity setup. W0 update-identity also triggered questionnaire (answered: 4/B/tariff-rate risks).
+  VERDICT: DEGRADED — QC9 partial; W6 no prose synthesis (same pattern as Scout); questionnaire loop at W0/W7. Functional data retrieval correct but synthesis generation fails to produce required prose output.
+
+GROQ EXTENDED TEST SUMMARY:
+  groq/openai/gpt-oss-120b: BLOCKED (403 Forbidden — Groq access-restricted tier)
+  groq/moonshotai/kimi-k2-instruct: DEGRADED (K2 < K2.5; minimal prose, partial QC9)
+  groq/meta-llama/llama-4-scout-17b-16e-instruct: DEGRADED (QC9 fail; W6 file pointer; 17B MoE insufficient for synthesis)
+  groq/llama-3.3-70b-versatile: DEGRADED (QC9 partial; W6 file pointer; questionnaire loop)
+
+CROSS-GROQ OBSERVATION: Scout and Llama-3.3 both exhibit identical W6 behavior — returning file path reference instead of prose synthesis. This is consistent with a model-capacity / instruction-following gap: these models interpret /portfolio synthesize as "run the synthesis tool and report completion" rather than "generate prose analysis from the tool output." Kimi-K2 on Groq avoids this (generates prose) but output is much thinner than K2.5. Kimi-K2.5 (Together AI, WF40) remains the best non-frontier performer for InvestorClaw synthesis tasks.
+
+CONFIG CHANGES (committed): openclaw.json — llama-4-scout model ID fixed; moonshotai/kimi-k2-instruct added to Groq provider models and aliases.
+═══════════════════════════════════════════════════════════ END IC-RUN-20260413-004 ADDENDUM ═══════════════════════════════════════════════════════════
