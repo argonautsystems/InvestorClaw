@@ -351,120 +351,92 @@ Why `gemma4-consult` specifically:
 
 **For simple portfolios this caveat does not apply.** If your holdings are primarily ETFs, broad index funds, and a small number of ESPPs, there is little per-holding analyst data to enrich in the first place. Cloud-only output quality for allocation analysis, bond analytics, and sector breakdown is good.
 
-**Recommended cloud-only models** (ranked by harness performance; QC scores from Harness V6.1.2 synthesis step):
+**Tested cloud-only models** (Harness V6.1.2; QC3/QC4/QC5 = ticker mentions / metric citations / word count in W6 synthesis):
 
-| Rank | Model | Context | QC3 | QC4 | QC5 | Notes |
-|------|-------|---------|:---:|:---:|:---:|-------|
-| 1 | `xai/grok-4.20-0309-non-reasoning` | ~1M | 8 | 11 | 260 | **Best cloud-only synthesis tested** — matched enriched tier on ticker density; uniquely added cross-holding news sentiment (TXG, AMD, AIR) |
-| 2 | `xai/grok-4-1-fast-reasoning` | ~2M | 7 | 8 | 200 | **Reliable operational default** — concise, accurate, best agentic session calibration; 2M context handles any portfolio size |
-| 3 | `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | ~1M | — | — | — | Good cost/context ratio; not harness-tested |
-| 4 | `together/Qwen/Qwen3-235B-A22B-FP8-tput` | 262K | — | — | — | Strong reasoning, throughput-optimized; not harness-tested |
-| 5 | `openai/gpt-5.4` | ~272K | 2 | 6 | 180 | ⚠️ **Scored below the free baseline on all synthesis metrics** despite higher cost — synthesis collapsed to high-level talking points; not recommended for complex portfolios |
-| 6 | `google/gemini-3.1-pro-preview` | ~1M | 0 | 5 | 175 | ❌ **Failed synthesis task** — produced generic allocation scenario table instead of portfolio-specific analysis; zero ticker mentions; individual commands work correctly but synthesis routing diverges on complex portfolios |
+| Rank | Model | QC3 | QC4 | QC5 | CERBERUS | Verdict |
+|------|-------|:---:|:---:|:---:|:--------:|---------|
+| 1 | `xai/grok-4.20-0309-non-reasoning` | ~32 | ~65 | 728 | ✅ | ✅ **Best overall** — highest metric density; uniquely added cross-holding news sentiment correlation |
+| 2 | `openai/gpt-5.4` | ~35 | ~60 | ~900 | ✅ | ✅ **Strongest prose** — most verbose synthesis, highest ticker density; 36% ctx on large portfolio |
+| 3 | `together/moonshotai/Kimi-K2.5` | ~26 | ~35 | ~1,450 | ✅ | ✅ **Best non-frontier substitute** — highest word count, clean protocol, full disclaimer compliance |
+| 4 | `xai/grok-4-1-fast-reasoning` | 7 | 8 | 200 | ✗ | ✅ **Reliable operational default** — best agentic calibration; 2M context; use as the always-on base model |
+| 5 | `google/gemini-3.1-pro-preview` | ~24 | ~33 | 441 | ✅ | ⚠️ **Good synthesis, disclaimer gap** — QC10=1 (one disclaimer instance); requires system prompt hardening for FA mode |
+| 6 | `groq/openai/gpt-oss-120b` | ~3 | ~10 | ~280 | ✅ | ✅ **Best Groq option** — full autonomous synthesis; 500 tok/s; $0.15/$0.60/M; 128K ctx |
+| 7 | `groq/qwen/qwen3-32b` | ~21 | ~40 | 302 | ✅ | ⚠️ **Compact but functional** — QC9 partial (JSON schema fields missing); non-FA workloads only |
+| 8 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | ~14 | ~23 | ~247 | ✗ | ❌ **Throughput variant underperforms** — tput optimization sacrifices prose quality; 235B-tput scores worse than 32B on every synthesis metric |
 
-> **Harness context**: QC3 = ticker mentions in synthesis output, QC4 = metric citations, QC5 = word count. Tested on a large multi-account portfolio with individual equities, bonds, and managed accounts. Simple ETF portfolios will not show the same divergence — see [Benchmark Results](#benchmark-results--harness-v612-2026-04-13).
+> **CERBERUS column**: ✅ = CERBERUS local enrichment was active during that harness run (scores are higher as a result). ✗ = structured-only, no enrichment — represents true cloud-only performance. The `xai/grok-4-1-fast-reasoning` true-baseline row (CERBERUS=✗) is the fairest cloud-only reference point.
 
-Important cost guidance:
-- frontier models are often reasonable for **specific InvestorClaw sessions**
-- they are usually **too expensive to leave as the primary always-on operational model** for all OpenClaw activity
-- a good pattern is to keep a cheaper general OpenClaw default and switch to a frontier model only for high-value InvestorClaw workflows
+Cost guidance: frontier models are reasonable for high-value InvestorClaw sessions but expensive as always-on defaults. Keep `xai/grok-4-1-fast` for general OpenClaw activity and switch up for specific portfolio workflows.
 
-> **Do not use GPT-4.1-nano** (`openai/gpt-4.1-nano`). Its Tier 1 rate limit is **30K TPM shared across all OpenClaw session activity**. Any concurrent agentic work exhausts the budget before a full portfolio analysis completes.
+### Fast inference: Groq
 
-### Profile 3 — getting started / modest single-system deployment
+Groq provides fast inference (500+ tok/s) at low cost. 128K context limits these to small-to-medium portfolios — not suitable for large multi-account or fully-enriched sessions.
 
-If you are new to InvestorClaw or running a modest single-machine OpenClaw setup:
-
-1. **Start with Profile 2** using `xai/grok-4-1-fast-reasoning` as the operational model. Run through the basic portfolio workflows and assess whether synthesis depth meets your needs.
-2. **Add local enrichment when ready**: if you have or acquire a compatible GPU, install Ollama, pull `gemma4-consult`, and set `INVESTORCLAW_CONSULTATION_ENABLED=true` in `.env`. The enrichment layer activates automatically on the next session.
-3. **Use premium frontier models selectively** for high-value InvestorClaw sessions rather than as the always-on OpenClaw default.
-
-This path lets you get value immediately without hardware commitment, and upgrade to the hybrid architecture without any code changes — just a configuration update.
-
-### Why this recommendation structure exists
-
-InvestorClaw is not a single-shot prompt workload. It behaves like a persistent agentic application: repeated tool calls, guardrail text, report handling, compact artifact generation, and follow-up analysis all accumulate inside the same working session.
-
-In practice, the choice is about system behavior, not benchmark vanity:
-- **Persistent-agent friendliness**: long sessions need context headroom and throughput, not just raw benchmark scores
-- **Operational cost discipline**: compact artifacts and local consultation help avoid burning frontier-model tokens unnecessarily
-- **Selective premium usage**: the most expensive frontier models are best reserved for the sessions where their extra capability is worth the cost
-
-Supporting background: https://techbroiler.net/openclaw-backend-optimization-groq-vs-claude-for-persistent-ai-agents/
-
-### Fast inference: Groq (Llama)
-
-For applications where latency matters more than context depth — dashboards, quick status checks, polling loops — Groq provides exceptionally fast Llama inference:
-
-| Model | Context | Use case |
-|-------|---------|---------|
-| `groq/llama-3.3-70b-versatile` | 128K | Best Groq quality; small–medium portfolios |
-| `groq/llama-3.1-8b-instant` | 128K | Fastest response; limited reasoning depth |
-| `groq/openai/gpt-oss-120b` | 128K | OpenAI OSS 120B via Groq |
-| `groq/openai/gpt-oss-20b` | 128K | OpenAI OSS 20B via Groq |
-
-> 128K context caps these to small-to-medium portfolios. Not suitable for multi-account or fully-enriched sessions.
-
-### On-Premise: NVIDIA NIM and NemoClaw
-
-For organizations that cannot send portfolio data to external APIs:
-
-- Model ID: `nvidia/nemotron-3-super-120b-a12b` (256K context) via NVIDIA NIM inference
-- **NemoClaw** is NVIDIA's hardened OpenClaw distribution for on-premise and air-gapped deployments; InvestorClaw can be paired with NemoClaw-managed infrastructure and NVIDIA Nemotron models
-
-See the [NemoClaw documentation](https://github.com/NVIDIA/NemoClaw) for deployment details.
+| Model | Context | Harness | Notes |
+|-------|---------|:-------:|-------|
+| `groq/openai/gpt-oss-120b` | 128K | ✅ PASS | **Recommended** — full autonomous synthesis, zero fabrication; $0.15/$0.60/M; minor W0/W7 protocol gaps |
+| `groq/qwen/qwen3-32b` | 128K | ⚠️ PASS/partial | Compact synthesis; QC9 partial (JSON schema fields absent); acceptable for non-FA workloads |
+| `groq/moonshotai/kimi-k2-instruct` | 128K | ⚠️ DEGRADED | Thin synthesis (~144 words) — significantly weaker than Kimi-K2.5 on Together AI |
+| `groq/meta-llama/llama-4-scout-17b-16e-instruct` | 128K | ⚠️ DEGRADED | Requires extra prompt step for W6 prose; heat_level type error; preview model |
+| `groq/llama-3.3-70b-versatile` | 128K | 🚫 BLOCKED | Config corruption risk — wrote unauthorized keys into openclaw.json during testing; do not use |
 
 ### Provider comparison
 
-| Model | Context | Provider | Harness | Notes |
+| Model | Context | Provider | Verdict | Notes |
 |-------|---------|---------|:-------:|-------|
-| `xai/grok-4-1-fast-reasoning` | ~2M | xAI | ✅ QC4=8 | **Hybrid config operational model**; reliable cloud-only baseline; needs `update-identity` each session |
-| `xai/grok-4.20-0309-non-reasoning` | ~1M | xAI | ✅ QC4=11 | **Best cloud-only synthesis tested**; added news sentiment cross-referencing |
-| `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | ~1M | Together AI | — | Good cost/context ratio |
-| `together/Qwen/Qwen3-235B-A22B-FP8-tput` | 262K | Together AI | — | Strong reasoning; throughput-optimized |
-| `openai/gpt-5.4` | ~272K | OpenAI | ⚠️ QC4=6 | Scored below free baseline on synthesis density in harness testing |
-| `openai/gpt-5.3-chat-latest` | ~400K | OpenAI | — | Verify session fits |
-| `google/gemini-3.1-pro-preview` | ~1M | Google | ❌ QC4=5 | Synthesis diverged to generic content in harness; zero ticker mentions |
-| `nvidia/nemotron-3-super-120b-a12b` | 262K | NVIDIA NIM | — | On-premise / air-gapped; reasoning enabled |
-| `groq/llama-3.3-70b-versatile` | 128K | Groq | — | Fast inference; small portfolios only |
-| `openai/gpt-4.1-nano` | ~1M | OpenAI | — | Not recommended — 30K TPM Tier 1 limit |
+| `xai/grok-4-1-fast-reasoning` | ~2M | xAI | ✅ QC4=8 | **Hybrid config operational model**; reliable agentic default; needs `update-identity` each session |
+| `xai/grok-4.20-0309-non-reasoning` | ~1M | xAI | ✅ QC4=65† | **Best cloud-only synthesis**; highest metric density; cross-holding news correlation |
+| `openai/gpt-5.4` | ~272K | OpenAI | ✅ QC4=60† | Strong prose and ticker density; 36% ctx on large portfolio |
+| `together/moonshotai/Kimi-K2.5` | 262K | Together AI | ✅ QC5=1450† | **Best prose depth**; highest word count; full disclaimer compliance |
+| `google/gemini-3.1-pro-preview` | ~1M | Google | ⚠️ QC4=33† | Acceptable synthesis; QC10=1 (disclaimer gap); cheapest per token |
+| `groq/openai/gpt-oss-120b` | 128K | Groq | ✅ PASS | Full autonomous synthesis; 500 tok/s; $0.15/$0.60/M |
+| `groq/qwen/qwen3-32b` | 128K | Groq | ⚠️ PASS/partial | Compact synthesis; QC9 partial; non-FA workloads only |
+| `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262K | Together AI | ❌ DEGRADED | Throughput variant underperforms 32B on prose quality |
+| `groq/llama-3.3-70b-versatile` | 128K | Groq | 🚫 BLOCKED | Config corruption risk in harness testing; do not use |
+
+† CERBERUS local enrichment was active during this run — scores reflect hybrid (enriched) mode, not pure cloud-only.
 
 ---
 
 ## Benchmark Results — Harness V6.1.2 (2026-04-13)
 
-These results come from a full run of the InvestorClaw Test Harness V6.1.2 against a real-world multi-account portfolio with individual equities, bonds, and managed accounts. The harness exercises all core workflows (holdings, analysis, performance, bonds, synthesis, lookup, export) across five model configurations and scores the output across 14 quality-control dimensions.
+These results come from a full run of the InvestorClaw Test Harness V6.1.2 against a real-world multi-account portfolio with individual equities, bonds, and managed accounts. The harness exercises all core workflows (holdings, analysis, performance, bonds, synthesis, lookup, export) across eight model configurations and scores the output across 14 quality-control dimensions (IC-RUN-20260413-002 through IC-RUN-20260413-007).
 
-### Why these results are surprising
+### Key finding
 
-The headline finding is that **a local 10B-parameter model running on a single GPU, combined with the default operational LLM, produces information density an order of magnitude higher than the top frontier models used alone**. This is not because the local model is smarter — it is because it operates at the *data layer*, not the synthesis layer. By enriching analyst records before the operational model ever runs synthesis, the combined configuration changes what the model is writing *about*, not how well it writes.
+The headline result: **the combined config (grok + gemma4-consult enrichment) produces 14× more metric citations than the heuristic baseline** — and this gap is driven by the enrichment layer, not the operational model. The local model operates at the *data layer*, pre-computing per-symbol analyst insights before synthesis runs. Switching to a more expensive frontier model without enrichment yields at best a modest improvement in phrasing quality; switching from heuristic to enriched mode is what drives the step-change in information density.
 
 ### Test configuration
 
-| Configuration | Operational LLM | Enrichment model | Mode |
-|---------------|-----------------|------------------|------|
-| **Combined (recommended)** | `xai/grok-4-1-fast-reasoning` | `gemma4-consult` (local Ollama) | Tier-3 enriched |
-| True baseline | `xai/grok-4-1-fast-reasoning` | none | Heuristic |
-| WF36 | `openai/gpt-5.4` | none | Heuristic |
-| WF37 | `xai/grok-4.20-0309-non-reasoning` | none | Heuristic |
-| WF38 | `google/gemini-3.1-pro-preview` | none | Heuristic |
+| Run | Model | CERBERUS | Mode |
+|-----|-------|:--------:|------|
+| **WF39 (combined)** | `xai/grok-4-1-fast-reasoning` + `gemma4-consult` (local Ollama) | ✅ | Tier-3 enriched |
+| True baseline | `xai/grok-4-1-fast-reasoning` | ✗ | Heuristic |
+| WF36 | `openai/gpt-5.4` | ✅ | Enriched† |
+| WF37 | `xai/grok-4.20-0309-non-reasoning` | ✅ | Enriched† |
+| WF38 | `google/gemini-3.1-pro-preview` | ✅ | Enriched† |
+| WF40 | `together/moonshotai/Kimi-K2.5` | ✅ | Enriched† |
+| WF41 | `groq/qwen/qwen3-32b` | ✅ | Enriched† |
+| WF46 | `groq/openai/gpt-oss-120b` | ✅ | Structured |
+
+† CERBERUS enrichment was active for all Phase 5 sessions due to `.env` configuration during testing (documented deviation DEV-001 in the harness). WF46 used a fresh clone with no `.env` — CERBERUS was active for individual tool calls but not for synthesis enrichment.
 
 ### Information density scores (W6 synthesis output)
 
 Scores are measured against the portfolio synthesis command output — the highest-value single response in a typical InvestorClaw session.
 
-| Metric | Combined (grok + gemma4-consult) | Grok 4.20 | True baseline | GPT-5.4 | Gemini 3.1 Pro |
-|--------|:--------------------------:|:---------:|:-------------:|:-------:|:--------------:|
-| **QC3** Ticker mentions | **8** | 8 | 7 | 2 | 0 |
-| **QC4** Metric citations | **120** | 11 | 8 | 6 | 5 |
-| **QC5** Word count | **1,184** | 260 | 200 | 180 | 175 |
-| **QC8** `is_heuristic=false` | **✅** | ✗ | ✗ | ✗ | ✗ |
-| **QC9** `synthesis_basis=enriched` | **✅** | ✗ | ✗ | ✗ | ✗ |
-| **QC10** HMAC fingerprint | **✅** | ✗ | ✗ | ✗ | ✗ |
-| **QC11** `verbatim_required=True` | **✅** | ✗ | ✗ | ✗ | ✗ |
-| **QC12–14** All commands exit 0 | **✅** | ✅ | ✅ | ✅ | ✅ |
+| Metric | Combined (WF39) | Grok 4.20 (WF37) | Kimi-K2.5 (WF40) | GPT-5.4 (WF36) | Gemini 3.1 (WF38) | GPT-OSS-120B/Groq (WF46) | True baseline |
+|--------|:---------------:|:----------------:|:----------------:|:--------------:|:-----------------:|:------------------------:|:-------------:|
+| **QC3** Ticker mentions | **8** | ~32 | ~26 | ~35 | ~24 | ~3 | 7 |
+| **QC4** Metric citations | **113** | ~65 | ~35 | ~60 | ~33 | ~10 | 8 |
+| **QC5** Word count | **1,184** | 728 | ~1,450 | ~900 | 441 | ~280 | 200 |
+| **QC10** Disclaimer instances | **2** | 2 | 2 | 2 | 1 ⚠️ | 2 | 2 |
+| **QC8** `is_heuristic=false` | **✅** | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| **QC13** Autonomous W6 prose | **✅** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **CERBERUS active** | ✅ enriched | ✅ enriched | ✅ enriched | ✅ enriched | ✅ enriched | ✅ tool calls | ✗ |
+| **All commands pass** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-**QC4 amplification**: the combined config produces 120 metric citations in the synthesis response vs. 5–11 for any premium-only configuration. The local enrichment model generates per-symbol insights, key metrics, and risk assessments for 20 holdings before the synthesis pass runs — the operational model then synthesises those pre-computed results rather than inferring from heuristic summaries.
+**QC4 note**: the combined config (WF39) produces 113 metric citations vs. 8–65 for cloud-only configurations. The enrichment layer is the primary driver — it generates per-symbol insights before synthesis runs, rather than asking the operational model to infer from heuristic summaries. Models WF36–WF41 also had CERBERUS active during Phase 5 testing (DEV-001), which partially elevates their scores; WF46 used structured-only mode.
 
 ### Anti-fabrication properties (combined config only)
 
@@ -476,17 +448,19 @@ The tier-3 enrichment path adds audit controls that no cloud-only configuration 
 
 These controls are absent in all cloud-only configurations regardless of model capability.
 
-### Premium model ranking (cloud-only, no enrichment)
+### Premium model ranking
 
-When tier-3 enrichment is not available and the operational model must do all synthesis work directly, the ranking from this harness run is:
+**1. Grok 4.20** (`xai/grok-4.20-0309-non-reasoning`) — best overall result among frontier models. Highest metric density (QC4=65), and uniquely added cross-holding news sentiment correlation (TXG, AMD, AEIS, AIR) that no other model surfaced. Synthesis remained portfolio-specific throughout. Verdict: RECOMMENDED ★ BEST OVERALL.
 
-**1. Grok 4.20** (`xai/grok-4.20-0309-non-reasoning`) — best premium-only result. Matched the enriched configuration on ticker density (QC3=8), highest metric count of the cloud-only group (QC4=11), and uniquely added cross-holding news sentiment correlation (TXG, AMD, AEIS, AIR) that no other model surfaced. Synthesis remained portfolio-specific throughout all workflow steps.
+**2. GPT-5.4** — strong prose quality with the highest ticker mentions (~35) and word count (~900) among the frontier group. Functions well for sessions where breadth of coverage matters more than metric density. Verdict: RECOMMENDED.
 
-**2. grok-4-1-fast-reasoning (true baseline)** — marginally below Grok 4.20 on density metrics (QC3=7, QC4=8) but noticeably more compact. No padding. Functions as the reliable operational default.
+**3. Kimi-K2.5** (`together/moonshotai/Kimi-K2.5`) — highest word count of all tested models (~1,450 words), full disclaimer compliance, clean protocol adherence. Best non-frontier substitute if primary models are unavailable. Verdict: RECOMMENDED ★ BEST SUBSTITUTE.
 
-**3. GPT-5.4** — underperformed relative to its reputation in this workload. Synthesis collapsed to high-level talking points with only 2 ticker mentions and 6 metric citations — worse than the free baseline. Not worth the cost premium for InvestorClaw sessions specifically.
+**4. Gemini 3.1 Pro** — solid synthesis at the lowest cost ($2/$12/M), but produced only one disclaimer instance (QC10=1) rather than two. Requires system prompt hardening before FA mode deployment. Individual commands all worked correctly. Verdict: RECOMMENDED with caveat.
 
-**4. Gemini 3.1 Pro** — failed to engage with portfolio-specific synthesis. Produced a generic allocation scenario table (Conservative/Balanced/Aggressive Growth) with zero ticker mentions. The model answered a different question than was asked. Individual commands (holdings, bonds, lookup) all worked correctly — the failure was specific to the synthesis routing step.
+**5. grok-4-1-fast-reasoning (true baseline)** — compact and accurate, no padding. The reference point for cloud-only without enrichment (CERBERUS=✗). Best agentic session calibration. Verdict: RECOMMENDED as always-on operational default.
+
+**6. GPT-OSS-120B/Groq** — passes with full autonomous prose synthesis but significantly lower metric density than frontier models, reflecting structured-only mode with no enrichment during testing. Best-in-class for Groq. Verdict: PASS.
 
 > **Important caveat**: these are single-session results on one portfolio. Model behavior varies by prompt shape, session length, and provider updates. Treat the rankings as an informed starting point, not a permanent ordering.
 
@@ -496,19 +470,9 @@ When tier-3 enrichment is not available and the operational model must do all sy
 
 This is consistent with the original design intent: the consultative model is responsible for *data enrichment*; the operational model is responsible for *session management and synthesis routing*. The harness results quantify that split empirically for the first time.
 
-### What this means for your deployment
-
-The benchmark portfolio — a complex multi-account mix of individual equities, bonds, managed accounts, and ESPPs — represents the upper end of InvestorClaw deployment complexity. The results are most relevant to users in that tier.
-
-**If your portfolio is complex** (many individual equities, multiple account types, significant bond positions): the harness results apply directly. Cloud-only synthesis will be measurably shallower. Profile 1 is strongly recommended. The cost of a GPU node capable of running `gemma4-consult` is small relative to the portfolio scale where enrichment matters most.
-
-**If your portfolio is simple** (mostly ETFs, 1–2 accounts, a handful of ESPPs): the metric density gap narrows significantly. ETFs do not have individual analyst ratings, so there is less to enrich in the first place. Cloud-only deployment with `xai/grok-4-1-fast` is a reasonable starting point and the harness results should not alarm you. Start with Profile 2 and upgrade to Profile 1 if you find the synthesis depth insufficient.
-
-**On premium frontier models specifically**: the harness result for GPT-5.4 scoring below the free baseline — and Gemini 3.1 Pro producing zero ticker mentions in synthesis — reflects real behaviour on this specific workload, not a general capability assessment. These models are capable systems that may behave differently on other portfolio shapes or with different prompt structures. The finding is that paying more for the operational model is a poor substitute for enriching the data the model synthesises from.
-
 ### Reproducibility
 
-The harness is at `investorclaw_harness_v611.txt` in the repository root. To reproduce:
+The harness is at `investorclaw_harness_v612.txt` in the repository root. To reproduce:
 
 ```bash
 # Requires OpenClaw gateway running with investorclaw plugin loaded
@@ -674,14 +638,14 @@ INVESTORCLAW_CONSULTATION_ENDPOINT=http://localhost:11434
 
 ### Example 2 — premium cloud-only session override
 
-Use a stronger frontier model for a specific high-value InvestorClaw session, then switch back.
+Use a stronger frontier model for a specific high-value InvestorClaw session, then switch back. Grok 4.20 delivered the highest synthesis quality in harness testing; Kimi-K2.5 is the best non-frontier alternative.
 
 ```json
 {
   "agents": {
     "defaults": {
       "model": {
-        "primary": "google/gemini-3.1-pro-preview"
+        "primary": "xai/grok-4.20-0309-non-reasoning"
       }
     }
   }
