@@ -10,6 +10,15 @@ Activated when INVESTORCLAW_CONSULTATION_ENABLED=true.
 Environment variables:
   INVESTORCLAW_CONSULTATION_ENDPOINT  (default: http://localhost:11434)
   INVESTORCLAW_CONSULTATION_MODEL     (default: gemma4-consult)
+  INVESTORCLAW_CARD_FORMAT            (default: both)
+    Controls what artifact is written per enriched symbol:
+      json  — write ~/.investorclaw/quotes/{SYMBOL}.quote.json only; no SVG.
+              Safe for mobile/messaging channels (WhatsApp, Signal, Telegram)
+              where SVG is unsupported or undesirable.
+      svg   — write SVG card only (requires INVESTOR_CLAW_REPORTS_DIR).
+              Legacy behaviour; no persistent text artifact.
+      both  — write JSON quote file always + SVG if INVESTOR_CLAW_REPORTS_DIR
+              is set. Default for desktop/web sessions.
 
 gemma4-consult is a tuned Ollama derivative of gemma4:e4b optimised for
 low-latency consultative Q&A (num_ctx=2048, num_predict=600, ~65 tok/s on
@@ -299,36 +308,42 @@ class Tier3Enricher:
                         "verbatim_required": True,
                         "fingerprint": fp,
                     }
-                    # Always persist a JSON quote file — no env var dependency, no
-                    # render module required. This is the authoritative verifiable
-                    # text artifact for this consultation; SVG is supplemental.
-                    try:
-                        _quote_dir = Path.home() / ".investorclaw" / "quotes"
-                        _quote_dir.mkdir(parents=True, exist_ok=True)
-                        _quote_file = _quote_dir / f"{symbol}.quote.json"
-                        _quote_file.write_text(json.dumps({
-                            "symbol": symbol,
-                            "text": synthesis,
-                            "attribution": attribution,
-                            "fingerprint": fp,
-                            "verbatim_required": True,
-                            "timestamp": datetime.now().isoformat(),
-                        }, indent=2))
-                        quote_block["quote_path"] = str(_quote_file)
-                    except Exception as _qe:
-                        logger.warning("Quote JSON write failed for %s: %s", symbol, _qe)
-                    _rdir = os.environ.get("INVESTOR_CLAW_REPORTS_DIR", "")
-                    if _rdir:
+                    _card_fmt = os.environ.get("INVESTORCLAW_CARD_FORMAT", "both").strip().lower()
+
+                    # JSON quote file — written unless format is svg-only.
+                    # No env var dependency; no render module. Canonical text artifact.
+                    if _card_fmt != "svg":
                         try:
-                            from rendering.render_consultation_card import render_card
-                            card_path = str(render_card(
-                                symbol, synthesis, attribution, fp,
-                                datetime.now().isoformat(),
-                                Path(_rdir) / ".raw",
-                            ))
-                            quote_block["card_path"] = card_path
-                        except Exception as _e:
-                            logger.debug("Card render failed for %s: %s", symbol, _e)
+                            _quote_dir = Path.home() / ".investorclaw" / "quotes"
+                            _quote_dir.mkdir(parents=True, exist_ok=True)
+                            _quote_file = _quote_dir / f"{symbol}.quote.json"
+                            _quote_file.write_text(json.dumps({
+                                "symbol": symbol,
+                                "text": synthesis,
+                                "attribution": attribution,
+                                "fingerprint": fp,
+                                "verbatim_required": True,
+                                "timestamp": datetime.now().isoformat(),
+                            }, indent=2))
+                            quote_block["quote_path"] = str(_quote_file)
+                        except Exception as _qe:
+                            logger.warning("Quote JSON write failed for %s: %s", symbol, _qe)
+
+                    # SVG card — written only when format is not json-only AND
+                    # INVESTOR_CLAW_REPORTS_DIR is set.
+                    if _card_fmt != "json":
+                        _rdir = os.environ.get("INVESTOR_CLAW_REPORTS_DIR", "")
+                        if _rdir:
+                            try:
+                                from rendering.render_consultation_card import render_card
+                                card_path = str(render_card(
+                                    symbol, synthesis, attribution, fp,
+                                    datetime.now().isoformat(),
+                                    Path(_rdir) / ".raw",
+                                ))
+                                quote_block["card_path"] = card_path
+                            except Exception as _e:
+                                logger.debug("Card render failed for %s: %s", symbol, _e)
                 consultation_meta = result.to_dict()
             else:
                 consultation_meta = {

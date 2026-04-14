@@ -194,9 +194,12 @@ def main() -> int:
         elapsed_times: list = []
         failed_symbols: list = list(progress.get("failed_symbols", []))
 
-        # Resolve reports_dir for SVG cards
+        # Resolve card format toggle and output paths.
+        # INVESTORCLAW_CARD_FORMAT: json | svg | both (default)
+        _card_fmt = os.environ.get("INVESTORCLAW_CARD_FORMAT", "both").strip().lower()
         _rdir = os.environ.get("INVESTOR_CLAW_REPORTS_DIR", "")
         _cards_output_dir = Path(_rdir) / ".raw" if _rdir else None
+        _quote_dir = Path.home() / ".investorclaw" / "quotes"
         try:
             from rendering.render_consultation_card import render_card as _render_card
             _render_available = True
@@ -226,8 +229,26 @@ def main() -> int:
                     "fingerprint": fp,
                 }
 
-                # Write SVG consultation card
-                if _render_available and _cards_output_dir:
+                # JSON quote file — written unless format is svg-only.
+                if _card_fmt != "svg":
+                    try:
+                        _quote_dir.mkdir(parents=True, exist_ok=True)
+                        _qf = _quote_dir / f"{symbol}.quote.json"
+                        _qf.write_text(json.dumps({
+                            "symbol": symbol,
+                            "text": synthesis,
+                            "attribution": attribution,
+                            "fingerprint": fp,
+                            "verbatim_required": True,
+                            "timestamp": datetime.now().isoformat(),
+                        }, indent=2))
+                        quote_block["quote_path"] = str(_qf)
+                    except Exception:
+                        pass
+
+                # SVG card — written only when format is not json-only AND
+                # render module is available AND reports dir is configured.
+                if _card_fmt != "json" and _render_available and _cards_output_dir:
                     try:
                         card_path = str(_render_card(
                             symbol, synthesis, attribution, fp,

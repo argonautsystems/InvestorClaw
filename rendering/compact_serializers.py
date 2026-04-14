@@ -84,15 +84,28 @@ def _compact_analyst_record(rec: dict, *, truncate_text: int) -> dict:
                 compact['key_insights'] = [_truncate(s, truncate_text) for s in ki[:5]]
             else:
                 compact['key_insights'] = _truncate(ki, truncate_text)
-        # Truncated quote passthrough — fingerprint + attribution only, no full text
+        # Truncated quote passthrough — fingerprint + attribution + on-disk ref.
+        # Full synthesis text is already in rec['synthesis'] (truncated above).
+        # quote_path is the canonical text artifact for verbatim citation audit.
+        # synthesis_instruction is a machine-readable directive to the operational
+        # LLM: cite the synthesis text verbatim and include the fingerprint.
         q = rec.get('quote')
         if q and isinstance(q, dict):
-            compact['quote'] = _strip_none({
-                'fingerprint': q.get('fingerprint', ''),
-                'attribution': q.get('attribution', ''),
+            fp_val = q.get('fingerprint', '')
+            attr_val = q.get('attribution', '')
+            entry = _strip_none({
+                'fingerprint': fp_val,
+                'attribution': attr_val,
                 'verbatim_required': True,
+                'quote_path': q.get('quote_path'),
                 'card_path': q.get('card_path'),
             })
+            if fp_val:
+                entry['synthesis_instruction'] = (
+                    f"Cite the synthesis text above verbatim (attribution: {attr_val}). "
+                    f"Include fingerprint {fp_val} when referencing this source."
+                )
+            compact['quote'] = entry
         compact['synthesis_basis'] = 'enriched'
         return compact
 
