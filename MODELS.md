@@ -478,7 +478,7 @@ Run `/portfolio ollama-setup` to auto-detect available models on your endpoint.
 
 ## Reproducibility
 
-The full test harness is at `investorclaw_harness_v612.txt` in the repository root.
+The full test harness is at `docs/harness-v612.txt` in the repository root.
 
 ```bash
 # Prerequisites
