@@ -58,7 +58,7 @@ python3 ~/Projects/InvestorClaw/tests_smoke.py
 > ```bash
 > cp ~/Projects/InvestorClaw/.env ~/.openclaw/workspace/skills/investorclaw/.env
 > ```
-> Without this, the background enricher process (detached subprocess) will not pick up your API keys or CERBERUS config.
+> Without this, the background enricher process (detached subprocess) will not pick up your API keys or consultation endpoint config.
 
 ---
 
@@ -230,6 +230,8 @@ python3 investorclaw.py eod --via-gog --email-to you@gmail.com   # Google CLI
 python3 investorclaw.py eod --email-to you@example.com            # SMTP
 python3 investorclaw.py eod --no-email                            # file only
 ```
+
+![InvestorClaw EOD report — synthetic portfolio sample](assets/eod-report-sample.png)
 
 Install scheduled delivery:
 ```bash

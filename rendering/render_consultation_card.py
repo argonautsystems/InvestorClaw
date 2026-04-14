@@ -71,7 +71,7 @@ def render_card(
     Args:
         symbol:      Ticker symbol (e.g. "MSFT")
         synthesis:   Full synthesis text from the consultation model
-        attribution: Attribution string (e.g. "gemma4-consult via CERBERUS (3420ms)")
+        attribution: Attribution string (e.g. "gemma4-consult via local-inference (3420ms)")
         fingerprint: 16-char HMAC fingerprint hex string
         timestamp:   ISO timestamp of the consultation
         output_dir:  Parent directory — card goes into output_dir/consultation_cards/
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     _out = Path(os.environ.get("INVESTOR_CLAW_REPORTS_DIR", "/tmp")) / ".raw"
     _path = render_card(
         "TEST", "Analyst consensus is Buy with 42 analysts. Main risk is macro uncertainty.",
-        "gemma4-consult via CERBERUS (3420ms)", "abcd1234efgh5678",
+        "gemma4-consult via local-inference (3420ms)", "abcd1234efgh5678",
         "2026-04-10T00:00:00", _out,
     )
     print(f"Card written: {_path}")

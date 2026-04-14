@@ -9,7 +9,7 @@ gemma4-consult is a tuned derivative of gemma4:e4b optimised for low-latency
 consultative Q&A (num_ctx=2048, num_predict=600). It is the recommended
 INVESTORCLAW_CONSULTATION_MODEL.
 
-Benchmarked on: CERBERUS — RTX 4500 Ada 24 GB, driver 595.58.03
+Benchmarked on: local-inference — RTX 4500 Ada 24 GB, driver 595.58.03
   gemma4-consult:  ~65 tok/s, simple Q&A 1.5-2.5s, complex 6-8s
   gemma4:e4b:      ~66 tok/s, 128K native context
   gemma4:e2b:      ~99 tok/s, 128K native context
@@ -22,16 +22,16 @@ Hardware requirements for gemma4-consult:
 Usage:
   # Check what models are available on an endpoint
   python3 commands/ollama_model_config.py --check
-  python3 commands/ollama_model_config.py --check --endpoint http://192.168.207.96:11434
+  python3 commands/ollama_model_config.py --check --endpoint http://localhost:11434
 
   # Set up gemma4-consult (pulls gemma4:e4b if needed, then creates the model)
   python3 commands/ollama_model_config.py --model gemma4-consult
-  python3 commands/ollama_model_config.py --model all --endpoint http://192.168.207.96:11434
+  python3 commands/ollama_model_config.py --model all --endpoint http://localhost:11434
 
   # From Python
   from commands.ollama_model_config import setup_model, get_best_available_model
-  setup_model("gemma4-consult", endpoint="http://192.168.207.96:11434")
-  model = get_best_available_model("http://192.168.207.96:11434")
+  setup_model("gemma4-consult", endpoint="http://localhost:11434")
+  model = get_best_available_model("http://localhost:11434")
 """
 from __future__ import annotations
 
@@ -196,7 +196,7 @@ def setup_all_consult_models(endpoint: str = "http://localhost:11434") -> dict:
     """
     Pull and configure all InvestorClaw GPU inference models.
 
-    Call this to replicate the CERBERUS model configuration on new GPU hardware.
+    Call this to replicate the local-inference model configuration on new GPU hardware.
 
     Returns:
         Dict mapping model_name → bool (True = success)

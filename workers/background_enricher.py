@@ -184,7 +184,7 @@ def main() -> int:
 
         client = ConsultationClient()
         if not client.is_available():
-            # Mark as not in progress — CERBERUS unavailable
+            # Mark as not in progress — local-inference unavailable
             progress["in_progress"] = False
             progress["background_pid"] = None
             progress["last_updated"] = datetime.now().isoformat()
@@ -221,7 +221,7 @@ def main() -> int:
             if result.response and not result.is_heuristic:
                 synthesis = result.response.strip()
                 fp = _compute_fingerprint(symbol, client.model, synthesis)
-                attribution = f"{client.model} via CERBERUS ({result.inference_ms}ms)"
+                attribution = f"{client.model} via local-inference ({result.inference_ms}ms)"
                 quote_block: dict = {
                     "text": synthesis,
                     "attribution": attribution,

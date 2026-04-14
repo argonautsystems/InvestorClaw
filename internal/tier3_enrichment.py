@@ -90,7 +90,7 @@ def _compute_fingerprint(symbol: str, model: str, synthesis: str) -> str:
 
 @dataclass
 class ConsultationResult:
-    """Result from a single CERBERUS inference call."""
+    """Result from a single local-inference inference call."""
     response: str
     model: str
     endpoint: str
@@ -133,7 +133,7 @@ class EnrichedAnalystConsensus:
 # ---------------------------------------------------------------------------
 
 class ConsultationClient:
-    """Thin wrapper around the CERBERUS Ollama generate API."""
+    """Thin wrapper around the local-inference Ollama generate API."""
 
     def __init__(self) -> None:
         self.endpoint = os.environ.get(
@@ -150,7 +150,7 @@ class ConsultationClient:
             with urllib.request.urlopen(req, timeout=5) as resp:
                 return resp.status == 200
         except Exception as exc:
-            logger.debug("CERBERUS probe failed: %s", exc)
+            logger.debug("local-inference probe failed: %s", exc)
             return False
 
     def consult(self, prompt: str, timeout: int = 120) -> ConsultationResult:
@@ -180,7 +180,7 @@ class ConsultationClient:
             )
         except Exception as exc:
             inference_ms = int((time.time() - t0) * 1000)
-            logger.warning("CERBERUS inference failed: %s", exc)
+            logger.warning("local-inference inference failed: %s", exc)
             return ConsultationResult(
                 response="",
                 model=self.model,
@@ -195,7 +195,7 @@ class ConsultationClient:
 # ---------------------------------------------------------------------------
 
 class Tier3Enricher:
-    """Enriches AnalystConsensus objects with CERBERUS LLM synthesis."""
+    """Enriches AnalystConsensus objects with local-inference LLM synthesis."""
 
     def __init__(self) -> None:
         self.client = ConsultationClient()
@@ -301,7 +301,7 @@ class Tier3Enricher:
                     key_insights = sentences[:2]
                     risk_assessment = sentences[-1] if len(sentences) > 1 else synthesis
                     fp = _compute_fingerprint(symbol, self.client.model, synthesis)
-                    attribution = f"{self.client.model} via CERBERUS ({result.inference_ms}ms)"
+                    attribution = f"{self.client.model} via local-inference ({result.inference_ms}ms)"
                     quote_block = {
                         "text": synthesis,
                         "attribution": attribution,

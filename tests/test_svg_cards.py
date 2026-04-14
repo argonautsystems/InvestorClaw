@@ -30,7 +30,7 @@ from rendering.render_consultation_card import render_card
 
 SYMBOL = "MSFT"
 SYNTHESIS = "Azure cloud growth accelerating with 31% YoY revenue increase driven by AI services adoption."
-ATTRIBUTION = "gemma4-consult via CERBERUS (3420ms)"
+ATTRIBUTION = "gemma4-consult via local-inference (3420ms)"
 FINGERPRINT = "abcdef1234567890"
 TIMESTAMP = "2026-04-11T10:00:00Z"
 

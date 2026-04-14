@@ -10,7 +10,7 @@ Understanding the distinction between these two modes is essential for reading t
 
 ### Hybrid mode (operational + consultation)
 
-The operational LLM routes the session, runs tools, and frames the synthesis output. A separate **local consultation model** (CERBERUS — `gemma4-consult` via Ollama at `192.168.207.96:11434`) runs before synthesis and enriches each portfolio symbol with a structured analyst summary. The operational model receives compact enriched records, not raw data.
+The operational LLM routes the session, runs tools, and frames the synthesis output. A separate **local consultation model** (`gemma4-consult` via a local Ollama endpoint) runs before synthesis and enriches each portfolio symbol with a structured analyst summary. The operational model receives compact enriched records, not raw data.
 
 - Requires a local GPU host running Ollama with `gemma4-consult` (or a compatible model)
 - Produces HMAC-fingerprinted synthesis records with `verbatim_required=true` and `is_heuristic=false`
@@ -26,12 +26,6 @@ The operational LLM handles all routing, tool calls, and synthesis directly from
 - Lower information density on portfolios with many individual equities
 - Still enforces guardrails and educational-only output
 
-### DEV-001 note
-
-During Phase 5 testing (WF36–WF41), the workspace `.env` file was inadvertently populated with CERBERUS config from a prior run. As a result, all Phase 5 sessions ran in **hybrid mode even when the intent was to test a new operational model alone**. This is documented as deviation **DEV-001** in the test harness. The CERBERUS column in the tables below marks which runs were affected. Scores for DEV-001-affected sessions are elevated relative to true single-model performance and should not be treated as standalone cloud-only benchmark numbers.
-
-WF46 onwards used a clean clone with no workspace `.env`, accurately reflecting single-model behavior.
-
 ---
 
 ## Benchmark Scores — Harness V6.1.2
@@ -44,20 +38,24 @@ The harness runs 39 workflow checkpoints across 5 phases (W0–W8): holdings, an
 
 ### Information density scores (W6 synthesis output)
 
-| Metric | Combined WF39 | Grok 4.20 WF37 | Kimi-K2.5 WF40 | GPT-5.4 WF36 | Gemini 3.1 WF38 | GPT-OSS-120B WF46 | True baseline |
-|--------|:-------------:|:--------------:|:--------------:|:------------:|:---------------:|:-----------------:|:-------------:|
-| **QC3** Ticker mentions | **8** | ~32 | ~26 | ~35 | ~24 | ~3 | 7 |
-| **QC4** Metric citations | **113** | ~65 | ~35 | ~60 | ~33 | ~10 | 8 |
-| **QC5** Word count | **1,184** | 728 | ~1,450 | ~900 | 441 | ~280 | 200 |
-| **QC8** `is_heuristic=false` | **✅** | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| **QC10** Disclaimer instances | **2** | 2 | 2 | 2 | 1 ⚠️ | 2 | 2 |
-| **QC13** Autonomous W6 prose | **✅** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Mode** | Hybrid | Hybrid† | Hybrid† | Hybrid† | Hybrid† | Single | Single |
-| **All commands pass** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Scores from runs where local consultation state was confirmed for the recorded mode.
 
-† DEV-001: CERBERUS active due to workspace `.env` configuration during Phase 5 testing. Scores reflect hybrid mode even though intent was single-model comparison.
+| Metric | Combined WF39 | GPT-OSS-120B WF46 | True baseline |
+|--------|:-------------:|:-----------------:|:-------------:|
+| **QC3** Ticker mentions | **8** | ~3 | 7 |
+| **QC4** Metric citations | **113** | ~10 | 8 |
+| **QC5** Word count | **1,184** | ~280 | 200 |
+| **QC8** `is_heuristic=false` | **✅** | ✗ | ✗ |
+| **QC10** Disclaimer instances | **2** | 2 | 2 |
+| **QC13** Autonomous W6 prose | **✅** | ✅ | ✅ |
+| **Mode** | Hybrid | Single | Single |
+| **All commands pass** | ✅ | ✅ | ✅ |
 
-**True baseline** = `xai/grok-4-1-fast-reasoning` with CERBERUS explicitly absent. This is the fairest single-model reference point.
+**WF39** = `xai/grok-4-1-fast-reasoning` + `gemma4-consult` (canonical combined configuration, intentional hybrid)  
+**WF46** = `groq/openai/gpt-oss-120b` (clean clone, no workspace `.env`, confirmed single-model)  
+**True baseline** = `xai/grok-4-1-fast-reasoning` with local consultation explicitly absent — fairest cloud-only reference
+
+Additional single-model runs (WF58–WF62) confirmed protocol compliance and tool-call stability for their respective models but were not scored against all 14 QC dimensions in the benchmark table above.
 
 ---
 
@@ -65,35 +63,43 @@ The harness runs 39 workflow checkpoints across 5 phases (W0–W8): holdings, an
 
 ### Passing and degraded runs (produced usable W6 synthesis)
 
-| Run | Model | Mode | CERBERUS | Result |
-|-----|-------|------|:--------:|:------:|
+| Run | Model | Mode | Consultation | Result |
+|-----|-------|------|:------------:|:------:|
 | **WF39** | `xai/grok-4-1-fast-reasoning` + `gemma4-consult` | Hybrid | ✅ | ✅ PASS — canonical combined config |
 | WF62 | `xai/grok-4-1-fast` (regression verification) | Hybrid | ✅ | ✅ PASS |
 | True baseline | `xai/grok-4-1-fast-reasoning` | Single | ✗ | ✅ PASS — reference for cloud-only |
-| WF36 | `openai/gpt-5.4` | Hybrid† | ✅ | ✅ PASS |
-| WF37 | `xai/grok-4.20-0309-non-reasoning` | Hybrid† | ✅ | ✅ PASS |
-| WF38 | `google/gemini-3.1-pro-preview` | Hybrid† | ✅ | ⚠️ PASS/caveat — QC10=1 (one disclaimer); requires system prompt hardening for FA mode |
-| WF40 | `together/moonshotai/Kimi-K2.5` | Hybrid† | ✅ | ✅ PASS |
-| WF41 | `groq/qwen/qwen3-32b` | Hybrid† | ✅ | ⚠️ DEGRADED — QC9 partial (JSON schema fields absent); non-FA workloads only |
-| WF46 | `groq/openai/gpt-oss-120b` | Single | ✅ tool calls | ✅ PASS — structured mode; CERBERUS active for tool-call returns only, not synthesis enrichment |
-| WF48 | `together/deepseek-ai/DeepSeek-V3.1` | Hybrid† | ✅ | ✅ PASS |
-| WF53 | `together/MiniMaxAI/MiniMax-M2.5` | Hybrid† | ✅ | ⚠️ DEGRADED — `/portfolio synthesize` not recognized; W5 news non-functional; use M2.7 |
-| WF54 | `together/MiniMaxAI/MiniMax-M2.7` | Hybrid† | ✅ | ✅ PASS |
-| WF55 | `together/zai-org/GLM-5` | Hybrid† | ✅ | ✅ PASS |
+| WF46 | `groq/openai/gpt-oss-120b` | Single | — | ✅ PASS |
 | WF58 | `groq/moonshotai/kimi-k2-instruct-0905` | Single | — | ✅ PASS ⚠️ preview model |
-| WF59 | `groq/openai/gpt-oss-20b` | Single | ✅ | ✅ PASS |
-| WF60 | `together/moonshotai/Kimi-K2.5` (structured re-test) | Single | — | ✅ PASS |
-| WF61 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | Single | ✗‡ | ✅ PASS |
+| WF59 | `groq/openai/gpt-oss-20b` | Single | — | ✅ PASS |
+| WF60 | `together/moonshotai/Kimi-K2.5` | Single | — | ✅ PASS |
+| WF61 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | Single | ✗ | ✅ PASS |
 
-† DEV-001: CERBERUS active due to workspace `.env` populated during Phase 5.
+### Awaiting clean single-model benchmark
 
-‡ WF61: CERBERUS probe failed (missing workspace `.env`). Heuristic mode fired. The operational model fabricated CERBERUS attribution — no Perplexity code path exists in `tier3_enrichment.py`. Root cause: workspace `.env` was absent; background enricher could not find the consultation endpoint. Fixed by W0.3.1 (mandatory `.env` copy step) added to the harness.
+The following models were exercised during tool-call compatibility testing and all passed protocol validation. Full single-model benchmark scores are pending.
+
+| Model | Tool-call status | Awaiting |
+|-------|:----------------:|----------|
+| `openai/gpt-5.4` | ✅ | Full QC benchmark in confirmed single-model mode |
+| `xai/grok-4.20-0309-non-reasoning` | ✅ | Full QC benchmark in confirmed single-model mode |
+| `google/gemini-3.1-pro-preview` | ✅ | Full QC benchmark in confirmed single-model mode |
+| `together/moonshotai/Kimi-K2.5` (hybrid benchmark) | ✅ | Hybrid QC benchmark with confirmed consultation active |
+| `groq/qwen/qwen3-32b` | ✅ | Full QC benchmark in confirmed single-model mode |
+| `together/deepseek-ai/DeepSeek-V3.1` | ✅ | Full QC benchmark in confirmed single-model mode |
+| `together/MiniMaxAI/MiniMax-M2.7` | ✅ | Full QC benchmark in confirmed single-model mode |
+| `together/zai-org/GLM-5` | ✅ | Full QC benchmark in confirmed single-model mode |
 
 ### Partial / not viable (tool calls work but impractical)
 
 | Run | Model | Reason |
 |-----|-------|--------|
 | WF47 | `together/Qwen/Qwen3-235B-A22B-Thinking-2507` | PARTIAL/TIMEOUT — tool calls execute correctly; 5–10 min/step; full harness ~2–3 hrs; not viable for interactive sessions |
+
+### Degraded
+
+| Run | Model | Reason |
+|-----|-------|--------|
+| WF53 | `together/MiniMaxAI/MiniMax-M2.5` | `/portfolio synthesize` not recognized; W5 news non-functional — use M2.7 instead |
 
 ### Blocked (cannot execute tool calls at all)
 
@@ -112,56 +118,56 @@ The harness runs 39 workflow checkpoints across 5 phases (W0–W8): holdings, an
 
 ### xAI (Grok)
 
-| Model | Context | Mode tested | Result | Notes |
-|-------|---------|:-----------:|:------:|-------|
-| `xai/grok-4-1-fast` | ~2M | Hybrid | ✅ | **Recommended operational default.** Best agentic calibration; 2M context means no truncation on large enriched sessions. Requires `/portfolio update-identity` each session for full disclaimer compliance. |
-| `xai/grok-4.20-0309-non-reasoning` | ~1M | Hybrid† | ✅ | **Best cloud-only synthesis** when CERBERUS active. Highest metric density (QC4=65); uniquely added cross-holding news sentiment correlation. Best for high-value single sessions. |
+| Model | Context | Benchmark | Notes |
+|-------|---------|:---------:|-------|
+| `xai/grok-4-1-fast` | ~2M | ✅ WF39/WF62 | **Recommended operational default.** Best agentic calibration; 2M context means no truncation on large enriched sessions. Requires `/portfolio update-identity` each session for full disclaimer compliance. |
+| `xai/grok-4.20-0309-non-reasoning` | ~1M | ⏳ pending | Passed tool-call and protocol validation. Full single-model benchmark pending. |
 
 ### OpenAI
 
-| Model | Context | Mode tested | Result | Notes |
-|-------|---------|:-----------:|:------:|-------|
-| `openai/gpt-5.4` | ~272K | Hybrid† | ✅ | Strongest prose; highest ticker mentions (~35) and word count (~900) among frontier group. 36% context use on large portfolio — watch for pressure on very large sessions. |
+| Model | Context | Benchmark | Notes |
+|-------|---------|:---------:|-------|
+| `openai/gpt-5.4` | ~272K | ⏳ pending | Passed tool-call and protocol validation. Full single-model benchmark pending. |
 
 ### Google
 
-| Model | Context | Mode tested | Result | Notes |
-|-------|---------|:-----------:|:------:|-------|
-| `google/gemini-3.1-pro-preview` | ~1M | Hybrid† | ⚠️ | Solid synthesis; lowest cost per token. QC10=1 (one disclaimer instance vs expected two). Requires system prompt hardening before FA mode deployment. |
+| Model | Context | Benchmark | Notes |
+|-------|---------|:---------:|-------|
+| `google/gemini-3.1-pro-preview` | ~1M | ⏳ pending | Passed tool-call and protocol validation. Full single-model benchmark pending. |
 
 ### Together AI
 
-| Model | Context | Mode tested | Result | Notes |
-|-------|---------|:-----------:|:------:|-------|
-| `together/moonshotai/Kimi-K2.5` | 262K | Hybrid† + Single | ✅ | **Best non-frontier substitute.** Highest word count (~1,450 words); full disclaimer compliance; clean protocol. Passes in both hybrid and single modes. |
-| `together/deepseek-ai/DeepSeek-V3.1` | 131K | Hybrid† | ✅ | Full synthesize prose; $0.60/$1.70/M |
-| `together/MiniMaxAI/MiniMax-M2.7` | 197K | Hybrid† | ✅ | Most economical Together option ($0.30/$1.20/M); synthesize recognized |
-| `together/zai-org/GLM-5` | 203K | Hybrid† | ✅ | Fastest CERBERUS response (1031ms); W7 verbal calibration gap |
-| `together/MiniMaxAI/MiniMax-M2.5` | — | Hybrid† | ⚠️ DEGRADED | `/portfolio synthesize` not recognized; W5 news non-functional; use M2.7 instead |
-| `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262K | Single | ✅ | ~300-word synthesis; 60k/262k context use |
-| `together/Qwen/Qwen3-235B-A22B-Thinking-2507` | — | — | ⚠️ PARTIAL | Tool calls work but 5–10 min/step; not viable for interactive sessions |
-| `together/deepseek-ai/DeepSeek-R1-0528` | — | — | 🚫 BLOCKED | Outputs tool name as text code block instead of function call |
-| `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | — | — | 🚫 BLOCKED | Tool payload rejected by Together AI serverless |
-| `together/meta-llama/Llama-4-Scout-17B-16E-Instruct` | — | — | 🚫 BLOCKED | Tool payload rejected (Together AI variant) |
-| `together/moonshotai/Kimi-K2-Thinking` | — | — | 🚫 BLOCKED | Thinking variant not tool-call compatible |
-| `together/zai-org/GLM-4.7` | — | — | 🚫 BLOCKED | GLM-5 works; GLM-4.7 does not |
-| `together/Qwen/Qwen3-Next-80B-A3B-Instruct` | — | — | 🚫 BLOCKED | MoE 80B variant not tool-call compatible |
+| Model | Context | Benchmark | Notes |
+|-------|---------|:---------:|-------|
+| `together/moonshotai/Kimi-K2.5` | 262K | ✅ WF60 (single) | Passes single-model run. Full hybrid benchmark pending. |
+| `together/deepseek-ai/DeepSeek-V3.1` | 131K | ⏳ pending | Passed tool-call and protocol validation. $0.60/$1.70/M. |
+| `together/MiniMaxAI/MiniMax-M2.7` | 197K | ⏳ pending | Passed tool-call and protocol validation. Most economical Together option ($0.30/$1.20/M). |
+| `together/zai-org/GLM-5` | 203K | ⏳ pending | Passed tool-call and protocol validation. |
+| `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262K | ✅ WF61 (single) | ~300-word synthesis; 60k/262k context use. |
+| `together/MiniMaxAI/MiniMax-M2.5` | — | ⚠️ DEGRADED | `/portfolio synthesize` not recognized; W5 news non-functional — use M2.7 instead. |
+| `together/Qwen/Qwen3-235B-A22B-Thinking-2507` | — | ⚠️ PARTIAL | Tool calls work; 5–10 min/step — not viable for interactive sessions. |
+| `together/deepseek-ai/DeepSeek-R1-0528` | — | 🚫 BLOCKED | Outputs tool name as text code block, not a function call. |
+| `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | — | 🚫 BLOCKED | Tool payload rejected by Together AI serverless. |
+| `together/meta-llama/Llama-4-Scout-17B-16E-Instruct` | — | 🚫 BLOCKED | Tool payload rejected (Together AI variant). |
+| `together/moonshotai/Kimi-K2-Thinking` | — | 🚫 BLOCKED | Thinking variant not tool-call compatible. |
+| `together/zai-org/GLM-4.7` | — | 🚫 BLOCKED | GLM-5 works; GLM-4.7 does not. |
+| `together/Qwen/Qwen3-Next-80B-A3B-Instruct` | — | 🚫 BLOCKED | MoE 80B variant not tool-call compatible. |
 
 ### Groq
 
 Fast inference (500–1000 tok/s) at low cost. 128K context limits to small-to-medium portfolios — not suitable for large multi-account or fully-enriched sessions.
 
-| Model | Context | Mode tested | Result | Notes |
-|-------|---------|:-----------:|:------:|-------|
-| `groq/openai/gpt-oss-120b` | 128K | Single | ✅ | **Recommended Groq option.** Full autonomous synthesis; $0.15/$0.60/M; 500 tok/s; minor W0/W7 protocol gaps. Production-stable. |
-| `groq/openai/gpt-oss-20b` | 128K | Single | ✅ | Full synthesize (~250 words); $0.075/$0.30/M; 1000 tok/s. Production-stable. |
-| `groq/moonshotai/kimi-k2-instruct-0905` | 262K | Single | ✅ ⚠️ | Best Groq prose (~350 words). **Preview tier — not production-stable; may be discontinued without notice.** |
-| `groq/qwen/qwen3-32b` | 128K | Hybrid† | ⚠️ PASS/partial | Compact synthesis; QC9 partial (JSON schema fields absent); acceptable for non-FA workloads. Preview model. |
-| `groq/meta-llama/llama-4-scout-17b-16e-instruct` | 128K | — | ⚠️ DEGRADED | Requires extra prompt step for W6 prose; heat_level type error; preview model |
-| `groq/moonshotai/kimi-k2-instruct` | 128K | — | ⚠️ DEGRADED | Thin synthesis (~144 words); undocumented endpoint; not in official Groq docs |
-| `groq/llama-3.3-70b-versatile` | 128K | — | 🚫 DO NOT USE | Config corruption risk — wrote unauthorized keys into `openclaw.json` during testing |
+| Model | Context | Benchmark | Notes |
+|-------|---------|:---------:|-------|
+| `groq/openai/gpt-oss-120b` | 128K | ✅ WF46 | **Recommended Groq option.** Full autonomous synthesis; $0.15/$0.60/M; 500 tok/s. Production-stable. |
+| `groq/openai/gpt-oss-20b` | 128K | ✅ WF59 | Full synthesize (~250 words); $0.075/$0.30/M; 1000 tok/s. Production-stable. |
+| `groq/moonshotai/kimi-k2-instruct-0905` | 262K | ✅ WF58 ⚠️ | Best Groq prose (~350 words). **Preview tier — not production-stable; may be discontinued without notice.** |
+| `groq/qwen/qwen3-32b` | 128K | ⏳ pending | Passed tool-call validation; QC9 partial (JSON schema fields absent). Preview model. |
+| `groq/meta-llama/llama-4-scout-17b-16e-instruct` | 128K | ⚠️ DEGRADED | Requires extra prompt step for W6 prose; heat_level type error; preview model. |
+| `groq/moonshotai/kimi-k2-instruct` | 128K | ⚠️ DEGRADED | Thin synthesis (~144 words); undocumented endpoint. |
+| `groq/llama-3.3-70b-versatile` | 128K | 🚫 DO NOT USE | Config corruption risk — wrote unauthorized keys into `openclaw.json` during testing. |
 
-> **Groq stability note**: Production-stable models confirmed in official Groq docs: `llama-3.3-70b-versatile` (do not use — see above), `llama-3.1-8b-instant`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`. Preview/beta models (`qwen3-32b`, `llama-4-scout`, `kimi-k2-instruct-0905`) can be discontinued without notice — do not build production workflows on them without a verified fallback.
+> **Groq stability note**: Production-stable models confirmed in official Groq docs: `llama-3.1-8b-instant`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`. Preview/beta models (`qwen3-32b`, `llama-4-scout`, `kimi-k2-instruct-0905`) can be discontinued without notice.
 
 ---
 
@@ -195,29 +201,9 @@ These controls are absent in all single-model configurations regardless of model
 
 ---
 
-## Premium Model Ranking
+## Consultation Model Catalog (Local Ollama)
 
-Based on single-session harness results. WF36–WF41 were hybrid mode (DEV-001). Rankings should be treated as an informed starting point, not a permanent ordering.
-
-**1. `xai/grok-4-1-fast` (hybrid)** — canonical recommended config. Best agentic calibration; 2M context; HMAC anti-fabrication active. Best for any production InvestorClaw deployment with a local GPU available.
-
-**2. `xai/grok-4.20-0309-non-reasoning`** — best frontier result for cloud-only high-value sessions. Highest metric density (QC4=65); uniquely surfaced cross-holding news sentiment correlation. Verdict: RECOMMENDED ★ BEST CLOUD SYNTHESIS.
-
-**3. `openai/gpt-5.4`** — strongest prose quality; highest ticker mentions (~35) and word count (~900) among frontier group. Best when breadth of coverage matters more than metric density. Verdict: RECOMMENDED.
-
-**4. `together/moonshotai/Kimi-K2.5`** — highest word count of all tested models (~1,450 words); full disclaimer compliance; clean protocol; best non-frontier substitute. Verdict: RECOMMENDED ★ BEST SUBSTITUTE.
-
-**5. `google/gemini-3.1-pro-preview`** — solid synthesis at lowest cost ($2/$12/M). One disclaimer instance (QC10=1) requires system prompt hardening for FA mode. Individual commands all pass. Verdict: RECOMMENDED with caveat.
-
-**6. `xai/grok-4-1-fast` (true baseline, no enrichment)** — compact and accurate, no padding. Reference for single-model mode without consultation. Best agentic session calibration. Verdict: RECOMMENDED as always-on operational default when GPU is not available.
-
-**7. `groq/openai/gpt-oss-120b`** — passes with full autonomous prose but lower metric density (structured-only mode during testing). Best in class for Groq. Verdict: PASS.
-
----
-
-## Consultation Model Catalog (CERBERUS / Ollama)
-
-Tested on the inference host (CERBERUS: RTX 4500 Ada 24 GB VRAM, Ollama 0.20.3).
+Tested on the inference host (RTX 4500 Ada 24 GB VRAM, Ollama 0.20.3).
 
 | Model | tok/s | VRAM | Notes |
 |-------|------:|-----:|-------|

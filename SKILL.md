@@ -145,7 +145,7 @@ When a `quote` block is present in any output JSON with `verbatim_required: true
 {
   "quote": {
     "text": "Analyst consensus is Strong Buy with 54 analysts...",
-    "attribution": "gemma4-consult via CERBERUS (3420ms)",
+    "attribution": "gemma4-consult via local-inference (3420ms)",
     "verbatim_required": true,
     "fingerprint": "a1b2c3d4e5f6g7h8",
     "card_path": "/Users/.../portfolio_reports/.raw/consultation_cards/MSFT.svg"
