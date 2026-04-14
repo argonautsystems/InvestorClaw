@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 """
-IC-RUN-20260414-003 — Automated benchmark runner for WF75–WF84.
+IC-RUN-20260414-003 — Automated benchmark runner for WF75–WF88.
 Switches openclaw default model (hot-reload, no gateway restart),
 deletes the run's session to ensure a clean slate, then runs
 portfolio analyze and measures QC3/QC4/QC5/QC8.
 
 Usage:
-  python3 scripts/run_benchmark.py [--wf WF75]      # single run
-  python3 scripts/run_benchmark.py [--all]           # WF75-WF83 single-model
-  python3 scripts/run_benchmark.py WF75 WF76 ...    # named runs
+  python3 scripts/run_benchmark.py [--wf WF75]      # single run (consultation disabled)
+  python3 scripts/run_benchmark.py [--all]           # all single-model runs
+  python3 scripts/run_benchmark.py WF75 WF76 ...    # named single-model runs
+  python3 scripts/run_benchmark.py --hybrid          # all hybrid runs (WF87, WF88)
+  python3 scripts/run_benchmark.py --hybrid WF87     # single hybrid run
+
+Hybrid runs require INVESTORCLAW_CONSULTATION_ENABLED=true in .env.
+Single-model runs require INVESTORCLAW_CONSULTATION_ENABLED=false in .env.
 """
 from __future__ import annotations
 
@@ -29,8 +34,7 @@ IC_PROJECT      = Path.home() / "Projects/InvestorClaw"
 OUTPUTS_DIR     = IC_PROJECT / "scripts/wf_outputs"
 RESULTS_FILE    = IC_PROJECT / "scripts/wf_results.jsonl"
 
-# WF75–WF83: single-model runs (consultation disabled)
-# WF84: Kimi-K2.5 hybrid — run separately with consultation enabled
+# WF75–WF86: single-model runs (consultation disabled)
 SINGLE_MODEL_RUNS: dict[str, str] = {
     "WF75": "together/deepseek-ai/DeepSeek-V3.1",
     "WF76": "together/moonshotai/Kimi-K2.5",
@@ -44,6 +48,20 @@ SINGLE_MODEL_RUNS: dict[str, str] = {
     # WF85/WF86: xAI cloud-only gap-close (IC-RUN-20260414-003 addendum)
     "WF85": "xai/grok-4-1-fast",
     "WF86": "xai/grok-4.20-0309-non-reasoning",
+}
+
+# WF87–WF94: hybrid runs (consultation enabled, gemma4-consult on CERBERUS)
+# WF84 (Kimi-K2.5 hybrid) already complete — not repeated here.
+# WF88 re-baselines grok-4-1-fast hybrid under the current injection stack (WF39 predates injection).
+HYBRID_RUNS: dict[str, str] = {
+    "WF87": "together/MiniMaxAI/MiniMax-M2.7",          # primary default model — critical gap
+    "WF88": "xai/grok-4-1-fast",                         # re-baseline WF39 with injection
+    "WF89": "together/deepseek-ai/DeepSeek-V3.1",        # WF75 single QC4=44
+    "WF90": "together/zai-org/GLM-5",                    # WF83 single QC4=74, likely to gain
+    "WF91": "google/gemini-3.1-pro-preview",             # WF80 single QC4=46
+    "WF92": "openai/gpt-5.4",                            # WF81 single QC4=28
+    "WF93": "groq/openai/gpt-oss-120b",                  # WF78 single QC4=17, groq-served
+    "WF94": "groq/moonshotai/kimi-k2-instruct-0905",     # WF77 single QC4=25, groq-served Kimi
 }
 
 STOPWORDS = {
@@ -87,8 +105,8 @@ def set_model(model_spec: str) -> None:
 
 
 def restore_default_model() -> None:
-    set_model("xai/grok-4-1-fast")
-    print("  [model] restored → xai/grok-4-1-fast")
+    set_model("together/MiniMaxAI/MiniMax-M2.7")
+    print("  [model] restored → together/MiniMaxAI/MiniMax-M2.7")
 
 
 # ── QC measurement ─────────────────────────────────────────────────────────────
@@ -237,20 +255,34 @@ def run_wf(wfid: str, model_spec: str) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="IC-RUN-20260414-003 benchmark runner")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("--all", action="store_true", help="Run WF75–WF83 (all single-model)")
-    group.add_argument("--wf",  help="Run a single WF (e.g. --wf WF75)")
-    parser.add_argument("wfs",  nargs="*", help="Specific WF IDs")
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument("--hybrid", action="store_true",
+                            help="Run hybrid mode (consultation enabled). Selects from HYBRID_RUNS.")
+    sel_group = parser.add_mutually_exclusive_group()
+    sel_group.add_argument("--all", action="store_true", help="Run all runs for the selected mode")
+    sel_group.add_argument("--wf",  help="Run a single WF (e.g. --wf WF87)")
+    parser.add_argument("wfs", nargs="*", help="Specific WF IDs")
     args = parser.parse_args()
 
-    # Verify consultation disabled
     env_text = (IC_PROJECT / ".env").read_text()
-    if "INVESTORCLAW_CONSULTATION_ENABLED=false" not in env_text:
-        print("ERROR: INVESTORCLAW_CONSULTATION_ENABLED must be false for single-model runs")
-        sys.exit(1)
+
+    if args.hybrid:
+        run_map = HYBRID_RUNS
+        mode_label = "hybrid"
+        if "INVESTORCLAW_CONSULTATION_ENABLED=true" not in env_text:
+            print("ERROR: INVESTORCLAW_CONSULTATION_ENABLED must be true for hybrid runs")
+            print("  Set it in .env, then re-run.")
+            sys.exit(1)
+    else:
+        run_map = SINGLE_MODEL_RUNS
+        mode_label = "single-model"
+        if "INVESTORCLAW_CONSULTATION_ENABLED=false" not in env_text:
+            print("ERROR: INVESTORCLAW_CONSULTATION_ENABLED must be false for single-model runs")
+            print("  Set it in .env, then re-run.")
+            sys.exit(1)
 
     if args.all:
-        wf_list = list(SINGLE_MODEL_RUNS.keys())
+        wf_list = list(run_map.keys())
     elif args.wf:
         wf_list = [args.wf.upper()]
     elif args.wfs:
@@ -259,17 +291,22 @@ def main() -> None:
         parser.print_help()
         sys.exit(0)
 
+    all_run_maps = {**SINGLE_MODEL_RUNS, **HYBRID_RUNS}
     for wfid in wf_list:
-        if wfid not in SINGLE_MODEL_RUNS:
-            print(f"ERROR: Unknown WF {wfid}. Valid: {list(SINGLE_MODEL_RUNS.keys())}")
+        if wfid not in run_map:
+            if wfid in all_run_maps:
+                other_mode = "hybrid" if wfid in HYBRID_RUNS else "single-model"
+                print(f"ERROR: {wfid} is a {other_mode} run — add --hybrid flag accordingly")
+            else:
+                print(f"ERROR: Unknown WF {wfid}. Single-model: {list(SINGLE_MODEL_RUNS.keys())}  Hybrid: {list(HYBRID_RUNS.keys())}")
             sys.exit(1)
 
-    print(f"IC-RUN-20260414-003 — {wf_list}")
+    print(f"IC-RUN-20260414-003 [{mode_label}] — {wf_list}")
     print(f"Start: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
     results: list[dict] = []
     for wfid in wf_list:
-        r = run_wf(wfid, SINGLE_MODEL_RUNS[wfid])
+        r = run_wf(wfid, run_map[wfid])
         results.append(r)
         time.sleep(2)
 
@@ -285,9 +322,9 @@ def main() -> None:
         print(f"  {r['wf']:<6} {model_short:<43} {r['qc3']:>4} {r['qc4']:>4} {r['qc5']:>5}  {r['status']}")
     print("═" * 72)
 
-    if len(wf_list) == len(SINGLE_MODEL_RUNS):
-        print("\nAll single-model runs complete.")
-        print("Next: re-enable consultation + run WF84 (Kimi-K2.5 hybrid)")
+    if args.all and args.hybrid:
+        print("\nAll hybrid runs complete (WF87–WF94).")
+        print("Update MODELS.md hybrid rankings once results are in.")
 
 
 if __name__ == "__main__":
