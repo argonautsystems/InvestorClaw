@@ -1,6 +1,6 @@
 # InvestorClaw — Tested Models and Benchmark Results
 
-Harness: V6.1.2 | Runs: IC-RUN-20260413-002 through IC-RUN-20260413-009 | Last updated: 2026-04-13
+Harness: V6.1.2 | Runs: IC-RUN-20260413-002 through IC-RUN-20260413-010 | Last updated: 2026-04-14
 
 ---
 
@@ -57,6 +57,20 @@ Scores from runs where local consultation state was confirmed for the recorded m
 
 Additional single-model runs (WF58–WF62) confirmed protocol compliance and tool-call stability for their respective models but were not scored against all 14 QC dimensions in the benchmark table above.
 
+Phase 5 clean runs (WF63–WF71, IC-RUN-20260413-010) produced the following W6 synthesis density comparison:
+
+| Model | QC3 | QC4 | QC5 | Mode | Result |
+|-------|:---:|:---:|:---:|:----:|:------:|
+| DeepSeek-V3.1 (WF68) | 16 | 35+ | 400 | Single | ✅ PASS |
+| Kimi-K2.5 (WF66) | 13 | 40+ | 250 | Single | ✅ PASS |
+| Kimi-K2.5 (WF71) | 17 | 18 | 350 | Hybrid | ✅ PASS |
+| GLM-5 (WF70) | 3 | 26 | 130 | Single | ✅ PASS |
+| MiniMax-M2.7 (WF69) | 1 | 14 | 150 | Single | ✅ PASS |
+| Gemini-3.1-pro (WF65) | 4 | 17 | 104 | Single | ✅ PASS |
+| qwen3-32b (WF67) | 6 | 10 | 60 | Single | ⚠️ DEGRADED |
+
+**Note on WF71 hybrid QC4**: Kimi-K2.5 in hybrid mode produced narrative synthesis (QC4=18) lower than its single-model run (QC4=40+). The enrichment layer shifted output style toward narrative prose drawing on consultation summaries rather than restating raw metrics in tables. Compare to WF39 (grok-4-1-fast-reasoning hybrid, QC4=113) — the operational model choice strongly influences how consultation data is expressed in synthesis.
+
 ---
 
 ## Full Test Run Catalog
@@ -73,21 +87,31 @@ Additional single-model runs (WF58–WF62) confirmed protocol compliance and too
 | WF59 | `groq/openai/gpt-oss-20b` | Single | — | ✅ PASS |
 | WF60 | `together/moonshotai/Kimi-K2.5` | Single | — | ✅ PASS |
 | WF61 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | Single | ✗ | ✅ PASS |
+| WF63 | `openai/gpt-5.4` | Single | — | ✅ PASS (clean confirmed single-model; W7 questionnaire loop) |
+| WF65 | `google/gemini-3.1-pro-preview` | Single | — | ✅ PASS (W7 questionnaire loop; QC5~104 words; QC10=1) |
+| WF66 | `together/moonshotai/Kimi-K2.5` (clean re-run) | Single | — | ✅ PASS (QC3=13, QC4=40+, QC5=250; strong synthesis) |
+| WF68 | `together/deepseek-ai/DeepSeek-V3.1` | Single | — | ✅ PASS (QC3=16, QC4=35+, QC5=400; top single-model performer) |
+| WF69 | `together/MiniMaxAI/MiniMax-M2.7` | Single | — | ✅ PASS (QC3=1, QC4=14, QC5=150; economical) |
+| WF70 | `together/zai-org/GLM-5` | Single | — | ✅ PASS (QC3=3, QC4=26, QC5=130; clean compliance) |
+| WF71 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` | Hybrid | ✅ | ✅ PASS (215 SVG cards, HMAC fingerprints, is_heuristic=false) |
 
-### Awaiting clean single-model benchmark
+### Awaiting full QC benchmark
 
-The following models were exercised during tool-call compatibility testing and all passed protocol validation. Full single-model benchmark scores are pending.
+All Phase 5 clean runs completed in IC-RUN-20260413-010. No models remain in pending-benchmark status.
 
-| Model | Tool-call status | Awaiting |
-|-------|:----------------:|----------|
-| `openai/gpt-5.4` | ✅ | Full QC benchmark in confirmed single-model mode |
-| `xai/grok-4.20-0309-non-reasoning` | ✅ | Full QC benchmark in confirmed single-model mode |
-| `google/gemini-3.1-pro-preview` | ✅ | Full QC benchmark in confirmed single-model mode |
-| `together/moonshotai/Kimi-K2.5` (hybrid benchmark) | ✅ | Hybrid QC benchmark with confirmed consultation active |
-| `groq/qwen/qwen3-32b` | ✅ | Full QC benchmark in confirmed single-model mode |
-| `together/deepseek-ai/DeepSeek-V3.1` | ✅ | Full QC benchmark in confirmed single-model mode |
-| `together/MiniMaxAI/MiniMax-M2.7` | ✅ | Full QC benchmark in confirmed single-model mode |
-| `together/zai-org/GLM-5` | ✅ | Full QC benchmark in confirmed single-model mode |
+Previously listed models and their final verdicts:
+
+| Model | Final Verdict | Run |
+|-------|:-------------:|-----|
+| `openai/gpt-5.4` | ✅ PASS | WF63 |
+| `xai/grok-4.20-0309-non-reasoning` | ⚠️ DEGRADED | WF64 |
+| `google/gemini-3.1-pro-preview` | ✅ PASS | WF65 |
+| `together/moonshotai/Kimi-K2.5` (single) | ✅ PASS | WF66 |
+| `together/moonshotai/Kimi-K2.5` (hybrid) | ✅ PASS | WF71 |
+| `groq/qwen/qwen3-32b` | ⚠️ DEGRADED | WF67 |
+| `together/deepseek-ai/DeepSeek-V3.1` | ✅ PASS | WF68 |
+| `together/MiniMaxAI/MiniMax-M2.7` | ✅ PASS | WF69 |
+| `together/zai-org/GLM-5` | ✅ PASS | WF70 |
 
 ### Partial / not viable (tool calls work but impractical)
 
@@ -100,6 +124,8 @@ The following models were exercised during tool-call compatibility testing and a
 | Run | Model | Reason |
 |-----|-------|--------|
 | WF53 | `together/MiniMaxAI/MiniMax-M2.5` | `/portfolio synthesize` not recognized; W5 news non-functional — use M2.7 instead |
+| WF64 | `xai/grok-4.20-0309-non-reasoning` | W4+W5 standalone tool payloads rejected ("LLM request failed: provider rejected request schema or tool payload"); W6 synthesize workaround succeeds by running analyst+news inline |
+| WF67 | `groq/qwen/qwen3-32b` | `/portfolio update-identity` not recognized; W6 thin synthesis (~60 words) with file pointer; W7 offered specific put option/trailing-stop recommendations without educational framing (guardrail issue); preview model |
 
 ### Blocked (cannot execute tool calls at all)
 
@@ -121,28 +147,28 @@ The following models were exercised during tool-call compatibility testing and a
 | Model | Context | Benchmark | Notes |
 |-------|---------|:---------:|-------|
 | `xai/grok-4-1-fast` | ~2M | ✅ WF39/WF62 | **Recommended operational default.** Best agentic calibration; 2M context means no truncation on large enriched sessions. Requires `/portfolio update-identity` each session for full disclaimer compliance. |
-| `xai/grok-4.20-0309-non-reasoning` | ~1M | ⏳ pending | Passed tool-call and protocol validation. Full single-model benchmark pending. |
+| `xai/grok-4.20-0309-non-reasoning` | ~1M | ⚠️ WF64 DEGRADED | W4+W5 standalone tool payloads rejected; W6 synthesize succeeds by running analyst+news inline. Not recommended for standalone analyst/news steps. |
 
 ### OpenAI
 
 | Model | Context | Benchmark | Notes |
 |-------|---------|:---------:|-------|
-| `openai/gpt-5.4` | ~272K | ⏳ pending | Passed tool-call and protocol validation. Full single-model benchmark pending. |
+| `openai/gpt-5.4` | ~272K | ✅ WF63 | Passed clean single-model benchmark. W7 questionnaire loop observed (same as Gemini/Kimi-K2.5). 272K context is smallest among frontier models. |
 
 ### Google
 
 | Model | Context | Benchmark | Notes |
 |-------|---------|:---------:|-------|
-| `google/gemini-3.1-pro-preview` | ~1M | ⏳ pending | Passed tool-call and protocol validation. Full single-model benchmark pending. |
+| `google/gemini-3.1-pro-preview` | ~1M | ✅ WF65 | PASS — clean single-model. QC3=4, QC4=17, QC5=104 words (thin synthesis). W7 questionnaire loop; QC10=1. Functional but lowest synthesis density of frontier models tested. |
 
 ### Together AI
 
 | Model | Context | Benchmark | Notes |
 |-------|---------|:---------:|-------|
-| `together/moonshotai/Kimi-K2.5` | 262K | ✅ WF60 (single) | Passes single-model run. Full hybrid benchmark pending. |
-| `together/deepseek-ai/DeepSeek-V3.1` | 131K | ⏳ pending | Passed tool-call and protocol validation. $0.60/$1.70/M. |
-| `together/MiniMaxAI/MiniMax-M2.7` | 197K | ⏳ pending | Passed tool-call and protocol validation. Most economical Together option ($0.30/$1.20/M). |
-| `together/zai-org/GLM-5` | 203K | ⏳ pending | Passed tool-call and protocol validation. |
+| `together/moonshotai/Kimi-K2.5` | 262K | ✅ WF60/WF66 (single) / ✅ WF71 (hybrid) | Single: QC3=13, QC4=40+, QC5=250 — strongest non-frontier single-model performer. Hybrid: 215 SVG cards, HMAC fingerprints, is_heuristic=false; QC3=17, QC4=18, QC5=350 (narrative synthesis vs. data-table). W7 questionnaire loop in both modes. |
+| `together/deepseek-ai/DeepSeek-V3.1` | 131K | ✅ WF68 | PASS — clean single-model. QC3=16, QC4=35+, QC5=400 words. **Top single-model performer** after Kimi-K2.5. Strong synthesis density. $0.60/$1.70/M. |
+| `together/MiniMaxAI/MiniMax-M2.7` | 197K | ✅ WF69 | PASS — clean single-model. QC3=1, QC4=14, QC5=150. Thin synthesis but protocol-compliant. Most economical Together option ($0.30/$1.20/M). |
+| `together/zai-org/GLM-5` | 203K | ✅ WF70 | PASS — clean single-model. QC3=3, QC4=26, QC5=130. Protocol-compliant; account breakdown detail notable. |
 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262K | ✅ WF61 (single) | ~300-word synthesis; 60k/262k context use. |
 | `together/MiniMaxAI/MiniMax-M2.5` | — | ⚠️ DEGRADED | `/portfolio synthesize` not recognized; W5 news non-functional — use M2.7 instead. |
 | `together/Qwen/Qwen3-235B-A22B-Thinking-2507` | — | ⚠️ PARTIAL | Tool calls work; 5–10 min/step — not viable for interactive sessions. |
@@ -162,7 +188,7 @@ Fast inference (500–1000 tok/s) at low cost. 128K context limits to small-to-m
 | `groq/openai/gpt-oss-120b` | 128K | ✅ WF46 | **Recommended Groq option.** Full autonomous synthesis; $0.15/$0.60/M; 500 tok/s. Production-stable. |
 | `groq/openai/gpt-oss-20b` | 128K | ✅ WF59 | Full synthesize (~250 words); $0.075/$0.30/M; 1000 tok/s. Production-stable. |
 | `groq/moonshotai/kimi-k2-instruct-0905` | 262K | ✅ WF58 ⚠️ | Best Groq prose (~350 words). **Preview tier — not production-stable; may be discontinued without notice.** |
-| `groq/qwen/qwen3-32b` | 128K | ⏳ pending | Passed tool-call validation; QC9 partial (JSON schema fields absent). Preview model. |
+| `groq/qwen/qwen3-32b` | 128K | ⚠️ WF67 DEGRADED | `/portfolio update-identity` not recognized; W6 thin synthesis (~60 words) with file pointer; W7 offered specific investment recommendations without educational framing (guardrail issue). Preview model. |
 | `groq/meta-llama/llama-4-scout-17b-16e-instruct` | 128K | ⚠️ DEGRADED | Requires extra prompt step for W6 prose; heat_level type error; preview model. |
 | `groq/moonshotai/kimi-k2-instruct` | 128K | ⚠️ DEGRADED | Thin synthesis (~144 words); undocumented endpoint. |
 | `groq/llama-3.3-70b-versatile` | 128K | 🚫 DO NOT USE | Config corruption risk — wrote unauthorized keys into `openclaw.json` during testing. |
