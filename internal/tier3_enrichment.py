@@ -299,6 +299,24 @@ class Tier3Enricher:
                         "verbatim_required": True,
                         "fingerprint": fp,
                     }
+                    # Always persist a JSON quote file — no env var dependency, no
+                    # render module required. This is the authoritative verifiable
+                    # text artifact for this consultation; SVG is supplemental.
+                    try:
+                        _quote_dir = Path.home() / ".investorclaw" / "quotes"
+                        _quote_dir.mkdir(parents=True, exist_ok=True)
+                        _quote_file = _quote_dir / f"{symbol}.quote.json"
+                        _quote_file.write_text(json.dumps({
+                            "symbol": symbol,
+                            "text": synthesis,
+                            "attribution": attribution,
+                            "fingerprint": fp,
+                            "verbatim_required": True,
+                            "timestamp": datetime.now().isoformat(),
+                        }, indent=2))
+                        quote_block["quote_path"] = str(_quote_file)
+                    except Exception as _qe:
+                        logger.warning("Quote JSON write failed for %s: %s", symbol, _qe)
                     _rdir = os.environ.get("INVESTOR_CLAW_REPORTS_DIR", "")
                     if _rdir:
                         try:
