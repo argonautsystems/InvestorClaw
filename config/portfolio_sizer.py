@@ -125,12 +125,12 @@ def _get_recommendations(
             "reason": "Medium portfolio - GPT-4.1-nano provides excellent analysis quality"
         },
         "complex": {
-            "model": "xai/grok-4-1-fast",
-            "reason": "Complex portfolio - Grok 4.1 Fast handles large context requirements"
+            "model": "together/MiniMaxAI/MiniMax-M2.7",
+            "reason": "Complex portfolio - MiniMax-M2.7 (hybrid) provides best QC4=97 synthesis quality with consultation"
         },
         "enterprise": {
             "model": "xai/grok-4-1-fast",
-            "reason": "Large portfolio - Grok 4.1 Fast provides 2M context for enterprise analysis"
+            "reason": "Large portfolio (500+ holdings) - Grok 4.1 Fast 2M context + 4M TPM for enterprise scale"
         },
     }
 
@@ -138,8 +138,8 @@ def _get_recommendations(
 
     # Upgrade to higher-context model if high sector concentration (concentration risk)
     if sector_concentration > 60 and complexity_level in ["simple", "medium"]:
-        rec["model"] = "xai/grok-4-1-fast"
-        rec["reason"] += " [Upgraded to Grok: high sector concentration]"
+        rec["model"] = "together/MiniMaxAI/MiniMax-M2.7"
+        rec["reason"] += " [Upgraded to MiniMax-M2.7: high sector concentration]"
 
     return rec
 
@@ -204,6 +204,7 @@ def _estimate_cost(model: str, holdings_count: int) -> str:
     # Pricing (very rough, per 1M tokens)
     pricing = {
         "openai/gpt-4.1-nano": 0.10,
+        "together/MiniMaxAI/MiniMax-M2.7": 0.30,
         "xai/grok-4-1-fast": 0.20,
     }
 

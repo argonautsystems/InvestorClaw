@@ -181,7 +181,7 @@ SINGLE_INVESTOR_MODE = ModeDefinition(
         # Breakpoints calibrated for compact output mode (Apr 2026):
         # holdings+perf+analyst+news+bonds ≈ 6K tokens total regardless of size.
         # Per-session token budget dominated by conversation history, not portfolio data.
-        # Grok only justified at enterprise scale for multi-session accumulation or 500+ holdings.
+        # Default: MiniMax-M2.7 hybrid (consultation enabled) for complex. Grok for enterprise (500+ holdings / 2M context).
         "simple": LLMRecommendation(
             complexity_level="simple",
             model="openai/gpt-4.1-nano",
@@ -198,8 +198,8 @@ SINGLE_INVESTOR_MODE = ModeDefinition(
         ),
         "complex": LLMRecommendation(
             complexity_level="complex",
-            model="openai/gpt-4.1-nano",
-            reason="GPT-4.1-nano handles complex portfolios — compact outputs scale to 300 holdings within TPM budget",
+            model="together/MiniMaxAI/MiniMax-M2.7",
+            reason="MiniMax-M2.7 hybrid (QC4=97) — best synthesis quality for standard portfolios with consultation enabled",
             cost_per_month=15.0,
             max_holdings=300,
         ),
