@@ -109,7 +109,7 @@ Best performers across synthesis quality, speed, guardrail compliance, and zero 
 
 | Rank | Configuration | QC4 | QC5 | Speed | Notes |
 |------|--------------|:---:|:---:|:-----:|-------|
-| 🥇 | `xai/grok-4-1-fast` + `gemma4-consult` | 113 | 1,184 words | ~65 tok/s (local) | **Canonical best.** 14× metric density vs cloud baseline. HMAC fingerprint chain, verbatim attribution, is_heuristic=false. WF39. |
+| 🥇 | `xai/grok-4-1-fast` + `gemma4-consult` | 113 | 1,184 words | ~65 tok/s (local) | **Canonical best.** 19× metric density vs its own cloud-only baseline. HMAC fingerprint chain, verbatim attribution, is_heuristic=false. WF39. |
 | 🥈 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` | 18 | 350 words | ~65 tok/s (local) | Hybrid confirmed (215 SVG cards). Narrative synthesis style vs Grok's data-table density. WF71. |
 
 ### Single-model (cloud-only)
@@ -123,6 +123,7 @@ Best performers across synthesis quality, speed, guardrail compliance, and zero 
 | | `groq/openai/gpt-oss-20b` | ~8 | ~250 words | ~1000 tok/s | Fastest option. $0.075/$0.30/M. WF59. |
 | | `openai/gpt-5.4` | — | — | OpenAI | PASS, 272K context (smallest frontier). WF63. |
 | | `google/gemini-3.1-pro-preview` | 17 | 104 words | Google | Thin synthesis; 1M context. WF65. |
+| ⚠️ | `xai/grok-4-1-fast` (cloud-only) | 6 | ~50 words | xAI | **Not recommended cloud-only.** Lowest synthesis density of all tested models. Use hybrid mode only. WF72. |
 
 ### Guardrails & hallucination score
 

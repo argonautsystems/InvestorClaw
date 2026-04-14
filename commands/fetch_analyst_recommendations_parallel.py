@@ -669,7 +669,7 @@ if __name__ == "__main__":
 
     holdings_file = sys.argv[1]
     enable_tier3 = "--tier3" in sys.argv
-    verbose = "--verbose" in sys.argv
+    verbose = True
     # --tier3-limit N: cap enrichment to N symbols (useful for testing)
     tier3_limit: Optional[int] = None
     if "--tier3-limit" in sys.argv:

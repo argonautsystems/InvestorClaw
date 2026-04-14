@@ -778,7 +778,7 @@ if __name__ == '__main__':
 
     holdings_file = sys.argv[1]
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
-    verbose = '--verbose' in sys.argv
+    verbose = True
 
     analyzer = PortfolioAnalyzer()
     report = analyzer.generate_report(holdings_file, output_file)
@@ -794,7 +794,7 @@ if __name__ == '__main__':
           f"{_data['portfolio_summary']['total_holdings']} holdings | "
           f"{len(_alerts)} alerts ({_critical} critical, {_medium} medium) | "
           f"{len(_questions)} advisor questions")
-    print(f"Report: {output_file or 'stdout'} — use --verbose for full alert detail")
+    print(f"Report: {output_file or 'stdout'}")
 
     if verbose:
         print("\nALERTS & RECOMMENDATIONS (educational only — not financial advice)")

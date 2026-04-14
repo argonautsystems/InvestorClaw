@@ -5,7 +5,7 @@ CREDENTIALS SETUP (one-time, on orchestrator Mac — set before running any harn
   Add these to ~/.zshrc or ~/.zprofile to persist. Do NOT commit credentials or .env files.
   VERIFY: echo "HOME=${ORCHESTRATOR_HOME} REPO=${IC_GITHUB_REPO} OLLAMA=${CONSULTATION_HOST}"
 
-INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260413-008 (LATEST 2026-04-13) | Min commit: 33e5442 | Session: ic-harness-v612
+INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260414-001 (LATEST 2026-04-14) | Min commit: 33e5442 | Session: ic-harness-v612
 ═══════════════════════════════════════════════════════════ CAPABILITIES ═══════════════════════════════════════════════════════════
 CAP1 ORCHESTRATION openclaw agent --session-id ic-harness-v612 -m "<instruction>" (W0.4+)
 CAP2 REMEDIATION Claude directly: edit source → commit ARGONAS → push GitHub → restart W0 OpenClaw detects+suggests. Claude verifies then acts. Not optional.
@@ -779,3 +779,60 @@ SVG CARD + TEXT FINGERPRINT ANALYSIS (from SVG unevenness investigation):
     confirmed hallucination; no Perplexity code path exists in tier3_enrichment.py; heuristic mode → model fabricated attribution.
 
 ═══════════════════════════════════════════════════════════ END IC-RUN-20260413-009 ADDENDUM ═══════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════ IC-RUN-20260414-001 ADDENDUM (grok-4-1-fast Cloud-Only Baseline) ═══════════════════════════════════════════════════════════
+Run ID: IC-RUN-20260414-001 | Date: 2026-04-14 | Type: Single-model cloud-only baseline
+Model: xai/grok-4-1-fast | Provider: xai | local-inference: DISABLED (CONSULTATION_ENABLED=false, ENDPOINT=localhost:0)
+Purpose: Establish cloud-only QC baseline for grok-4-1-fast. Prior runs (WF39, WF62, IC-RUN-20260413-009) all had consultation active — no single-model comparison existed. Required for README all-stars table completeness.
+
+PRE-RUN STATE:
+  Model: xai/grok-4-1-fast (already configured)
+  .env change: INVESTORCLAW_CONSULTATION_ENABLED=false, INVESTORCLAW_CONSULTATION_ENDPOINT=http://localhost:0
+  Gateway restart: stop + start (bootout fallback, re-bootstrapped OK)
+  Session: ic-pm-grok4-solo (new)
+  /portfolio update-identity: ✅ (required for guardrail disclaimer compliance)
+
+VERBOSE DEFAULT FIX (applied pre-run, commit in this run):
+  commands/portfolio_analyzer.py: verbose = '--verbose' in sys.argv → verbose = True
+  commands/fetch_analyst_recommendations_parallel.py: verbose = "--verbose" in sys.argv → verbose = True
+  Removed stale "use --verbose for full alert detail" hint from portfolio_analyzer.py print line.
+  Rationale: default compact output suppresses alert/recommendation detail that LLM uses for W6 synthesis quality.
+  Effect: W6 synthesis now receives full ALERTS + RECOMMENDATIONS block in stdout context.
+
+WF72 STEP RESULTS:
+  W0  skill lifecycle      ✅  update-identity OK | CONSULTATION_ENABLED=false confirmed (W4: "stalled (no LLM tier3)")
+  W1  holdings             ✅  $2,604,389 | 270 positions (216 eq · 38 bonds · 16 cash) | Tech 34% | disclaimer ✅
+  W2  performance          ✅  Sharpe 0.52 | UCTT +424% | 214/216 holdings (99.1%) | disclaimer ✅
+  W3  bond-analysis        ✅  $706K munis (99.6%) | YTM 3.10% | duration 4.6y | disclaimer ✅
+  W4  analyst+no-LLM       ✅  215/216 (99.5%) | 18 an/sym avg | "stalled (no LLM tier3)" confirms heuristic mode | disclaimer ✅
+  W5  news                 ✅  24 items | positive posture | TXG/AIR/AEIS/AMD/A top 5 | disclaimer ✅
+  W6  synthesize           ✅  Tech 34% alert | 270 holdings | 71% eq | disclaimer ✅
+  W7  session-init         ✅  Balanced | Heat 3/5 | Neutral stance | Concerns: tariffs, tech | no suitability/advice | disclaimer ✅
+  W8  report               ✅  portfolio_report.xlsx + csv exports | disclaimer ✅
+
+QC SUMMARY:
+  QC1  routing_accuracy:        pass (all commands routed correctly)
+  QC4  w6_metric_citations:     6 ($2.6M, 270, 34%, 30%, 71%, heat 3/5)
+  QC5  w6_word_count:           ~50 words
+  QC8  fabrication_flags:       0 (all figures traceable to holdings/analysis JSON)
+  QC9  protocol_adherence:      pass
+  QC10 disclaimer_quality:      2 (contextual, present in every step)
+  QC13 w6_consistency:          pass (34%/270/71% consistent with W1 data)
+  QC14 w7_risk_coherence:       pass (balanced/neutral, heat 3, no specific investment recommendations)
+  synthesis_basis:              heuristic (no tier3 enrichment)
+
+KEY FINDING — Cloud-only synthesis depth:
+  grok-4-1-fast WITHOUT consultation: QC4=6, QC5=~50 words (extremely compact)
+  grok-4-1-fast WITH consultation (WF39/WF71): QC4=113, QC5=1,184 words
+  Ratio: 19× more metric citations | 24× more synthesis words in hybrid vs cloud-only
+  This exceeds the previously documented 14× ratio (WF39 measured vs cloud baseline aggregate).
+  Root cause: grok-4-1-fast is optimized as an organizer/presenter of enriched data — not a data extractor.
+    Cloud-only: model summarizes already-compact JSON fields → thin output
+    Hybrid: model synthesizes 90K+ tokens of enriched consultation output → dense output
+  Implication: grok-4-1-fast is NOT recommended as a cloud-only operational model.
+    For cloud-only use: together/deepseek-ai/DeepSeek-V3.1 (QC4=35+, QC5=400 words) is the correct choice.
+
+VERDICT: PASS (all W0–W8 complete, QC8=0, no guardrail violations)
+         CLOUD-ONLY RANKING: LAST — lowest synthesis density of all tested single-model configurations.
+         Recommended use: hybrid mode only (with gemma4-consult consultation).
+═══════════════════════════════════════════════════════════ END IC-RUN-20260414-001 ADDENDUM ═══════════════════════════════════════════════════════════
