@@ -147,6 +147,20 @@ Model comparison, consultation benefit analysis, and alternatives ranked by QC4:
 
 ---
 
+### Profile 3 — Budget / fast (Groq)
+
+**Operational LLM**: `groq/openai/gpt-oss-120b` or `groq/openai/gpt-oss-20b`
+
+500–1000 tok/s. 128K context limits to small-medium portfolios. Best for quick single-session queries where cost or speed matters. Not suitable for large fully-enriched sessions.
+
+> **`groq/openai/gpt-oss-20b` is FAIL** — malformed tool calls (WF79). Use `gpt-oss-120b` only.
+
+```json
+{ "agents": { "defaults": { "model": { "primary": "groq/openai/gpt-oss-120b" } } } }
+```
+
+---
+
 ### Profile 4 — Enterprise / High-context (large portfolios, requires local GPU)
 
 **Operational LLM**: `xai/grok-4-1-fast`  
@@ -173,20 +187,6 @@ INVESTORCLAW_CONSULTATION_ENDPOINT=http://localhost:11434
 - Full-enrichment runs where context injection volume exhausts smaller-context models
 
 > **Synthesis note**: cloud-only QC4=39 (WF85) is mid-tier and not recommended standalone; consultation is required for acceptable synthesis density (hybrid QC4=52, WF88, +33%).
-
----
-
-### Profile 3 — Budget / fast (Groq)
-
-**Operational LLM**: `groq/openai/gpt-oss-120b` or `groq/openai/gpt-oss-20b`
-
-500–1000 tok/s. 128K context limits to small-medium portfolios. Best for quick single-session queries where cost or speed matters. Not suitable for large fully-enriched sessions.
-
-> **`groq/openai/gpt-oss-20b` is FAIL** — malformed tool calls (WF79). Use `gpt-oss-120b` only.
-
-```json
-{ "agents": { "defaults": { "model": { "primary": "groq/openai/gpt-oss-120b" } } } }
-```
 
 ---
 
