@@ -179,9 +179,13 @@ Examples:
 ╚════════════════════════════════════════════════════════════════════╝
 
 ╔════════════════════════════════════════════════════════════════════╗
-║  2. FA PROFESSIONAL (Advisor)                          ⚖️  PREMIUM ║
+║  2. FA PROFESSIONAL — ⚠️  DANGEROUS MODE               ⚖️  PREMIUM ║
 ║  ─────────────────────────────────────────────────────────────    ║
 ║  "I advise clients on their portfolios"                           ║
+║                                                                   ║
+║  🚨 WARNING: This mode generates SPECIFIC recommendations.        ║
+║     Not for individual retail investors. Advisor fiduciary       ║
+║     duty applies. All outputs carry elevated risk disclosure.    ║
 ║                                                                   ║
 ║  Features:                                                         ║
 ║    ✓ All of Single Investor mode, PLUS:                          ║
@@ -197,6 +201,7 @@ Examples:
 ║    ⚠️  Business license verification                              ║
 ║    ⚠️  7-year audit trail enabled                                 ║
 ║    ⚠️  Compliance documentation required                          ║
+║    ⚠️  Advisor assumes full fiduciary responsibility              ║
 ║                                                                   ║
 ║  Best for: Financial advisors, wealth managers, professionals    ║
 ╚════════════════════════════════════════════════════════════════════╝

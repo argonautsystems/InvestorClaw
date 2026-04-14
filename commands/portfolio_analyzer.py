@@ -659,8 +659,9 @@ class PortfolioAnalyzer:
             except Exception as e:
                 logger.warning(f"Could not apply mode-specific guardrails: {e}")
 
-        # Wrap with compliance disclaimers
-        report = DisclaimerWrapper.wrap_output(analysis_data, "Portfolio Asset Allocation Analysis", compact=True)
+        # Wrap with compliance disclaimers (mode-aware: FA Dangerous Mode gets expanded disclaimer)
+        _mode_str = get_deployment_mode() if _features_available else None
+        report = DisclaimerWrapper.wrap_output(analysis_data, "Portfolio Asset Allocation Analysis", compact=True, deployment_mode=_mode_str)
 
         # Validate output with guardrails if available
         if validate_all_guardrails:
@@ -673,7 +674,7 @@ class PortfolioAnalyzer:
 
         # Save report if output file specified
         if output_file:
-            DisclaimerWrapper.wrap_and_save(analysis_data, output_file, "Portfolio Asset Allocation Analysis")
+            DisclaimerWrapper.wrap_and_save(analysis_data, output_file, "Portfolio Asset Allocation Analysis", deployment_mode=_mode_str)
             logger.info(f"Report saved to {output_file}")
 
         return report
@@ -874,17 +875,19 @@ if __name__ == '__main__':
                 )
                 if _buys:
                     print("\nSESSION CONTEXT — analyst consensus, top upside (from W4):")
+                    print("  TICKER_FIDELITY: reproduce each symbol EXACTLY as shown — do not alter spelling.")
                     for sym, r in _buys[:5]:
                         rating = r.get("consensus", "?")
                         pt = r.get("target_price_mean", 0)
                         cp = r.get("current_price", 0)
                         upside = ((pt - cp) / cp * 100) if cp else 0
                         n = r.get("analyst_count", "?")
-                        print(f"  {sym}: {rating} ({n} analysts) PT ${pt:.0f} ({upside:+.0f}% upside)")
+                        print(f'  {{"symbol":"{sym}","consensus":"{rating}","analysts":{n},"pt":{pt:.0f},"upside_pct":{upside:.0f}}}')
         except Exception:
             pass  # Cross-step context is best-effort; never block the main output
 
         print("\nSYNTHESIS GUIDANCE (for the presenting agent)")
         print("  Cite specific holdings, sector percentages, and dollar amounts in your response.")
         print("  Reference top performers and analyst consensus for named positions where relevant.")
+        print("  Reproduce ALL ticker symbols EXACTLY as provided in SESSION CONTEXT — never alter spelling.")
         print("  Present all findings in educational framing. Target 150-250 words.")

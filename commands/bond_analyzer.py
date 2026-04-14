@@ -976,8 +976,13 @@ class BondAnalyzer:
                 'errors': self.errors if self.errors else None,
             }
 
-            # Wrap with compliance disclaimers
-            DisclaimerWrapper.wrap_and_save(analysis_data, str(output_path), "Bond Portfolio Analysis")
+            # Wrap with compliance disclaimers (mode-aware: FA Dangerous Mode gets expanded disclaimer)
+            try:
+                from config.config_loader import get_deployment_mode as _get_mode
+                _dep_mode = _get_mode()
+            except Exception:
+                _dep_mode = None
+            DisclaimerWrapper.wrap_and_save(analysis_data, str(output_path), "Bond Portfolio Analysis", deployment_mode=_dep_mode)
 
             logger.info(f"Report exported to {output_path}")
         except Exception as e:

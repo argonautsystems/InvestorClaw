@@ -53,7 +53,7 @@ HEAT_LEVELS = {
         "label": "Aggressive Growth",
         "description": "Maximum returns. Accept high volatility and significant drawdowns.",
         "advice_framing": "aggressive",
-        "max_equity_pct": 100,
+        "max_equity_pct": 95,
         "drawdown_tolerance_pct": 50,
     },
 }

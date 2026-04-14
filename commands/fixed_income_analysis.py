@@ -478,11 +478,12 @@ class FixedIncomeAnalyzer:
             except Exception as e:
                 logger.warning(f"Could not apply mode-specific guardrails: {e}")
 
-        # Wrap with compliance disclaimers
-        report = DisclaimerWrapper.wrap_output(analysis_data, "Fixed Income (Bond) Portfolio Analysis", compact=True)
+        # Wrap with compliance disclaimers (mode-aware: FA Dangerous Mode gets expanded disclaimer)
+        _mode_str = mode_str if 'mode_str' in dir() else (get_deployment_mode() if _features_available else None)
+        report = DisclaimerWrapper.wrap_output(analysis_data, "Fixed Income (Bond) Portfolio Analysis", compact=True, deployment_mode=_mode_str)
 
         if output_file:
-            DisclaimerWrapper.wrap_and_save(analysis_data, output_file, "Fixed Income (Bond) Portfolio Analysis")
+            DisclaimerWrapper.wrap_and_save(analysis_data, output_file, "Fixed Income (Bond) Portfolio Analysis", deployment_mode=_mode_str)
             logger.info(f"Report saved to {output_file}")
 
         return report

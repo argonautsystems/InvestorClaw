@@ -186,9 +186,17 @@ class GuardrailEnforcer:
             else:
                 return text
         else:
-            # FA mode: professional disclaimer
+            # FA mode (Dangerous Mode): professional disclaimer with elevated risk notice
             if "[professional" not in text.lower():
-                disclaimer = "\n\n[PROFESSIONAL DISCLOSURE: This analysis is provided by a registered advisor as part of professional financial advice services. Recommendations are based on client-specific financial situation, goals, and risk tolerance. Client should review all recommendations with their tax and legal advisors.]"
+                disclaimer = (
+                    "\n\n[PROFESSIONAL DISCLOSURE — DANGEROUS MODE ACTIVE: "
+                    "This analysis is provided by a registered advisor operating under fiduciary duty. "
+                    "Recommendations are specific and advisory-grade; they are NOT educational content. "
+                    "Recommendations are based on client-specific financial situation, goals, and risk tolerance. "
+                    "Past performance does not guarantee future results. "
+                    "Client must review all recommendations with their tax and legal advisors. "
+                    "This system does not verify advisor licensing or registration status.]"
+                )
             else:
                 return text
 

@@ -311,8 +311,13 @@ class BondDataFetcher:
             }
 
             if output_file:
-                # Wrap with disclaimer and save
-                wrapped_report = DisclaimerWrapper.wrap_output(report, "Bond Portfolio Analysis")
+                # Wrap with disclaimer and save (mode-aware: FA Dangerous Mode gets expanded disclaimer)
+                try:
+                    from config.config_loader import get_deployment_mode as _get_mode
+                    _dep_mode = _get_mode()
+                except Exception:
+                    _dep_mode = None
+                wrapped_report = DisclaimerWrapper.wrap_output(report, "Bond Portfolio Analysis", deployment_mode=_dep_mode)
                 with open(output_file, 'w') as f:
                     json.dump(wrapped_report, f, indent=2, default=str)
                 logger.info(f"Bond analysis saved to {output_file}")

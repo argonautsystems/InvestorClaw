@@ -1,6 +1,6 @@
 # InvestorClaw — Tested Models and Benchmark Results
 
-Harness: V6.1.2 | Runs: IC-RUN-20260413-002 through IC-RUN-20260414-003 | Last updated: 2026-04-14
+Harness: V6.1.2 | Runs: IC-RUN-20260413-002 through IC-RUN-20260414-004 | Last updated: 2026-04-14
 
 ---
 
@@ -25,6 +25,21 @@ The operational LLM handles all routing, tool calls, and synthesis directly from
 - No GPU or local inference required
 - Lower information density on portfolios with many individual equities
 - Still enforces guardrails and educational-only output
+
+---
+
+## Recommended Configurations
+
+Four canonical configurations for regression testing. New harness runs should target these before expanding to the full model matrix.
+
+| # | Config | Mode | Model | Notes |
+|---|--------|------|-------|-------|
+| **RC-1** | Cloud-only default | Single | `together/MiniMaxAI/MiniMax-M2.7` | QC4=108; $0.30/$1.20/M; best price/QC4 ratio. Recommended for most users — no GPU required. |
+| **RC-2** | Hybrid with audit controls | Hybrid | `together/zai-org/GLM-5` + `gemma4-consult` | QC4=86 (+16% over cloud-only). Best hybrid model where consultation adds net value. HMAC fingerprints, `is_heuristic=false`. |
+| **RC-3** | Large portfolio / context | Hybrid | `xai/grok-4-1-fast` + `gemma4-consult` | Only 2M-context model. Hybrid QC4=52 (WF88). Use when context capacity or audit trail is the test focus. |
+| **RC-4** | Budget / speed | Single | `groq/openai/gpt-oss-120b` | QC4=17; $0.15/$0.60/M; ~500 tok/s. ⚠️ `gpt-oss-20b` is FAIL (WF79) — do not use. |
+
+> RC-1 is the primary regression target for all new feature work. RC-2 is the hybrid regression target. RC-3 only when context capacity or audit trail is the test focus. RC-4 for Groq-specific regression.
 
 ---
 
@@ -182,6 +197,47 @@ Phase 5 clean runs (WF63–WF71, IC-RUN-20260413-010) produced the following W6 
 - MiniMax-M2.7 single-model (QC4=108) remains the overall QC4 leader — its hybrid score (QC4=97) is lower. Confirmed: **use MiniMax-M2.7 cloud-only**.
 - grok-4-1-fast WF39 (QC4=113) pre-dates cross-step injection. Re-baseline WF88 with injection yields QC4=52 — a 54% drop. The injection stack changes grok's output style (less table-dense, more narrative). WF39 is no longer a fair comparison point against injection-era results.
 - GLM-5 is now the best hybrid model under the current injection stack (QC4=86, WF90), displacing Kimi-K2.5 (QC4=82, WF84).
+
+---
+
+### IC-RUN-20260414-004 — Phase 6: Deployment Mode × Heat Level Validation
+
+Run date: 2026-04-14 | WF95–WF114 | Model under test: `together/MiniMaxAI/MiniMax-M2.7` (SI and FA, hybrid and single-model)
+
+**Purpose**: Validate heat trajectory (levels 1–5), FA Dangerous Mode behavior, and SI vs FA single-model comparison under identical portfolio conditions.
+
+#### Scorecard (WF95–WF114)
+
+| Config | Mode | Heat range | Result | Notes |
+|--------|------|:----------:|:------:|-------|
+| SI hybrid (WF95–WF99) | `MiniMax-M2.7` + `gemma4-consult` | 1–5 | **5/5** ✅ | Perfect heat trajectory; alert escalation MEDIUM→OPPORTUNITY→HIGH_TARIFF. HMAC chain present. |
+| FA Dangerous Mode hybrid (WF100–WF104) | `MiniMax-M2.7` + `gemma4-consult` | 1–5 | **5/5** ✅ | FA Dangerous Mode disclaimer active (ANSI red); ADVISORY guardrail; fiduciary framing. Alert escalation matches SI. |
+| SI single-model (WF105–WF109) | `MiniMax-M2.7` | 1–5 | 1 FAIL / 4 Partial | WF105 (heat=1): no `ic_result` JSON block. Heat synthesis static; no escalation prose across levels. |
+| FA single-model (WF110–WF114) | `MiniMax-M2.7` | 1–5 | **3/5** | FA fiduciary framing improves heat coherence vs SI single-model. No `ic_result` JSON block in any single-model run. |
+
+**Key findings:**
+- Hybrid mode (SI and FA) is production-ready for heat-level validation — all 10 hybrid runs pass with correct heat trajectories.
+- Single-model mode has structural limitations: no `ic_result` JSON block, heat synthesis does not escalate in prose across levels. Known limitation, not a bug.
+- FA single-model outperforms SI single-model: fiduciary framing from the FA ADVISORY guardrail produces more coherent heat trajectory language even without consultation.
+- FA Dangerous Mode terminal output (ANSI red bordered disclaimer) works correctly across all FA runs.
+
+#### Bug fixes shipped in IC-RUN-20260414-004
+
+| ID | Description | File(s) | Fix |
+|----|-------------|---------|-----|
+| BUG-1 | `heat=5` max equity cap was 100%, exceeding the 95% guardrail intent | `commands/session_init.py` | `HEAT_LEVELS[5]['max_equity_pct']` changed 100 → 95 |
+| BUG-2 | FA disclaimer not plumbed through heuristic path (5 files missing `deployment_mode`) | `commands/portfolio_analyzer.py`, `commands/analyze_performance_polars.py`, `commands/fixed_income_analysis.py`, `commands/bond_analyzer.py`, `providers/fetch_bond_data.py` | `deployment_mode` parameter propagated to all `DisclaimerWrapper.wrap_output()` and `wrap_and_save()` calls |
+| BUG-3 | ACHR ticker retyped as ACHN in single-model synthesis prose | `commands/portfolio_analyzer.py` | Analyst output changed from inline text to JSON-per-line format; `TICKER_FIDELITY` instruction added to prevent LLM from re-spelling ticker symbols |
+
+#### FA Dangerous Mode (new in IC-RUN-20260414-004)
+
+`fa_professional` deployment mode now surfaces as **"FA Professional — Dangerous Mode"** throughout the system:
+
+- **Terminal**: ANSI bright-red (`\033[91m`) bordered disclaimer block with 5-point expanded risk disclosure
+- **JSON output**: `fa_risk_disclosure` and `deployment_mode: "fa_professional"` fields added to all wrapped outputs
+- **Setup wizard**: Mode 2 panel updated with Dangerous Mode warning and fiduciary language
+- **`config/deployment_modes.py`**: display name → `"Financial Advisor — Dangerous Mode"`
+- **`config/guardrail_enforcer.py`**: inline disclaimer updated with advisory/fiduciary framing
 
 ---
 

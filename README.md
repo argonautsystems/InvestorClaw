@@ -105,43 +105,6 @@ Output files go to `$INVESTOR_CLAW_REPORTS_DIR` (default: `~/portfolio_reports/`
 
 ---
 
-## Model All-Stars
-
-Best performers across synthesis quality, speed, guardrail compliance, and zero hallucinations (QC8=0 across all passing runs). Full benchmark data: [MODELS.md](MODELS.md).
-
-### Hybrid (consultation + operational LLM)
-
-Injection-era rankings (IC-RUN-20260414-003 WF87–WF94). Pre-injection historical result (grok WF39, QC4=113) is not comparable under current stack — see MODELS.md.
-
-| Rank | Configuration | QC3 | QC4 | QC5 | Notes |
-|------|--------------|:---:|:---:|:---:|-------|
-| 🥇 | `together/MiniMaxAI/MiniMax-M2.7` + `gemma4-consult` | 29 | **97** | 836 words | **Profile 1 default.** Highest absolute hybrid QC4 (WF87). HMAC chain, is_heuristic=false. Use cloud-only (QC4=108) when audit controls not required. |
-| 🥈 | `together/zai-org/GLM-5` + `gemma4-consult` | 21 | 86 | 587 words | WF90. Best model where consultation adds net value (+16% vs cloud-only). Structured table output. |
-| 🥉 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` | 24 | 82 | 579 words | WF84. +49% vs cloud-only. Full bond analytics, news. |
-
-### Single-model (cloud-only, IC-RUN-20260414-003)
-
-| Rank | Model | QC3 | QC4 | QC5 | Notes |
-|------|-------|:---:|:---:|:---:|-------|
-| 🥇 | `together/MiniMaxAI/MiniMax-M2.7` | 27 | **108** | 541 words | **Top single-model overall.** Full account tables, analyst, bond detail. $0.30/$1.20/M. WF82. |
-| 🥈 | `together/zai-org/GLM-5` | 20 | 74 | 481 words | Rich account breakdown. $1.00/$3.20/M. WF83. |
-| 🥉 | `together/moonshotai/Kimi-K2.5` | 16 | 55 | 256 words | Strong analyst coverage prose. $0.50/$1.50/M. WF76. |
-| | `google/gemini-3.1-pro-preview` | 15 | 46 | 340 words | 1M context; significant ↑ from context injection. WF80. |
-| | `together/deepseek-ai/DeepSeek-V3.1` | 13 | 44 | 160 words | $0.60/$1.70/M. WF75. |
-| | `openai/gpt-5.4` | 14 | 28 | 178 words | 272K context (smallest frontier). WF81. |
-| | `groq/moonshotai/kimi-k2-instruct-0905` | 9 | 25 | 151 words | ⚠️ Preview tier only. WF77. |
-| | `groq/openai/gpt-oss-120b` | 19 | 17 | 376 words | Production-stable Groq; verbose but low metric density. $0.15/$0.60/M. WF78. |
-| 🚫 | `groq/openai/gpt-oss-20b` | — | — | — | FAIL: malformed tool calls. WF79. |
-| | `xai/grok-4-1-fast` (cloud-only + injection) | 17 | 39 | 171 words | 6.5× vs pre-injection WF72; below top-tier single-model. WF85. |
-| 🚫 | `xai/grok-4.20-0309-non-reasoning` (cloud-only) | — | — | — | FAIL: tool payload rejection. **Hybrid-only** (WF74 PASS in hybrid). WF86. |
-| ⚠️ last | `xai/grok-4-1-fast` (cloud-only, pre-injection) | 0 | 6 | ~50 words | Pre-injection baseline. WF72. |
-
-### Guardrails & hallucination score
-
-All passing models scored **QC8=0** (zero fabricated portfolio facts across W1–W8). The notable exception is `groq/qwen/qwen3-32b` (DEGRADED, WF67) — W7 generated specific put option and trailing-stop recommendations without educational framing, violating the educational-only guardrail.
-
----
-
 ## Config Profiles
 
 ### Profile 1 — Hybrid (audit controls + maximum fidelity, requires local GPU)
@@ -178,31 +141,7 @@ OpenClaw config:
 
 No `.env` consultation keys needed (`INVESTORCLAW_CONSULTATION_ENABLED=false`).
 
-**Why MiniMax-M2.7 over hybrid for most users:**
-- No local GPU or Ollama required
-- $0.011 per QC4-point (best ratio of all tested models)
-- Full account breakdown, bond analytics, analyst coverage, news in a single synthesis
-- Zero fabricated facts (QC8=0) across all benchmark runs
-- 196K context window handles large multi-account portfolios
-
-**When to prefer hybrid (Profile 1) instead:**
-- You need HMAC fingerprint chain for audit/compliance
-- You want `is_heuristic=false` provenance on synthesis records
-- You have CERBERUS or equivalent GPU already running (marginal cloud cost is lower)
-
-**When to use Profile 4 (enterprise) instead of Profile 2:**
-- Portfolio exceeds ~200 holdings in non-compact mode (MiniMax-M2.7's 197K context becomes the bottleneck)
-- Portfolio exceeds ~500 total positions in compact mode
-- Extended multi-turn sessions where accumulated history risks context truncation
-
-Alternatives ranked by QC4 (IC-RUN-20260414-003):
-```
-together/MiniMaxAI/MiniMax-M2.7    QC4=108  QC5=541  $0.30/$1.20/M  ← recommended
-together/zai-org/GLM-5             QC4=74   QC5=481  $1.00/$3.20/M
-together/moonshotai/Kimi-K2.5      QC4=55   QC5=256  $0.50/$1.50/M
-google/gemini-3.1-pro-preview      QC4=46   QC5=340  (Google pricing)
-groq/openai/gpt-oss-120b           QC4=17   QC5=376  $0.15/$0.60/M  (low density, high speed)
-```
+Model comparison, consultation benefit analysis, and alternatives ranked by QC4: [MODELS.md](MODELS.md).
 
 > `xai/grok-4.20-0309-non-reasoning`: hybrid-only — consistently fails cloud-only (WF64, WF86). Do not use without consultation enabled.
 
@@ -242,6 +181,8 @@ INVESTORCLAW_CONSULTATION_ENDPOINT=http://localhost:11434
 **Operational LLM**: `groq/openai/gpt-oss-120b` or `groq/openai/gpt-oss-20b`
 
 500–1000 tok/s. 128K context limits to small-medium portfolios. Best for quick single-session queries where cost or speed matters. Not suitable for large fully-enriched sessions.
+
+> **`groq/openai/gpt-oss-20b` is FAIL** — malformed tool calls (WF79). Use `gpt-oss-120b` only.
 
 ```json
 { "agents": { "defaults": { "model": { "primary": "groq/openai/gpt-oss-120b" } } } }
@@ -410,13 +351,9 @@ The enrichment layer (`internal/tier3_enrichment.py`) is the primary driver of s
 ## Changelog
 
 **v1.0.0 (2026-04-14)**
-- IC-RUN-20260414-003: Full re-benchmark of all 10 validated models (WF75–WF84) with cross-step context injection + verbose defaults. MiniMax-M2.7 is now #1 single-model (QC4=108, 7.7× improvement). GLM-5 #2 (QC4=74). Kimi-K2.5 hybrid WF84 (QC4=82, 4.6× over WF71).
-- GPT-OSS-20B (WF79) now FAIL — malformed tool calls; previously functional. Do not use.
-- Hot-reload model switching: no gateway restart needed between benchmark runs — delete session, change model in config, run with fresh session ID.
-- Phase 5 clean benchmark complete: all 9 DEV-001-contaminated runs (WF36–WF41, WF48, WF53–WF55) re-validated in IC-RUN-20260413-010 (WF63–WF71). Full results in [MODELS.md](MODELS.md).
-- Confirmed new passing models: DeepSeek-V3.1, Kimi-K2.5 (hybrid), Gemini-3.1-pro-preview, GPT-5.4, MiniMax-M2.7, GLM-5.
-- Degraded: grok-4.20-0309-non-reasoning (W4/W5 tool payload rejection), qwen3-32b (update-identity unrecognized, W7 guardrail issue).
-- Session cleanup now part of post-harness RESET protocol.
+- IC-RUN-20260414-004 Phase 6: FA Dangerous Mode hybrid 5/5; heat trajectory validation (WF95–WF114); BUG-1/2/3 fixes (heat=5 equity cap, disclaimer plumbing, ticker fidelity). See [MODELS.md](MODELS.md).
+- IC-RUN-20260414-003: Full re-benchmark with context injection; MiniMax-M2.7 #1 single-model (QC4=108); GPT-OSS-20B now FAIL. Full results in [MODELS.md](MODELS.md).
+- Phase 5 clean benchmark complete (IC-RUN-20260413-010, WF63–WF71). Session cleanup now part of post-harness RESET protocol.
 
 ## License
 

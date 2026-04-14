@@ -806,13 +806,14 @@ class PerformanceAnalyzer:
                     logger.warning(f"Could not apply mode-specific guardrails: {e}")
 
             # Wrap with compliance disclaimers (compact=True omits static metadata ~60 tokens)
-            report = DisclaimerWrapper.wrap_output(analysis_data, 'Portfolio Performance Analysis', compact=True)
+            _mode_str = mode_str if 'mode_str' in dir() else (get_deployment_mode() if _features_available else None)
+            report = DisclaimerWrapper.wrap_output(analysis_data, 'Portfolio Performance Analysis', compact=True, deployment_mode=_mode_str)
 
             # Strip verbose interpretation strings for stdout token reduction
             report = _strip_interpretations(report)
 
             if output_file:
-                DisclaimerWrapper.wrap_and_save(analysis_data, output_file, 'Portfolio Performance Analysis')
+                DisclaimerWrapper.wrap_and_save(analysis_data, output_file, 'Portfolio Performance Analysis', deployment_mode=_mode_str)
                 logger.info(f"Performance analysis saved to {output_file}")
 
             return report

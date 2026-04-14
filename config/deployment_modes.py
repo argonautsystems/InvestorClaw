@@ -220,9 +220,9 @@ SINGLE_INVESTOR_MODE = ModeDefinition(
 
 FA_PROFESSIONAL_MODE = ModeDefinition(
     mode=DeploymentMode.FA_PROFESSIONAL,
-    display_name="Financial Advisor (Professional)",
-    description="Professional portfolio management for financial advisors",
-    user_profile="Registered financial advisor or investment professional",
+    display_name="Financial Advisor — Dangerous Mode",
+    description="Professional advisory portfolio management — elevated guardrails, fiduciary framing required",
+    user_profile="Registered financial advisor or investment professional (licensed, fiduciary duty applies)",
 
     enabled_features={
         # All single investor features
