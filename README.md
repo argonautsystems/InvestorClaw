@@ -266,6 +266,14 @@ All configuration lives in `.env` (copied from `.env.example`). The table below 
 | `INVESTORCLAW_CONSULTATION_ENABLED` | `false` | Set `true` to enable local consultative synthesis |
 | `INVESTORCLAW_CONSULTATION_ENDPOINT` | `http://localhost:11434` | Ollama base URL |
 | `INVESTORCLAW_CONSULTATION_MODEL` | `gemma4-consult` | Model name on the Ollama endpoint |
+| `INVESTORCLAW_CARD_FORMAT` | `both` | Consultation artifact format: `json` (text only — mobile-safe), `svg` (visual card only), `both` (JSON + SVG, default for desktop/web) |
+
+**Artifact details:**
+- `json` — writes `~/.investorclaw/quotes/{SYMBOL}.quote.json` with synthesis text, HMAC fingerprint, attribution, and `verbatim_required: true`. No `INVESTOR_CLAW_REPORTS_DIR` dependency. Safe for WhatsApp, Signal, Telegram, and other channels where SVG is unsupported. Also written by the background enricher.
+- `svg` — writes `{INVESTOR_CLAW_REPORTS_DIR}/.raw/consultation_cards/{SYMBOL}.svg`. Requires `INVESTOR_CLAW_REPORTS_DIR`. Visual card with inline logo, fingerprint badge, and synthesis text. Use for web UI display.
+- `both` — writes the JSON quote file unconditionally, then attempts SVG if `INVESTOR_CLAW_REPORTS_DIR` is set. Default for desktop/web sessions.
+
+The compact analyst payload emitted to the synthesis LLM includes `quote.quote_path` (on-disk reference) and `quote.synthesis_instruction` (machine-readable verbatim citation directive with fingerprint). This wires the canonical text artifact into the W6 synthesis context so the operational LLM is explicitly instructed to cite verbatim rather than paraphrase.
 
 ### EOD report delivery
 
