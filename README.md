@@ -362,7 +362,11 @@ Why `gemma4-consult` specifically:
 | 5 | `google/gemini-3.1-pro-preview` | ~24 | ~33 | 441 | ✅ | ⚠️ **Good synthesis, disclaimer gap** — QC10=1 (one disclaimer instance); requires system prompt hardening for FA mode |
 | 6 | `groq/openai/gpt-oss-120b` | ~3 | ~10 | ~280 | ✅ | ✅ **Best Groq option** — full autonomous synthesis; 500 tok/s; $0.15/$0.60/M; 128K ctx |
 | 7 | `groq/qwen/qwen3-32b` | ~21 | ~40 | 302 | ✅ | ⚠️ **Compact but functional** — QC9 partial (JSON schema fields missing); non-FA workloads only |
-| 8 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | ~14 | ~23 | ~247 | ✗ | ❌ **Throughput variant underperforms** — tput optimization sacrifices prose quality; 235B-tput scores worse than 32B on every synthesis metric |
+| 8 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | ~6 | ~12 | ~300 | ✗ | ✅ **PASS** — synthesize recognized; ~300-word prose; allocation scenarios table; W4 enriched via Perplexity (not CERBERUS); 60k/262k ctx use |
+| 9 | `together/deepseek-ai/DeepSeek-V3.1` | ~5 | ~10 | ~300 | ✅ | ✅ **PASS** — full synthesize prose; CERBERUS active; QC9 partial (W7 interactive); $0.60/$1.70/M |
+| 10 | `together/MiniMaxAI/MiniMax-M2.7` | ~5 | ~10 | ~250 | ✅ | ✅ **PASS** — synthesize recognized; CERBERUS active (5943ms); most economical Together option ($0.30/$1.20/M) |
+| 11 | `together/zai-org/GLM-5` | ~6 | ~10 | ~200 | ✅ | ✅ **PASS** — synthesize recognized; CERBERUS active (1031ms fastest); W7 verbal calibration |
+| 12 | `together/MiniMaxAI/MiniMax-M2.5` | ~5 | ~8 | N/A | ✅ | ⚠️ **DEGRADED** — `/portfolio synthesize` not recognized; W5 news tool non-functional; use M2.7 instead |
 
 > **CERBERUS column**: ✅ = CERBERUS local enrichment was active during that harness run (scores are higher as a result). ✗ = structured-only, no enrichment — represents true cloud-only performance. The `xai/grok-4-1-fast-reasoning` true-baseline row (CERBERUS=✗) is the fairest cloud-only reference point.
 
@@ -374,11 +378,15 @@ Groq provides fast inference (500+ tok/s) at low cost. 128K context limits these
 
 | Model | Context | Harness | Notes |
 |-------|---------|:-------:|-------|
-| `groq/openai/gpt-oss-120b` | 128K | ✅ PASS | **Recommended** — full autonomous synthesis, zero fabrication; $0.15/$0.60/M; minor W0/W7 protocol gaps |
-| `groq/qwen/qwen3-32b` | 128K | ⚠️ PASS/partial | Compact synthesis; QC9 partial (JSON schema fields absent); acceptable for non-FA workloads |
-| `groq/moonshotai/kimi-k2-instruct` | 128K | ⚠️ DEGRADED | Thin synthesis (~144 words) — significantly weaker than Kimi-K2.5 on Together AI |
+| `groq/openai/gpt-oss-120b` | 128K | ✅ PASS | **Recommended** — full autonomous synthesis, zero fabrication; $0.15/$0.60/M; 500 tok/s; minor W0/W7 protocol gaps |
+| `groq/openai/gpt-oss-20b` | 128K | ✅ PASS | **Production-stable** — full synthesize (~250 words); CERBERUS active; $0.075/$0.30/M; 1000 tok/s; W7 interactive |
+| `groq/qwen/qwen3-32b` | 128K | ⚠️ PASS/partial | Compact synthesis; QC9 partial (JSON schema fields absent); acceptable for non-FA workloads; preview model |
+| `groq/moonshotai/kimi-k2-instruct-0905` | 262K | ✅ PASS | Best QC13 word count (~350 words) of all Groq models tested; ⚠️ **Preview tier — not production-stable; may be discontinued** |
+| `groq/moonshotai/kimi-k2-instruct` | 128K | ⚠️ DEGRADED | Thin synthesis (~144 words); 128K context only; not in official Groq docs (undocumented endpoint) |
 | `groq/meta-llama/llama-4-scout-17b-16e-instruct` | 128K | ⚠️ DEGRADED | Requires extra prompt step for W6 prose; heat_level type error; preview model |
 | `groq/llama-3.3-70b-versatile` | 128K | 🚫 BLOCKED | Config corruption risk — wrote unauthorized keys into openclaw.json during testing; do not use |
+
+> **Groq model stability**: Production-stable models confirmed in official docs: `llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b`. Preview/beta models (`qwen3-32b`, `llama-4-scout`, `kimi-k2-instruct-0905`) can be discontinued without notice — do not build production workflows on them without a verified fallback.
 
 ### Provider comparison
 
@@ -391,7 +399,12 @@ Groq provides fast inference (500+ tok/s) at low cost. 128K context limits these
 | `google/gemini-3.1-pro-preview` | ~1M | Google | ⚠️ QC4=33† | Acceptable synthesis; QC10=1 (disclaimer gap); cheapest per token |
 | `groq/openai/gpt-oss-120b` | 128K | Groq | ✅ PASS | Full autonomous synthesis; 500 tok/s; $0.15/$0.60/M |
 | `groq/qwen/qwen3-32b` | 128K | Groq | ⚠️ PASS/partial | Compact synthesis; QC9 partial; non-FA workloads only |
-| `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262K | Together AI | ❌ DEGRADED | Throughput variant underperforms 32B on prose quality |
+| `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262K | Together AI | ✅ PASS | ~300-word synthesis; W4 enriched via Perplexity (not CERBERUS); highest ctx use (60k/262k) |
+| `together/deepseek-ai/DeepSeek-V3.1` | 131K | Together AI | ✅ PASS | Full synthesize prose; CERBERUS active; $0.60/$1.70/M |
+| `together/MiniMaxAI/MiniMax-M2.7` | 197K | Together AI | ✅ PASS | Synthesize recognized; CERBERUS active; most economical Together option ($0.30/$1.20/M) |
+| `together/zai-org/GLM-5` | 203K | Together AI | ✅ PASS | Synthesize recognized; CERBERUS active (fastest 1031ms); W7 verbal calibration |
+| `groq/openai/gpt-oss-20b` | 128K | Groq | ✅ PASS | Full synthesize ~250 words; CERBERUS active; $0.075/$0.30/M; production-stable |
+| `groq/moonshotai/kimi-k2-instruct-0905` | 262K | Groq | ✅ PASS | Best Groq prose (~350 words); ⚠️ preview model — not production-stable |
 | `groq/llama-3.3-70b-versatile` | 128K | Groq | 🚫 BLOCKED | Config corruption risk in harness testing; do not use |
 
 † CERBERUS local enrichment was active during this run — scores reflect hybrid (enriched) mode, not pure cloud-only.
@@ -400,7 +413,7 @@ Groq provides fast inference (500+ tok/s) at low cost. 128K context limits these
 
 ## Benchmark Results — Harness V6.1.2 (2026-04-13)
 
-These results come from a full run of the InvestorClaw Test Harness V6.1.2 against a real-world multi-account portfolio with individual equities, bonds, and managed accounts. The harness exercises all core workflows (holdings, analysis, performance, bonds, synthesis, lookup, export) across eight model configurations and scores the output across 14 quality-control dimensions (IC-RUN-20260413-002 through IC-RUN-20260413-007).
+These results come from a full run of the InvestorClaw Test Harness V6.1.2 against a real-world multi-account portfolio with individual equities, bonds, and managed accounts. The harness exercises all core workflows (holdings, analysis, performance, bonds, synthesis, lookup, export) across model configurations and scores output across 14 quality-control dimensions (IC-RUN-20260413-002 through IC-RUN-20260413-008). IC-RUN-20260413-008 extended coverage to 15 additional Together AI and Groq models, identifying tool-call compatibility patterns across model families.
 
 ### Key finding
 
@@ -418,6 +431,13 @@ The headline result: **the combined config (grok + gemma4-consult enrichment) pr
 | WF40 | `together/moonshotai/Kimi-K2.5` | ✅ | Enriched† |
 | WF41 | `groq/qwen/qwen3-32b` | ✅ | Enriched† |
 | WF46 | `groq/openai/gpt-oss-120b` | ✅ | Structured |
+| WF48 | `together/deepseek-ai/DeepSeek-V3.1` | ✅ | Enriched† |
+| WF54 | `together/MiniMaxAI/MiniMax-M2.7` | ✅ | Enriched† |
+| WF55 | `together/zai-org/GLM-5` | ✅ | Enriched† |
+| WF58 | `groq/moonshotai/kimi-k2-instruct-0905` | — | Structured |
+| WF59 | `groq/openai/gpt-oss-20b` | ✅ | Structured |
+| WF60 | `together/moonshotai/Kimi-K2.5` (Together) | — | Structured |
+| WF61 | `together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | ✗ (Perplexity) | Structured |
 
 † CERBERUS enrichment was active for all Phase 5 sessions due to `.env` configuration during testing (documented deviation DEV-001 in the harness). WF46 used a fresh clone with no `.env` — CERBERUS was active for individual tool calls but not for synthesis enrichment.
 
@@ -469,6 +489,21 @@ These controls are absent in all cloud-only configurations regardless of model c
 **The enrichment layer, not the operational model, is the primary driver of synthesis quality.** Switching from the default operational model to any premium frontier model produces at most a small improvement in ticker density and a modest improvement in phrasing quality. Switching from heuristic mode to tier-3 enrichment produces a 10–15× increase in metric density and adds anti-fabrication guarantees that no amount of model capability can replicate.
 
 This is consistent with the original design intent: the consultative model is responsible for *data enrichment*; the operational model is responsible for *session management and synthesis routing*. The harness results quantify that split empirically for the first time.
+
+### Together AI tool-call compatibility (IC-RUN-20260413-008 finding)
+
+Not all Together AI serverless models support OpenAI function-calling schema. InvestorClaw requires tool execution — models that reject tool payloads cannot run the skill.
+
+| Works (tool-call compatible) | Blocked (rejects tool payload) | Incompatible (text output only) |
+|------------------------------|-------------------------------|----------------------------------|
+| DeepSeek-V3.1 | Llama-4-Maverick FP8 | DeepSeek-R1-0528 (outputs tool names as code blocks) |
+| MiniMax-M2.5 / M2.7 | Llama-4-Scout | — |
+| GLM-5 | GLM-4.7 | — |
+| Kimi-K2.5 | Qwen3-Next-80B | — |
+| Qwen3-235B-Instruct-tput | Kimi-K2-Thinking | — |
+| Qwen3-235B-Thinking* | — | — |
+
+*Qwen3-235B-Thinking makes tool calls correctly but takes 5–10 min per response step — not viable for interactive harness runs.
 
 ### Reproducibility
 

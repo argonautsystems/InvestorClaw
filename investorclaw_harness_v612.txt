@@ -1,4 +1,4 @@
-INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260413-007 (LATEST 2026-04-13) | Min commit: 33e5442 | Session: ic-harness-v612
+INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260413-008 (LATEST 2026-04-13) | Min commit: 33e5442 | Session: ic-harness-v612
 ═══════════════════════════════════════════════════════════ CAPABILITIES ═══════════════════════════════════════════════════════════
 CAP1 ORCHESTRATION openclaw agent --session-id ic-harness-v612 -m "<instruction>" (W0.4+)
 CAP2 REMEDIATION Claude directly: edit source → commit ARGONAS → push GitHub → restart W0 OpenClaw detects+suggests. Claude verifies then acts. Not optional.
@@ -579,3 +579,139 @@ UPDATED CROSS-MODEL RECOMMENDATION (GROQ-SPECIFIC):
   GROQ FALLBACK: groq/qwen/qwen3-32b — compact but factually clean; QC9 partial; acceptable for non-FA workloads
   NOT RECOMMENDED: llama-3.3-70b-versatile (BLOCKED — safety); llama-4-scout (DEGRADED — requires extra synthesis prompt)
 ═══════════════════════════════════════════════════════════ END IC-RUN-20260413-007 ADDENDUM ═══════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════ IC-RUN-20260413-008 ADDENDUM (Together AI + Groq Expanded Catalog — 15 Models) ═══════════════════════════════════════════════════════════
+Run ID: IC-RUN-20260413-008 | Completed: 2026-04-13 | Gateway auth: mode=none (local loopback, no token)
+Scope: 13 original candidates (WF47–WF59) + 2 bonus registered models (WF60–WF61)
+DEV-001 applies: INVESTORCLAW_CONSULTATION_ENABLED=true in .env → CERBERUS enrichment active where attributed; synthesis_basis=enriched for all sessions in this run.
+
+GROQ NON-PRODUCTION MODEL WARNING:
+  Groq non-production (preview/beta) models can be discontinued at any time without notice.
+  Affected models tested: groq/moonshotai/kimi-k2-instruct-0905 (WF58), groq/meta-llama/llama-4-scout-17b-16e-instruct, groq/qwen/qwen3-32b
+  Production-stable Groq models: llama-3.3-70b-versatile | llama-3.1-8b-instant | openai/gpt-oss-120b | openai/gpt-oss-20b
+  Do not build production workflows on Groq preview models without a verified fallback.
+
+TOGETHER AI TOOL-CALL SUPPORT PATTERN (discovered in this run):
+  Not all Together AI serverless models support the OpenAI function-calling schema. Models that reject tool payloads return:
+  "LLM request failed: provider rejected the request schema or tool payload."
+  This is a per-model API capability gap — not a Together AI platform error. Reasoning/thinking variants are more likely to reject tools.
+  WORKS (tool-call compatible):    DeepSeek-V3.1 | MiniMax-M2.5 | MiniMax-M2.7 | GLM-5 | Kimi-K2.5 | Qwen3-235B-Instruct-tput | Qwen3-235B-Thinking*
+  BLOCKED (tool payload rejected): Llama-4-Maverick-FP8 | Llama-4-Scout | GLM-4.7 | Qwen3-Next-80B | Kimi-K2-Thinking
+  TOOL-TEXT-ONLY (tool names as code blocks, not function calls): DeepSeek-R1-0528 — same pattern as Qwen3.5-397B (IC-RUN-20260413-002)
+  *Qwen3-235B-Thinking: tool calls execute correctly but response latency is 5–10+ min/step — not viable for harness timing.
+
+WF47 — together/Qwen/Qwen3-235B-A22B-Thinking-2507 | Session: ic-pm-qwen3-thinking | PARTIAL/TIMEOUT
+  Bootstrap: ACK (short "ready?" prompt resolved prior 10+ min timeout; full system-prompt bootstrap was the cause)
+  W0–W2: All tool calls executed correctly (investorclaw_setup, investorclaw_holdings, investorclaw_lookup); responses ~5 min each
+  W3: TIMEOUT — performance tool result received at 01:17:40 UTC; model entered reasoning phase; session file static for >10 min; agent killed
+  Root cause: Thinking model generates 17k+ tokens of chain-of-thought reasoning per step; total harness runtime would exceed 2–3 hours
+  VERDICT: PARTIAL/TIMEOUT — tool-calling mechanism confirmed working; latency 5–10 min/step makes full harness impractical for this model tier
+
+WF48 — together/deepseek-ai/DeepSeek-V3.1 | Session: ic-pm-deepseek-v31 | QC11: 32k/131k (25%)
+  QC1=pass | QC2=8/8 | QC3=~5 (NVDA, MSFT, GOOG, AMD, AAPL) | QC4=~10 (prices, weights, Sharpe 0.5338, vol 0.4502, $268.22 target) | QC5=~300 words | QC6=pass (24 items, sector themes) | QC7=pass (56 analysts, $268.22 target, Strong Buy)
+  QC8=0 | QC9=partial (W7 interactive wizard — presented concern menu; exec preflight error on session_init.py invocation) | QC10=pass (every response) | QC12=0 | QC13=PASS (synthesize recognized; ~300-word prose with allocation breakdown, risk alerts, recommendations) | QC14=pass (tech 34.1% flagged)
+  CERBERUS_active=yes (W4: gemma4-consult ~9k tokens) | synthesis_basis=enriched | is_heuristic=false
+  VERDICT: PASS — solid full-harness run; W7 exec preflight error is model-level (complex interpreter invocation blocked by preflight); all other steps clean
+
+WF49 — together/deepseek-ai/DeepSeek-R1-0528 | BLOCKED (tool-calling incompatibility)
+  W0 /portfolio setup: Model output investorclaw_setup as code block in text response; stopReason=stop (not toolUse); no actual function call made
+  Pattern identical to Qwen3.5-397B (IC-RUN-20260413-002): model treats tool names as text to write rather than function calls to invoke
+  Root cause: R1-0528 does not emit tool_calls in the response; outputs tool name as ```shell block in content field
+  VERDICT: BLOCKED — harness requires functional tool execution; text-output-only tool schema incompatible with investorclaw skill architecture
+
+WF50 — together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8 | BLOCKED (tool payload rejected)
+  Error: "LLM request failed: provider rejected the request schema or tool payload."
+  VERDICT: BLOCKED — Together AI serverless endpoint for Llama-4-Maverick does not accept OpenAI function-calling schema
+
+WF51 — together/meta-llama/Llama-4-Scout-17B-16E-Instruct (Together AI variant) | BLOCKED (tool payload rejected)
+  Error: "LLM request failed: provider rejected the request schema or tool payload."
+  NOTE: Groq variant of Llama-4-Scout (WF43) runs tool calls but is DEGRADED. Together AI variant does not even accept the tool schema.
+  VERDICT: BLOCKED
+
+WF52 — together/moonshotai/Kimi-K2-Thinking | BLOCKED (tool payload rejected)
+  Error: "LLM request failed: provider rejected the request schema or tool payload."
+  VERDICT: BLOCKED — thinking variant of Kimi-K2 not tool-call compatible on Together AI serverless
+
+WF53 — together/MiniMaxAI/MiniMax-M2.5 | Session: ic-pm-minimax25 | QC11: 27k/197k (14%)
+  QC1=pass | QC2=8/8 | QC3=~5 | QC4=~8 | QC5=N/A (synthesize not recognized) | QC6=FAIL (W5: "No cached news data available for NVDA" — no news_fetch tool invoked) | QC7=pass
+  QC8=0 | QC9=partial (W7 interactive wizard) | QC10=pass | QC12=0 | QC13=FAIL (/portfolio synthesize not recognized; /portfolio analysis fallback produces table-only output, no autonomous prose) | QC14=pass (tech 34.1% flagged via analysis)
+  CERBERUS_active=yes (W4: gemma4-consult) | synthesis_basis=enriched | is_heuristic=false
+  VERDICT: DEGRADED — synthesize command missing from M2.5 command set; W5 news non-functional; W8 report completed. Upgrade to M2.7 resolves synthesize issue.
+
+WF54 — together/MiniMaxAI/MiniMax-M2.7 | Session: ic-pm-minimax27 | QC11: 33k/197k (17%)
+  QC1=pass | QC2=8/8 | QC3=~5 (NVDA, MSFT, GOOG, AMD, AAPL) | QC4=~10 ($268.22 target, vol 0.4502, 270 holdings, tech 34.1%) | QC5=~250 words | QC6=pass (24 items, AAR/TXG detail) | QC7=pass (Strong Buy, $268.22, CERBERUS 5943ms)
+  QC8=0 | QC9=partial (W7 interactive wizard) | QC10=pass | QC12=0 | QC13=PASS (synthesize recognized; ~250-word autonomous prose; "No single position >5%", tech concentration, cash at 1.7%, bottom performers flagged) | QC14=pass
+  CERBERUS_active=yes (W4: gemma4-consult 5943ms) | synthesis_basis=enriched | is_heuristic=false
+  VERDICT: PASS — M2.7 resolves synthesize gap from M2.5; W7 interactive is model-level; strong QC13 result
+
+WF55 — together/zai-org/GLM-5 | Session: ic-pm-glm5 | QC11: 34k/203k (17%)
+  QC1=pass | QC2=8/8 | QC3=~6 (NVDA, MSFT, GOOG, AMD, TXG, AEIS) | QC4=~10 | QC5=~200 words | QC6=pass (sector themes, 24 articles) | QC7=pass (Strong Buy, $268.22, CERBERUS 1031ms)
+  QC8=0 | QC9=pass-verbal (W7 responded "Session calibrated. Ready for portfolio commands with defensive framing" — verbal calibration, not script-executed) | QC10=pass | QC12=0 | QC13=PASS (synthesize recognized; ~200-word structured output with allocation scenarios, tech concentration alert, advisor question) | QC14=pass
+  CERBERUS_active=yes (W4: gemma4-consult 1031ms) | synthesis_basis=enriched | is_heuristic=false
+  VERDICT: PASS — clean run; W7 verbal calibration (not script-executed) acceptable; compact but factually grounded synthesis; fastest CERBERUS response (1031ms) of this run
+
+WF56 — together/zai-org/GLM-4.7 | BLOCKED (tool payload rejected)
+  Error: "LLM request failed: provider rejected the request schema or tool payload."
+  NOTE: GLM-5 works; GLM-4.7 does not — confirms capability gap between GLM generations on Together AI serverless.
+  VERDICT: BLOCKED
+
+WF57 — together/Qwen/Qwen3-Next-80B-A3B-Instruct | BLOCKED (tool payload rejected)
+  Error: "LLM request failed: provider rejected the request schema or tool payload."
+  VERDICT: BLOCKED — MoE 80B variant not tool-call compatible on Together AI serverless
+
+WF58 — groq/moonshotai/kimi-k2-instruct-0905 | Session: ic-pm-kimi-k2-0905 | QC11: 27k/262k (10%)
+  QC1=pass | QC2=8/8 | QC3=~5 (NVDA, MSFT, GOOG, AAPL, AMD) | QC4=~12 (Sharpe >0.5, $268.22, $148k NVDA MV, total $2.6M, 270 pos) | QC5=~350 words | QC6=pass (24 articles, positive sentiment summary) | QC7=pass (Strong Buy, 56 analysts, $268.22, +41.7% upside; no CERBERUS attribution in output)
+  QC8=0 | QC9=pass-verbal (W7: "Your session is now calibrated for conservative risk assessment" — verbal, no script execution) | QC10=pass | QC12=0 | QC13=PASS (synthesize recognized; ~350-word autonomous prose — highest QC5 word count in this run; comprehensive strength/risk/analyst/strategic sections) | QC14=pass (tech 34.1% flagged, high-beta PSNY noted)
+  CERBERUS_active=not_attributed (W4 analyst data present but no gemma4-consult attribution line; background enricher may have been running) | synthesis_basis=enriched | is_heuristic=false
+  GROQ_STABILITY_WARNING: kimi-k2-instruct-0905 is NOT listed as a production Groq model. It is a preview/beta endpoint and may be discontinued without notice. Do not build production workflows on this model ID.
+  VERDICT: PASS — best QC13 result in IC-RUN-20260413-008 (350 words); strong synthesis; 262k context gives headroom; however production stability is unconfirmed on Groq.
+
+WF59 — groq/openai/gpt-oss-20b | Session: ic-pm-gpt-oss-20b | QC11: 29k/131k (22%)
+  QC1=pass | QC2=8/8 | QC3=~4 (NVDA, MSFT, AMD, TXG) | QC4=~10 (Sharpe 0.5338, vol 0.4502, $189.31, $148k MV, tech 34.1%) | QC5=~250 words | QC6=pass (24 items, positive 17/1/6) | QC7=pass (Strong Buy, $268.22, CERBERUS 967ms)
+  QC8=0 (NOTE: "NOW" appears in W6 bottom performers — present in performance tool output; not independently fabricated) | QC9=partial (W7 interactive wizard — presented macro concern menu) | QC10=pass | QC12=0 | QC13=PASS (synthesize recognized; ~250-word prose with equity-heavy allocation note, concentration risk, bottom performers, risk-return balance) | QC14=pass
+  CERBERUS_active=yes (W4: gemma4-consult 967ms) | synthesis_basis=enriched | is_heuristic=false
+  VERDICT: PASS — compact but clean synthesis; CERBERUS active; W7 interactive wizard is consistent model-level behavior for gpt-oss-20b; production-tier Groq model (confirmed in official docs)
+
+WF60 — together/moonshotai/Kimi-K2.5 | Session: ic-pm-kimi-k25-t | QC11: 27k/262k (10%) [BONUS — registered model not in WF47-59 original list]
+  QC1=pass | QC2=8/8 | QC3=~5 | QC4=~10 (holdings, NVDA MV, $268.22 target) | QC5=~200 words | QC6=pass (sector themes) | QC7=pass (Strong Buy, SVG consultation card generated, fingerprint present; no explicit CERBERUS attribution)
+  QC8=0 | QC9=partial (W7 interactive wizard) | QC10=pass | QC12=0 | QC13=PASS (synthesize recognized; structured output with sector table, tech concentration alert, rebalancing context) | QC14=pass
+  CERBERUS_active=unconfirmed (SVG card + fingerprint generated = enricher ran; no text attribution in W4 response) | synthesis_basis=enriched | is_heuristic=false
+  VERDICT: PASS — non-thinking variant of Kimi-K2 works correctly on Together AI; 262k context headroom; W7 interactive consistent with other Together models
+
+WF61 — together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput | Session: ic-pm-qwen3tput | QC11: 60k/262k (23%) [BONUS — registered model not in WF47-59 original list]
+  QC1=pass | QC2=8/8 | QC3=~6 (NVDA, MSFT, SCHB, TXG, AMD, AEIS) | QC4=~12 (Sharpe 0.5338, vol 0.4502, $148k NVDA, 270 holdings, tech 34.1%, top performers %) | QC5=~300 words | QC6=partial (W5: "No recent news articles found for NVDA" — news tool ran but no NVDA data; sector context given) | QC7=pass
+  QC8=0 | QC9=partial (W7 interactive wizard — 3-step profile selection) | QC10=pass | QC12=0 | QC13=PASS (synthesize recognized; ~300-word output with allocation table, top performers, analyst summary, alert section) | QC14=pass (tech 34.1% flagged)
+  CERBERUS_active=no — W4 attributed to Perplexity (Sonar model) instead of CERBERUS; confirms enricher selects provider based on availability | synthesis_basis=enriched (via Perplexity) | is_heuristic=false
+  NOTE: Highest token usage of this run (60k/262k, 23%) — throughput-optimized model still uses more context than non-tput variants
+  VERDICT: PASS — strong synthesis; interesting finding that enricher fell back to Perplexity rather than CERBERUS; W8 saved to .openclaw/workspace path (differs from standard portfolio_reports path seen in other models)
+
+IC-RUN-20260413-008 FINDINGS SUMMARY:
+  PASS (6): WF48 DeepSeek-V3.1 | WF54 MiniMax-M2.7 | WF55 GLM-5 | WF58 Kimi-K2-0905/Groq | WF59 GPT-OSS-20B/Groq | WF60 Kimi-K2.5 | WF61 Qwen3-235B-tput
+  DEGRADED (1): WF53 MiniMax-M2.5 (synthesize missing)
+  PARTIAL/TIMEOUT (1): WF47 Qwen3-235B-Thinking (5–10 min/step; tool calls work; full harness ~2–3 hrs)
+  BLOCKED/TOOL-TEXT (1): WF49 DeepSeek-R1-0528 (text code block output vs function calls)
+  BLOCKED/PAYLOAD (5): WF50 Llama-4-Maverick | WF51 Llama-4-Scout/Together | WF52 Kimi-K2-Thinking | WF56 GLM-4.7 | WF57 Qwen3-Next-80B
+
+TOGETHER AI RECOMMENDATIONS (post IC-RUN-20260413-008):
+  TIER 1 (PASS, high synthesis quality): Qwen3-235B-Instruct-tput ($0.65/$3.0, 60k ctx use, 262k max) | DeepSeek-V3.1 ($0.60/$1.70, 32k use) | Kimi-K2.5 ($1.20/$4.0, 27k use, 262k max)
+  TIER 2 (PASS, compact synthesis): MiniMax-M2.7 ($0.30/$1.20, 33k use) | GLM-5 ($1.00/$3.20, 34k use)
+  DEGRADED (upgrade available): MiniMax-M2.5 → use M2.7 instead
+  NOT VIABLE: Llama-4-Maverick | Llama-4-Scout | GLM-4.7 | Qwen3-Next-80B | Kimi-K2-Thinking — tool payload rejected
+  NOT VIABLE (timing): Qwen3-235B-Thinking — correct mechanism, impractical latency
+  NOT VIABLE (tool schema): DeepSeek-R1-0528 — outputs tool name as text, not function call
+
+GROQ RECOMMENDATIONS (post IC-RUN-20260413-008):
+  CONFIRMED PASS (production-stable): openai/gpt-oss-120b (WF46) | openai/gpt-oss-20b (WF59) — both in official production docs
+  PASS (non-production — use with fallback): moonshotai/kimi-k2-instruct-0905 (WF58) — best QC13 (350 words) but preview tier; may be discontinued
+  DEGRADED: meta-llama/llama-4-scout-17b-16e-instruct (requires extra synthesis prompt); qwen/qwen3-32b (compact synthesis, QC9 partial)
+  BLOCKED: llama-3.3-70b-versatile (config corruption)
+
+UPDATED CROSS-MODEL RANKINGS (all runs IC-RUN-20260413-001 through 008, excluding DEV-001 CERBERUS-inflated results):
+  GROQ PREMIUM:   groq/openai/gpt-oss-120b — 500T/s, $0.15/$0.60/M, PASS, CERBERUS active
+  TOGETHER BEST:  together/Qwen/Qwen3-235B-A22B-Instruct-2507-tput — 262k ctx, $0.65/$3.0/M, PASS, enricher flexible (Perplexity fallback)
+  GROQ COMPACT:   groq/openai/gpt-oss-20b — 1000T/s, $0.075/$0.30/M, PASS, CERBERUS active; production-stable; 131k ctx
+  TOGETHER VALUE: together/deepseek-ai/DeepSeek-V3.1 — $0.60/$1.70/M, PASS, 131k ctx
+  GROQ PREVIEW*:  groq/moonshotai/kimi-k2-instruct-0905 — 262k ctx, best QC13 (350 words), NOT production-stable
+  TOGETHER ALT:   together/MiniMaxAI/MiniMax-M2.7 — $0.30/$1.20/M, PASS, 197k ctx (most economical Together option)
+  *Do not use Groq preview models in production without fallback strategy.
+═══════════════════════════════════════════════════════════ END IC-RUN-20260413-008 ADDENDUM ═══════════════════════════════════════════════════════════
