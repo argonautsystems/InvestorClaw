@@ -1060,3 +1060,39 @@ IC-RUN-20260414-003 FINAL RANKINGS (QC4, W6 synthesis):
 
 MODEL RESET: xai/grok-4-1-fast (default restored after all runs)
 ═══════════════════════════════════════════════════════════ END IC-RUN-20260414-003 ADDENDUM ═══════════════════════════════════════════════════════════
+
+─── WF85/WF86 — xAI cloud-only gap-close (IC-RUN-20260414-003 addendum) ────────────────────────────
+Purpose: Close the cloud-only gap for both xAI models after context injection was added.
+         WF73/WF74 (hybrid) were already re-benchmarked. WF85/WF86 test cloud-only specifically.
+
+─── WF85 — xai/grok-4-1-fast (cloud-only + injection) ─────────────────────────────────────────────
+Session: ic-wf85 | CONSULTATION_ENABLED=false | ENDPOINT=localhost:0
+
+NOTE: Output shows "Enrichment: 20/215 · 9.3% · stalled" — expected behavior when consultation is
+      disabled. Enricher subprocess starts, fails to connect to localhost:0, stalls. Synthesis remains
+      heuristic. This is not a partial-hybrid run.
+
+QC SUMMARY (WF85):
+  QC3  w6_ticker_mentions:   17 (AIR, AMZN, DOCS, FIG, FSLY, GOOG, LITE, MSFT, NVDA, etc.)
+  QC4  w6_metric_citations:  39 ($2,604,536, $1.85M, $706K, $44K, $87K, 71%, 27%, 2%, +3.5%, etc.)
+  QC5  w6_word_count:        171
+  QC8  fabrication_flags:    0
+  synthesis_basis:           heuristic (consultation disabled, stalled enricher)
+  elapsed_s:                 140
+VERDICT WF85: ✅ PASS — QC4 39 (vs WF72 QC4=6 pre-injection). 6.5× improvement from context injection.
+              Still below top single-model tier (MiniMax-M2.7 QC4=108, GLM-5 QC4=74, Kimi-K2.5 QC4=55).
+              Confirms grok-4-1-fast can utilize injection data, but is optimized for hybrid mode.
+
+─── WF86 — xai/grok-4.20-0309-non-reasoning (cloud-only) ──────────────────────────────────────────
+Session: ic-wf86 | CONSULTATION_ENABLED=false | ENDPOINT=localhost:0
+
+FAILURE MODE: "LLM request failed: provider rejected the request schema or tool payload."
+              Identical failure to WF64 (2026-04-13). Fails at W0 — no output produced.
+  elapsed_s:  96
+VERDICT WF86: 🚫 FAIL — tool payload rejection confirmed cloud-only (WF64 2026-04-13, WF86 2026-04-14).
+              WF74 PASS was in hybrid mode (CONSULTATION_ENABLED=true). Pattern is now conclusive:
+              grok-4.20-0309-non-reasoning is HYBRID-ONLY. Cloud-only behavior is consistently broken.
+
+FINAL xAI CLOUD-ONLY SUMMARY (all runs with injection):
+  grok-4-1-fast:           WF72 QC4=6 (pre-injection) → WF85 QC4=39 (6.5× with injection)
+  grok-4.20-non-reasoning: WF86 FAIL (consistent with WF64; hybrid-only)

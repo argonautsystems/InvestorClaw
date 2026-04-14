@@ -125,8 +125,10 @@ Best performers across synthesis quality, speed, guardrail compliance, and zero 
 | | `openai/gpt-5.4` | 14 | 28 | 178 words | 272K context (smallest frontier). WF81. |
 | | `groq/moonshotai/kimi-k2-instruct-0905` | 9 | 25 | 151 words | ⚠️ Preview tier only. WF77. |
 | | `groq/openai/gpt-oss-120b` | 19 | 17 | 376 words | Production-stable Groq; verbose but low metric density. $0.15/$0.60/M. WF78. |
-| 🚫 | `groq/openai/gpt-oss-20b` | — | — | — | FAIL: malformed tool calls. Previously functional (WF59). WF79. |
-| ⚠️ last | `xai/grok-4-1-fast` (cloud-only) | 0 | 6 | ~50 words | **Not recommended cloud-only.** Use hybrid mode only. WF72. |
+| 🚫 | `groq/openai/gpt-oss-20b` | — | — | — | FAIL: malformed tool calls. WF79. |
+| | `xai/grok-4-1-fast` (cloud-only + injection) | 17 | 39 | 171 words | 6.5× vs pre-injection WF72; below top-tier single-model. WF85. |
+| 🚫 | `xai/grok-4.20-0309-non-reasoning` (cloud-only) | — | — | — | FAIL: tool payload rejection. **Hybrid-only** (WF74 PASS in hybrid). WF86. |
+| ⚠️ last | `xai/grok-4-1-fast` (cloud-only, pre-injection) | 0 | 6 | ~50 words | Pre-injection baseline. WF72. |
 
 ### Guardrails & hallucination score
 

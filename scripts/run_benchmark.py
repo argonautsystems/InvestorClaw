@@ -41,6 +41,9 @@ SINGLE_MODEL_RUNS: dict[str, str] = {
     "WF81": "openai/gpt-5.4",
     "WF82": "together/MiniMaxAI/MiniMax-M2.7",
     "WF83": "together/zai-org/GLM-5",
+    # WF85/WF86: xAI cloud-only gap-close (IC-RUN-20260414-003 addendum)
+    "WF85": "xai/grok-4-1-fast",
+    "WF86": "xai/grok-4.20-0309-non-reasoning",
 }
 
 STOPWORDS = {

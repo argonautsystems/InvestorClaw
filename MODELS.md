@@ -65,12 +65,15 @@ Rankings from IC-RUN-20260414-003 re-benchmark with cross-step context injection
 | | `groq/moonshotai/kimi-k2-instruct-0905` | 9 | 25 | 151 | ~800 tok/s | WF77 ⚠️ preview |
 | | `groq/openai/gpt-oss-120b` | 19 | 17 | 376 | ~500 tok/s | WF78 — verbose but low metric density |
 | 🚫 | `groq/openai/gpt-oss-20b` | — | — | — | — | WF79 — FAIL: malformed tool calls |
-| ⚠️ last | `xai/grok-4-1-fast` (cloud-only) | 0 | **6** | ~50 | xAI | WF72 — **not recommended cloud-only** |
+| | `xai/grok-4-1-fast` (cloud-only + injection) | 17 | 39 | 171 | xAI | WF85 — 6.5× vs WF72 (QC4=6→39); still below top-tier |
+| 🚫 | `xai/grok-4.20-0309-non-reasoning` (cloud-only) | — | — | — | xAI | WF86 — FAIL: tool payload rejection. **Hybrid-only** (WF74 PASS in hybrid mode). |
+| ⚠️ last | `xai/grok-4-1-fast` (cloud-only, pre-injection) | 0 | **6** | ~50 | xAI | WF72 — pre-injection baseline; **not recommended cloud-only** |
 
 **Speed category winner**: `groq/openai/gpt-oss-120b` (~500 tok/s, production-stable; gpt-oss-20b excluded: FAIL WF79)  
 **Value category winner**: `together/MiniMaxAI/MiniMax-M2.7` ($0.30/$1.20/M, 197K ctx, now #1 synthesis quality)  
 **Synthesis quality winner**: `together/MiniMaxAI/MiniMax-M2.7` (QC4=108, QC5=541 — full account tables, analyst, bond breakdown)  
-**Not recommended cloud-only**: `xai/grok-4-1-fast` — lowest synthesis density of all tested models (QC4=6, QC5≈50 words). Optimized as an organizer of enriched consultation data; produces minimal output without it. Use in hybrid mode only.
+**Not recommended cloud-only**: `xai/grok-4-1-fast` — even with injection (WF85 QC4=39) still below MiniMax-M2.7 (QC4=108), GLM-5 (QC4=74), Kimi-K2.5 (QC4=55). Use in hybrid mode only.  
+**Hybrid-only models**: `xai/grok-4.20-0309-non-reasoning` — consistently fails cloud-only (WF64, WF86); passes only when consultation is enabled (WF74).
 
 #### Guardrail compliance
 
@@ -136,6 +139,8 @@ Phase 5 clean runs (WF63–WF71, IC-RUN-20260413-010) produced the following W6 
 - MiniMax-M2.7 jumps from WF69 QC4=14 to WF82 QC4=108 — a 7.7× improvement from context injection alone.
 - GLM-5 jumps from WF70 QC4=26 to WF83 QC4=74 — 2.8×.
 - Gemini 3.1 Pro jumps from WF65 QC4=17 to WF80 QC4=46 — 2.7×.
+- grok-4-1-fast cloud-only jumps from WF72 QC4=6 to WF85 QC4=39 — 6.5×; still below top single-model tier.
+- grok-4.20 cloud-only (WF86): FAIL — tool payload rejection. Confirms hybrid-only status (WF64+WF86 FAIL, WF74 PASS hybrid).
 - GPT-OSS-20B (WF79) fails on tool calls — malformed `read<|channel|>commentary` call. Previously functional (WF59) at 250 words; current endpoint behavior incompatible.
 - GPT-OSS-120B (WF78) remains functional but produces low metric density (QC4=17) despite high word count (376) — data-rich context is not being utilized for citations.
 
@@ -175,6 +180,8 @@ Phase 5 clean runs (WF63–WF71, IC-RUN-20260413-010) produced the following W6 
 | WF82 | `together/MiniMaxAI/MiniMax-M2.7` (re-benchmark) | Single | — | ✅ PASS (QC3=27, QC4=108, QC5=541) — **#1 single-model overall** |
 | WF83 | `together/zai-org/GLM-5` (re-benchmark) | Single | — | ✅ PASS (QC3=20, QC4=74, QC5=481) |
 | WF84 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` (re-benchmark) | Hybrid | ✅ | ✅ PASS (QC3=24, QC4=82, QC5=579) — 4.6× over WF71 |
+| WF85 | `xai/grok-4-1-fast` cloud-only + injection (gap-close) | Single | — | ✅ PASS (QC3=17, QC4=39, QC5=171) — 6.5× vs WF72 pre-injection |
+| WF86 | `xai/grok-4.20-0309-non-reasoning` cloud-only (gap-close) | Single | — | 🚫 FAIL — tool payload rejection. Confirmed hybrid-only (WF74 PASS, WF64+WF86 FAIL). |
 
 ### Awaiting full QC benchmark
 
@@ -227,8 +234,8 @@ Previously listed models and their final verdicts:
 
 | Model | Context | Benchmark | Notes |
 |-------|---------|:---------:|-------|
-| `xai/grok-4-1-fast` | ~2M | ✅ WF39/WF62/WF72 | **Recommended operational default in hybrid mode.** Best agentic calibration; 2M context; 19× metric density boost with gemma4-consult vs cloud-only (QC4=113 hybrid vs QC4=6 single). Cloud-only not recommended — lowest synthesis density of all tested models. Requires `/portfolio update-identity` each session for full disclaimer compliance. |
-| `xai/grok-4.20-0309-non-reasoning` | ~1M | ✅ WF74 PASS (upgraded from WF64 DEGRADED) | W4/W5 tool rejection was transient (model version). Re-test full W0–W8: all pass. QC3=14, QC4=17, QC5≈200. Narrative prose synthesis style. 1M context. |
+| `xai/grok-4-1-fast` | ~2M | ✅ WF39/WF62/WF72/WF85 | **Recommended operational default in hybrid mode.** Cloud-only with injection (WF85): QC4=39, QC5=171 — 6.5× over pre-injection WF72 (QC4=6) but still below top single-model tier. Hybrid (WF39): QC4=113. Requires `/portfolio update-identity` each session for full disclaimer compliance. |
+| `xai/grok-4.20-0309-non-reasoning` | ~1M | ⚠️ WF74 PASS (hybrid only) / 🚫 WF86 FAIL (cloud-only) | **Hybrid-only.** Cloud-only consistently fails with tool payload rejection (WF64, WF86). Passes only with consultation enabled (WF74: QC3=14, QC4=17, QC5≈200, narrative prose style). Do not use cloud-only. |
 
 ### OpenAI
 
