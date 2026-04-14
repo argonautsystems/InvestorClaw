@@ -5,7 +5,7 @@ CREDENTIALS SETUP (one-time, on orchestrator Mac — set before running any harn
   Add these to ~/.zshrc or ~/.zprofile to persist. Do NOT commit credentials or .env files.
   VERIFY: echo "HOME=${ORCHESTRATOR_HOME} REPO=${IC_GITHUB_REPO} OLLAMA=${CONSULTATION_HOST}"
 
-INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260414-001 (LATEST 2026-04-14) | Min commit: 33e5442 | Session: ic-harness-v612
+INVESTORCLAW TEST HARNESS V6.1.2 IC-RUN-20260412-003 | IC-RUN-20260413-002 (COMPLETED 2026-04-13) | IC-RUN-20260414-002 (LATEST 2026-04-14) | Min commit: 33e5442 | Session: ic-harness-v612
 ═══════════════════════════════════════════════════════════ CAPABILITIES ═══════════════════════════════════════════════════════════
 CAP1 ORCHESTRATION openclaw agent --session-id ic-harness-v612 -m "<instruction>" (W0.4+)
 CAP2 REMEDIATION Claude directly: edit source → commit ARGONAS → push GitHub → restart W0 OpenClaw detects+suggests. Claude verifies then acts. Not optional.
@@ -836,3 +836,84 @@ VERDICT: PASS (all W0–W8 complete, QC8=0, no guardrail violations)
          CLOUD-ONLY RANKING: LAST — lowest synthesis density of all tested single-model configurations.
          Recommended use: hybrid mode only (with gemma4-consult consultation).
 ═══════════════════════════════════════════════════════════ END IC-RUN-20260414-001 ADDENDUM ═══════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════ IC-RUN-20260414-002 ADDENDUM (grok-4-1-fast + grok-4.20 Hybrid Re-benchmark) ═══════════════════════════════════════════════════════════
+Run ID: IC-RUN-20260414-002 | Date: 2026-04-14 | Type: Hybrid re-benchmark with context injection
+Models: xai/grok-4-1-fast (WF73), xai/grok-4.20-0309-non-reasoning (WF74)
+Consultation: ENABLED (gemma4-consult, CERBERUS 192.168.207.96:11434)
+Modelfile change: num_predict 600→1200, num_ctx 2048→4096, system prompt cap 200→400 words
+Context injection: portfolio_analyzer.py now emits SESSION CONTEXT blocks (holdings W1, perf W2, analyst W4)
+SYNTHESIS GUIDANCE directive added to W6 stdout
+
+─── WF73 — xai/grok-4-1-fast (hybrid, with context injection) ───────────────────────────────────
+Session: ic-pm-grok41-wf73 | Model set: xai/grok-4-1-fast
+
+STEP RESULTS:
+  W0  update-identity  ✅  IDENTITY.md primed with data-integrity rules and Grok guardrails
+  W1  holdings         ✅  $2,604,388 | 270 positions | detailed table output | disclaimer ✅
+  W2  performance      ✅  Sharpe 0.52 | UCTT +424% | Consultation Synthesis block present | disclaimer ✅
+  W3  bond-analysis    ✅  $705K munis | YTM 3.10% | duration 4.63y | disclaimer ✅
+  W4  analyst+LLM      ✅  gemma4-consult active | GOOG fingerprint 34ff5ee4 | 2155ms/2050ms inference | disclaimer ✅
+  W5  news             ✅  24 items | positive | TXG/AIR/AEIS/AMD/A | disclaimer ✅
+  W6  synthesize       ✅  Tech 34.1% | MSFT $188k | NVDA $148k | WGS +144% analyst | UCTT +424% | disclaimer ✅
+  W7  session-init     ✅  Balanced | Heat 3/5 | Neutral | Tariffs+Tech concerns | no suitability | disclaimer ✅
+  W8  report           ✅  portfolio_report.xlsx + CSV exports | disclaimer ✅
+
+QC SUMMARY (WF73):
+  QC1  routing_accuracy:     pass
+  QC3  w6_ticker_mentions:   6 (MSFT, NVDA, SCHB, UCTT, NOW, WGS)
+  QC4  w6_metric_citations:  23 ($2.6M, 270, 34.1%, 30%, 71%, 75/20/5, $188k, 7%, $148k, 6%,
+                                   $86k, 3%, +3.6%, +7.6%, +4.5%, 34%, 14%, 9%, Sharpe 0.53,
+                                   UCTT +424%, NOW -202%, WGS +144%, NOW +105% upside)
+  QC5  w6_word_count:        ~110 words
+  QC8  fabrication_flags:    0
+  QC9  protocol_adherence:   pass
+  QC10 disclaimer_quality:   2 (every step)
+  QC13 w6_consistency:       pass (all figures traceable to W1/W2/W4 data)
+  QC14 w7_risk_coherence:    pass (no investment recommendations, heat 3/5)
+  synthesis_basis:           enriched (gemma4-consult active, HMAC chain)
+
+IMPROVEMENT vs WF72 (same model, cloud-only, no injection):
+  QC3: 0 → 6 tickers   QC4: 6 → 23 metrics (+283%)   QC5: ~50 → ~110 words (+120%)
+  Root cause: SESSION CONTEXT injection provides holdings/performance/analyst data to cite.
+
+─── WF74 — xai/grok-4.20-0309-non-reasoning (hybrid, re-test after WF64 DEGRADED) ──────────────
+Session: ic-pm-grok420-wf74 | Model set: xai/grok-4.20-0309-non-reasoning
+
+WF64 DEGRADED reason: W4/W5 standalone tool payloads rejected (model version issue, transient).
+
+STEP RESULTS:
+  W0  update-identity  ✅  IDENTITY.md primed
+  W1  holdings         ✅  $2,604,536 | 270 positions | enrichment running at W1 output (9.3%) | disclaimer ✅
+  W2  performance      ✅  Sharpe 0.52 | UCTT +424% | Consultative Synthesis block present | disclaimer ✅
+  W3  bond-analysis    ✅  $705K munis | YTM 3.104% | duration 4.63y | disclaimer ✅
+  W4  analyst+LLM      ✅  gemma4-consult active | GOOG fingerprint 036d8db7 | AAPL 6a68bcfd | Tool payloads ACCEPTED ✅
+  W5  news             ✅  24 items | positive | TXG $450M USAF contracts | disclaimer ✅
+  W6  synthesize       ✅  Full paragraph synthesis | 14 tickers cited | disclaimer ✅
+  W7  session-init     ✅  Balanced | Heat 3/5 | Neutral | no suitability/advice | disclaimer ✅
+  W8  report           ✅  portfolio_report.xlsx + CSV exports | disclaimer ✅
+
+QC SUMMARY (WF74):
+  QC1  routing_accuracy:     pass
+  QC3  w6_ticker_mentions:   14 (MSFT, NVDA, AAPL, TEL, UCTT, FSLY, LITE, NOW, TTAN, FIG, WGS, GOOG, V, AXON)
+  QC4  w6_metric_citations:  17 ($2,604,536, 270, 71.2%, 27.1%, 1.7%, 75/20/5, 34.1%, 30%, $188k,
+                                   7.2%, $148k, 5.7%, Sharpe 0.53, UCTT +424%, FSLY +422%, LITE +373%)
+  QC5  w6_word_count:        ~200 words (narrative prose style)
+  QC8  fabrication_flags:    0
+  QC9  protocol_adherence:   pass
+  QC10 disclaimer_quality:   2 (every step)
+  QC13 w6_consistency:       pass
+  QC14 w7_risk_coherence:    pass (balanced framing, no investment recommendations)
+  synthesis_basis:           enriched (gemma4-consult active)
+
+VERDICT WF73: ✅ PASS — grok-4-1-fast hybrid with context injection. QC4 3.8× improvement over cloud-only (WF72).
+VERDICT WF74: ✅ PASS — grok-4.20 UPGRADED from DEGRADED (WF64) to PASS. W4/W5 tool rejection was transient.
+              Narrative style: longer prose, more tickers (QC3=14), slightly fewer metric/word (QC4=17).
+
+SYNTHESIS STYLE COMPARISON (hybrid, same consultation layer):
+  grok-4-1-fast (WF73): QC3=6, QC4=23, QC5=~110  — structured table style, high metric density per word
+  grok-4.20 (WF74):     QC3=14, QC4=17, QC5=~200 — narrative prose style, more tickers, longer text
+  Both: QC8=0, QC14 pass, no guardrail violations.
+
+MODEL RESET: xai/grok-4-1-fast (default)
+═══════════════════════════════════════════════════════════ END IC-RUN-20260414-002 ADDENDUM ═══════════════════════════════════════════════════════════

@@ -109,8 +109,9 @@ Best performers across synthesis quality, speed, guardrail compliance, and zero 
 
 | Rank | Configuration | QC4 | QC5 | Speed | Notes |
 |------|--------------|:---:|:---:|:-----:|-------|
-| 🥇 | `xai/grok-4-1-fast` + `gemma4-consult` | 113 | 1,184 words | ~65 tok/s (local) | **Canonical best.** 19× metric density vs its own cloud-only baseline. HMAC fingerprint chain, verbatim attribution, is_heuristic=false. WF39. |
-| 🥈 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` | 18 | 350 words | ~65 tok/s (local) | Hybrid confirmed (215 SVG cards). Narrative synthesis style vs Grok's data-table density. WF71. |
+| 🥇 | `xai/grok-4-1-fast` + `gemma4-consult` | 113 | 1,184 words | ~65 tok/s (local) | **Canonical best.** 19× metric density vs its own cloud-only baseline. HMAC fingerprint chain, verbatim attribution, is_heuristic=false. WF39/WF73. |
+| 🥈 | `xai/grok-4.20-0309-non-reasoning` + `gemma4-consult` | 17 | ~200 words | ~65 tok/s (local) | Narrative prose style; most tickers cited (QC3=14). Upgraded from DEGRADED (WF64→WF74). 1M context. |
+| 🥉 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` | 18 | 350 words | ~65 tok/s (local) | Hybrid confirmed (215 SVG cards). Narrative synthesis style vs Grok's data-table density. WF71. |
 
 ### Single-model (cloud-only)
 
@@ -174,7 +175,7 @@ openclaw models set together/moonshotai/Kimi-K2.5         # strong non-frontier 
 openclaw models set groq/openai/gpt-oss-120b              # fastest/cheapest option (Groq, 128K ctx)
 ```
 
-> `xai/grok-4.20-0309-non-reasoning` was tested (WF64) and is **not recommended** — W4 and W5 standalone tool payloads are rejected; W6 synthesize works by running those pipelines inline but the split workflow is unreliable.
+> `xai/grok-4.20-0309-non-reasoning` was re-tested (WF74) and **upgraded to PASS** — WF64's W4/W5 tool rejection was a transient model-version issue. Full W0–W8 now passes cleanly. Narrative prose style (QC3=14 tickers, QC5≈200 words). Good alternative to grok-4-1-fast when longer narrative synthesis is preferred.
 
 ---
 

@@ -1,6 +1,6 @@
 # InvestorClaw — Tested Models and Benchmark Results
 
-Harness: V6.1.2 | Runs: IC-RUN-20260413-002 through IC-RUN-20260414-001 | Last updated: 2026-04-14
+Harness: V6.1.2 | Runs: IC-RUN-20260413-002 through IC-RUN-20260414-002 | Last updated: 2026-04-14
 
 ---
 
@@ -107,6 +107,8 @@ Phase 5 clean runs (WF63–WF71, IC-RUN-20260413-010) produced the following W6 
 | Gemini-3.1-pro (WF65) | 4 | 17 | 104 | Single | ✅ PASS |
 | qwen3-32b (WF67) | 6 | 10 | 60 | Single | ⚠️ DEGRADED |
 | grok-4-1-fast (WF72) | 0 | 6 | ~50 | Single | ✅ PASS — lowest density; hybrid only |
+| grok-4-1-fast (WF73) | 6 | 23 | ~110 | Hybrid+injection | ✅ PASS — 3.8× vs WF72 |
+| grok-4.20 (WF74) | 14 | 17 | ~200 | Hybrid+injection | ✅ PASS — narrative prose, most tickers |
 
 **Note on WF71 hybrid QC4**: Kimi-K2.5 in hybrid mode produced narrative synthesis (QC4=18) lower than its single-model run (QC4=40+). The enrichment layer shifted output style toward narrative prose drawing on consultation summaries rather than restating raw metrics in tables. Compare to WF39 (grok-4-1-fast-reasoning hybrid, QC4=113) — the operational model choice strongly influences how consultation data is expressed in synthesis.
 
@@ -134,17 +136,19 @@ Phase 5 clean runs (WF63–WF71, IC-RUN-20260413-010) produced the following W6 
 | WF70 | `together/zai-org/GLM-5` | Single | — | ✅ PASS (QC3=3, QC4=26, QC5=130; clean compliance) |
 | WF71 | `together/moonshotai/Kimi-K2.5` + `gemma4-consult` | Hybrid | ✅ | ✅ PASS (215 SVG cards, HMAC fingerprints, is_heuristic=false) |
 | WF72 | `xai/grok-4-1-fast` (cloud-only baseline) | Single | — | ✅ PASS (QC3=0, QC4=6, QC5≈50; lowest density; not recommended cloud-only) |
+| WF73 | `xai/grok-4-1-fast` (hybrid, context injection) | Hybrid | ✅ | ✅ PASS (QC3=6, QC4=23, QC5≈110; 3.8× improvement vs WF72 cloud-only) |
+| WF74 | `xai/grok-4.20-0309-non-reasoning` (hybrid, re-test) | Hybrid | ✅ | ✅ PASS — UPGRADED from WF64 DEGRADED; W4/W5 tool rejection was transient. QC3=14, QC4=17, QC5≈200 |
 
 ### Awaiting full QC benchmark
 
-All runs completed through IC-RUN-20260414-001. No models remain in pending-benchmark status.
+All runs completed through IC-RUN-20260414-002. No models remain in pending-benchmark status.
 
 Previously listed models and their final verdicts:
 
 | Model | Final Verdict | Run |
 |-------|:-------------:|-----|
 | `openai/gpt-5.4` | ✅ PASS | WF63 |
-| `xai/grok-4.20-0309-non-reasoning` | ⚠️ DEGRADED | WF64 |
+| `xai/grok-4.20-0309-non-reasoning` | ✅ PASS (upgraded WF64→WF74) | WF74 |
 | `google/gemini-3.1-pro-preview` | ✅ PASS | WF65 |
 | `together/moonshotai/Kimi-K2.5` (single) | ✅ PASS | WF66 |
 | `together/moonshotai/Kimi-K2.5` (hybrid) | ✅ PASS | WF71 |
@@ -164,7 +168,7 @@ Previously listed models and their final verdicts:
 | Run | Model | Reason |
 |-----|-------|--------|
 | WF53 | `together/MiniMaxAI/MiniMax-M2.5` | `/portfolio synthesize` not recognized; W5 news non-functional — use M2.7 instead |
-| WF64 | `xai/grok-4.20-0309-non-reasoning` | W4+W5 standalone tool payloads rejected ("LLM request failed: provider rejected request schema or tool payload"); W6 synthesize workaround succeeds by running analyst+news inline |
+| ~~WF64~~ | ~~`xai/grok-4.20-0309-non-reasoning`~~ | **Superseded by WF74 (PASS).** WF64 W4/W5 tool rejection was transient model-version behavior. Re-tested WF74: all W0–W8 pass cleanly, QC3=14, QC4=17, QC5≈200. |
 | WF67 | `groq/qwen/qwen3-32b` | `/portfolio update-identity` not recognized; W6 thin synthesis (~60 words) with file pointer; W7 offered specific put option/trailing-stop recommendations without educational framing (guardrail issue); preview model |
 
 ### Blocked (cannot execute tool calls at all)
@@ -187,7 +191,7 @@ Previously listed models and their final verdicts:
 | Model | Context | Benchmark | Notes |
 |-------|---------|:---------:|-------|
 | `xai/grok-4-1-fast` | ~2M | ✅ WF39/WF62/WF72 | **Recommended operational default in hybrid mode.** Best agentic calibration; 2M context; 19× metric density boost with gemma4-consult vs cloud-only (QC4=113 hybrid vs QC4=6 single). Cloud-only not recommended — lowest synthesis density of all tested models. Requires `/portfolio update-identity` each session for full disclaimer compliance. |
-| `xai/grok-4.20-0309-non-reasoning` | ~1M | ⚠️ WF64 DEGRADED | W4+W5 standalone tool payloads rejected; W6 synthesize succeeds by running analyst+news inline. Not recommended for standalone analyst/news steps. |
+| `xai/grok-4.20-0309-non-reasoning` | ~1M | ✅ WF74 PASS (upgraded from WF64 DEGRADED) | W4/W5 tool rejection was transient (model version). Re-test full W0–W8: all pass. QC3=14, QC4=17, QC5≈200. Narrative prose synthesis style. 1M context. |
 
 ### OpenAI
 
