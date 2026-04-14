@@ -1,7 +1,7 @@
 ---
 name: portfolio
 version: 1.0.0
-description: FINOS CDM 5.x-compliant portfolio analysis skill for OpenClaw agents. Provides holdings snapshots, performance metrics, bond analytics (YTM, duration, FRED-backed benchmarks), analyst consensus ratings, news correlation, and CSV/Excel reports. Built-in financial advice guardrails enforce educational-only output. Requires Python 3.9+.
+description: FINOS CDM 5.x-compliant portfolio analysis skill for OpenClaw agents. Provides holdings snapshots, performance metrics, bond analytics (YTM, duration, FRED-backed benchmarks), analyst consensus ratings, news correlation, and CSV/Excel reports. Built-in financial advice guardrails enforce educational-only output. Requires Python 3.10+.
 homepage: https://github.com/perlowja/InvestorClaw
 user-invocable: true
 metadata: {"openclaw":{"emoji":"📊","requires":{"bins":["python3"]},"install":[{"id":"pip","kind":"shell","label":"Install Python dependencies","run":"pip3 install -r requirements.txt"}]}}

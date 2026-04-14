@@ -458,7 +458,7 @@ Examples:
     def _write_env_vars(self, config: Dict) -> None:
         """Write consultation config to skill/.env"""
         consultation = config.get("consultation", {})
-        env_file = Path(__file__).parent / ".env"
+        env_file = Path(__file__).parent.parent / ".env"
 
         lines_to_add = [
             "\n# Consultation model (written by setup wizard)\n",

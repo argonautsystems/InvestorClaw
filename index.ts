@@ -55,11 +55,11 @@ export default definePluginEntry({
     // Resolve the skill directory: prefer INVESTORCLAW_SKILL_ROOT env/config,
     // then derive from this file's own location (works whether installed as a
     // linked plugin from the canonical repo or copied into extensions/).
-    const selfDir =
+    const skillRoot =
       pluginConfig["INVESTORCLAW_SKILL_ROOT"] ??
       process.env.INVESTORCLAW_SKILL_ROOT ??
-      path.dirname(new URL(import.meta.url).pathname);
-    const entryScript = path.join(selfDir, "investorclaw.py");
+      path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+    const entryScript = path.join(skillRoot, "investorclaw.py");
 
     // ------------------------------------------------------------------
     // Helpers
@@ -74,10 +74,10 @@ export default definePluginEntry({
       }
 
       // CRITICAL: Set PYTHONPATH so that 'from lib.xxx import ...' resolves correctly.
-      // selfDir is the skill root (investorclaw/); lib/ is directly inside it.
+      // skillRoot is the skill root (investorclaw/); lib/ is directly inside it.
       // Also include parent dir for any top-level package imports.
-      const investorClawDir = path.dirname(selfDir);  // parent of skill root
-      const skillDir = selfDir;  // skill root (investorclaw/)
+      const investorClawDir = path.dirname(skillRoot);  // parent of skill root
+      const skillDir = skillRoot;  // skill root (investorclaw/)
       const pythonpath = `${investorClawDir}:${skillDir}`;
       if (env.PYTHONPATH) {
         env.PYTHONPATH = `${pythonpath}:${env.PYTHONPATH}`;
@@ -101,15 +101,15 @@ export default definePluginEntry({
       try {
         const env = buildEnv();
         console.log(`[InvestorClaw] Running: python3 ${entryScript} ${command}`);
-        console.log(`[InvestorClaw] selfDir: ${selfDir}`);
+        console.log(`[InvestorClaw] skillRoot: ${skillRoot}`);
         console.log(`[InvestorClaw] entryScript: ${entryScript}`);
         console.log(`[InvestorClaw] PYTHONPATH: ${env.PYTHONPATH}`);
-        console.log(`[InvestorClaw] cwd: ${selfDir}`);
+        console.log(`[InvestorClaw] cwd: ${skillRoot}`);
 
         const { stdout, stderr } = await execFileAsync(
           "python3",
           [entryScript, command, ...args],
-          { env, cwd: selfDir, timeout: timeoutMs },
+          { env, cwd: skillRoot, timeout: timeoutMs },
         );
         return (stdout || stderr).trim();
       } catch (err: unknown) {

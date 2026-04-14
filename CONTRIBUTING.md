@@ -45,7 +45,7 @@ pytest tests/ -v
 python3 tests_smoke.py
 ```
 
-CI runs `pytest` on Python 3.9–3.12 for every push and pull request
+CI runs `pytest` on Python 3.10–3.12 for every push and pull request
 (`.github/workflows/test.yml`).
 
 ---

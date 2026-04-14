@@ -143,18 +143,6 @@ class BondAnalyzer:
         self._load_treasury_yields()
         self._load_tips_yields()
 
-    # Seed values (approximate, used as fallback when FRED unavailable).
-    # Updated: April 2026. These go stale — configure FRED_API_KEY for live data.
-    _TREASURY_SEED: Dict[str, float] = {
-        '3mo': 4.33, '6mo': 4.22, '1y': 4.08,
-        '2y': 3.88, '5y': 3.92, '7y': 4.08,
-        '10y': 4.21, '20y': 4.55, '30y': 4.62,
-    }
-    _TIPS_SEED: Dict[str, float] = {
-        '5y': 1.85, '7y': 1.89, '10y': 1.92,
-        '20y': 2.08, '30y': 2.15,
-    }
-
     def _fred_fetch_series(self, series_id: str, api_key: str) -> Optional[float]:
         """Fetch the most recent non-null daily observation for a FRED series.
 
@@ -183,16 +171,16 @@ class BondAnalyzer:
         return None
 
     def _load_treasury_yields(self):
-        """Load current Treasury yield curve from FRED API with seed-data fallback.
+        """Load current Treasury yield curve from FRED API.
 
-        Reads FRED_API_KEY from environment. Falls back to hardcoded seed values
-        (approximate, dated April 2026) when the key is absent or the API is unreachable.
+        Reads FRED_API_KEY from environment. Emits a warning and skips
+        benchmark spread comparisons if the key is missing.
         Series used: DGS3MO, DGS6MO, DGS1, DGS2, DGS5, DGS7, DGS10, DGS20, DGS30.
         """
         api_key = os.environ.get("FRED_API_KEY", "").strip()
         if not api_key:
-            logger.info("FRED_API_KEY not set — using seed Treasury yields (configure key for live data)")
-            self.treasury_yields = dict(self._TREASURY_SEED)
+            logger.warning("FRED_API_KEY not set — Treasury benchmark spreads will be skipped.")
+            self.treasury_yields = {}
             return
 
         fetched: Dict[str, float] = {}
@@ -205,20 +193,20 @@ class BondAnalyzer:
             self.treasury_yields = fetched
             logger.info(f"Loaded {len(fetched)}/{len(self.TREASURY_ENDPOINTS)} Treasury yields from FRED")
         else:
-            logger.warning("FRED returned no Treasury data — using seed yields")
-            self.treasury_yields = dict(self._TREASURY_SEED)
+            logger.warning("FRED returned no Treasury data — benchmark spreads will be skipped.")
+            self.treasury_yields = {}
 
     def _load_tips_yields(self):
-        """Load current TIPS real yield curve from FRED API with seed-data fallback.
+        """Load current TIPS real yield curve from FRED API.
 
-        Reads FRED_API_KEY from environment. Falls back to hardcoded seed values
-        (approximate, dated April 2026) when the key is absent or the API is unreachable.
+        Reads FRED_API_KEY from environment. Emits a warning and skips
+        benchmark spread comparisons if the key is missing.
         Series used: DFII5, DFII7, DFII10, DFII20, DFII30.
         """
         api_key = os.environ.get("FRED_API_KEY", "").strip()
         if not api_key:
-            logger.info("FRED_API_KEY not set — using seed TIPS yields")
-            self.tips_yields = dict(self._TIPS_SEED)
+            logger.warning("FRED_API_KEY not set — TIPS benchmark spreads will be skipped.")
+            self.tips_yields = {}
             return
 
         fetched: Dict[str, float] = {}
@@ -231,8 +219,8 @@ class BondAnalyzer:
             self.tips_yields = fetched
             logger.info(f"Loaded {len(fetched)}/{len(self.TIPS_ENDPOINTS)} TIPS yields from FRED")
         else:
-            logger.warning("FRED returned no TIPS data — using seed yields")
-            self.tips_yields = dict(self._TIPS_SEED)
+            logger.warning("FRED returned no TIPS data — benchmark spreads will be skipped.")
+            self.tips_yields = {}
 
     def load_bonds_from_csv(self, csv_path: Path) -> List[Dict]:
         """Load bonds from CSV with automatic column detection (CDM-compatible current format)."""
@@ -779,8 +767,8 @@ class BondAnalyzer:
             if ytm is None:
                 logger.warning(f"YTM calculation failed for {symbol}. Duration/convexity will not be calculated.")
                 ytm = coupon_rate  # Use coupon as fallback estimate
-                macaulay_dur, modified_dur = 0.0, 0.0
-                convexity = 0.0
+                macaulay_dur, modified_dur = None, None
+                convexity = None
                 dv01 = 0.0
             else:
                 # Calculate duration and convexity only if YTM succeeded
@@ -798,7 +786,9 @@ class BondAnalyzer:
             credit_quality = self._estimate_credit_quality(ytm if ytm is not None else coupon_rate, coupon_rate)
 
             # Determine interest rate sensitivity
-            if modified_dur > 7:
+            if modified_dur is None:
+                sensitivity = "Unknown"
+            elif modified_dur > 7:
                 sensitivity = "High"
             elif modified_dur > 4:
                 sensitivity = "Moderate"
@@ -856,11 +846,12 @@ class BondAnalyzer:
                 self.bonds.append(metrics)
                 total_value += metrics.market_value
 
-                # Weighted metrics — exclude bonds with unknown maturity from
-                # YTM/duration averages (years_to_maturity==0 makes both degenerate)
-                if metrics.years_to_maturity > 0:
+                # Weighted metrics — exclude bonds with unknown maturity or failed calculations
+                # from YTM/duration averages (years_to_maturity==0 makes both degenerate)
+                if metrics.years_to_maturity > 0 and metrics.ytm is not None:
                     ytm_weighted += metrics.ytm * metrics.market_value
-                    duration_weighted += metrics.modified_duration * metrics.market_value
+                    if metrics.modified_duration is not None:
+                        duration_weighted += metrics.modified_duration * metrics.market_value
                 else:
                     unknown_maturity_count += 1
                 coupon_weighted += metrics.coupon_rate * metrics.market_value

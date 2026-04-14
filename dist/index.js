@@ -8,7 +8,6 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { Type } from "@sinclair/typebox";
 import { execFile } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { promisify } from "node:util";
 import * as path from "node:path";
 const execFileAsync = promisify(execFile);
@@ -46,10 +45,10 @@ export default definePluginEntry({
         // Resolve the skill directory: prefer INVESTORCLAW_SKILL_ROOT env/config,
         // then derive from this file's own location (works whether installed as a
         // linked plugin from the canonical repo or copied into extensions/).
-        const selfDir = pluginConfig["INVESTORCLAW_SKILL_ROOT"] ??
+        const skillRoot = pluginConfig["INVESTORCLAW_SKILL_ROOT"] ??
             process.env.INVESTORCLAW_SKILL_ROOT ??
-            path.dirname(new URL(import.meta.url).pathname);
-        const entryScript = path.join(selfDir, "investorclaw.py");
+            path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+        const entryScript = path.join(skillRoot, "investorclaw.py");
         // ------------------------------------------------------------------
         // Helpers
         // ------------------------------------------------------------------
@@ -62,10 +61,10 @@ export default definePluginEntry({
                     env[key] = val;
             }
             // CRITICAL: Set PYTHONPATH so that 'from lib.xxx import ...' resolves correctly.
-            // selfDir is the skill root (investorclaw/); lib/ is directly inside it.
+            // skillRoot is the skill root (investorclaw/); lib/ is directly inside it.
             // Also include parent dir for any top-level package imports.
-            const investorClawDir = path.dirname(selfDir); // parent of skill root
-            const skillDir = selfDir; // skill root (investorclaw/)
+            const investorClawDir = path.dirname(skillRoot); // parent of skill root
+            const skillDir = skillRoot; // skill root (investorclaw/)
             const pythonpath = `${investorClawDir}:${skillDir}`;
             if (env.PYTHONPATH) {
                 env.PYTHONPATH = `${pythonpath}:${env.PYTHONPATH}`;
@@ -84,11 +83,11 @@ export default definePluginEntry({
             try {
                 const env = buildEnv();
                 console.log(`[InvestorClaw] Running: python3 ${entryScript} ${command}`);
-                console.log(`[InvestorClaw] selfDir: ${selfDir}`);
+                console.log(`[InvestorClaw] skillRoot: ${skillRoot}`);
                 console.log(`[InvestorClaw] entryScript: ${entryScript}`);
                 console.log(`[InvestorClaw] PYTHONPATH: ${env.PYTHONPATH}`);
-                console.log(`[InvestorClaw] cwd: ${selfDir}`);
-                const { stdout, stderr } = await execFileAsync("python3", [entryScript, command, ...args], { env, cwd: selfDir, timeout: timeoutMs });
+                console.log(`[InvestorClaw] cwd: ${skillRoot}`);
+                const { stdout, stderr } = await execFileAsync("python3", [entryScript, command, ...args], { env, cwd: skillRoot, timeout: timeoutMs });
                 return (stdout || stderr).trim();
             }
             catch (err) {
@@ -102,36 +101,6 @@ export default definePluginEntry({
         /** Wrap a text string as an AgentToolResult (content + required details). */
         function tr(text) {
             return { content: [{ type: "text", text }], details: {} };
-        }
-        /**
-         * Run the analyst command and append any available SVG consultation cards
-         * as ImageContent so the web UI can render them inline.
-         */
-        async function analystWithCards() {
-            const text = await run("analyst");
-            const content = [{ type: "text", text }];
-            try {
-                const env = buildEnv();
-                const reportsBase = env.INVESTOR_CLAW_REPORTS_DIR
-                    || path.join(process.env.HOME || "", "portfolio_reports");
-                const cardsDir = path.join(reportsBase, ".raw", "consultation_cards");
-                if (existsSync(cardsDir)) {
-                    const files = readdirSync(cardsDir)
-                        .filter(f => f.endsWith(".svg"))
-                        .sort()
-                        .slice(0, 20);
-                    for (const file of files) {
-                        const svg = readFileSync(path.join(cardsDir, file), "utf8");
-                        content.push({
-                            type: "image",
-                            data: Buffer.from(svg).toString("base64"),
-                            mimeType: "image/svg+xml",
-                        });
-                    }
-                }
-            }
-            catch { /* non-fatal — text result still returned */ }
-            return { content, details: {} };
         }
         // ------------------------------------------------------------------
         // Tools
@@ -223,7 +192,7 @@ export default definePluginEntry({
                 "investorclaw_holdings. Returns JSON saved to portfolio_reports/analyst_data.json.",
             parameters: Type.Object({}),
             async execute(_id, _p) {
-                return analystWithCards();
+                return tr(await run("analyst"));
             },
         });
         api.registerTool({

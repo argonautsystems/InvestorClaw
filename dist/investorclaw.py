@@ -1,1 +1,0 @@
-../investorclaw.py

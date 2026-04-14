@@ -285,7 +285,7 @@ With consultation enabled, structured synthesis runs locally first. The cloud mo
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - OpenClaw >= 2026.4.12
 - Optional API keys (all have free tiers): Finnhub, Alpha Vantage, Massive, NewsAPI, FRED
 - Without keys: falls back to `yfinance`
@@ -348,7 +348,7 @@ Full model testing results, hybrid vs single-model mode definitions, harness ben
 | `data/` | Guardrails and symbol/reference data |
 | `tests/` | Unit and contract tests |
 | `pipeline.py` | Full pipeline entry |
-| `investorclaw_harness_v612.txt` | Test harness |
+| `docs/harness-v612.txt` | Test harness |
 | `MODELS.md` | Full model testing catalog and benchmark results |
 
 **Never committed**: `.env`, `~/portfolios/*`, `~/portfolio_reports/`
