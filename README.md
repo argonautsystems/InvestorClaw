@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/perlowja/InvestorClaw/main/assets/investorclaw-logo.png" alt="InvestorClaw Logo" width="200"/>
 </p>
 
-Portfolio analysis and market intelligence skill for OpenClaw. **v1.0.0** | FINOS CDM 5.x | MIT-0 License
+Portfolio analysis and market intelligence skill for OpenClaw, with after hours entertainment value. **v1.0.0** | FINOS CDM 5.x Inspired Data Model | MIT-0 License
 
 > **Naming note**: the package id is `investorclaw`. The OpenClaw invocation command is `/portfolio`.
 

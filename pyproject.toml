@@ -5,7 +5,7 @@ build-backend = "setuptools.backends.legacy:build"
 [project]
 name = "investorclaw"
 version = "1.0.0"
-description = "FINOS CDM 5.x-inspired portfolio analysis skill for OpenClaw agents"
+description = "Portfolio analysis and market intelligence skill for OpenClaw, with after hours entertainment value. FINOS CDM 5.x Inspired Data Model."
 license = { text = "MIT-0" }
 requires-python = ">=3.10"
 readme = "README.md"
