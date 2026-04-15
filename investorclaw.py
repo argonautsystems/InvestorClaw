@@ -109,7 +109,7 @@ def main() -> int:
     if error_code != 0:
         return error_code
 
-    return run_script(script_path, args, build_env(SKILL_DIR), SKILL_DIR)
+    return run_script(script_path, args, build_env(SKILL_DIR), SKILL_DIR, command)
 
 
 if __name__ == "__main__":
