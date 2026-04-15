@@ -8,6 +8,7 @@ Writes:
 
 Entry point: fetch_and_write(data_dir, *, quiet=False) -> int
 """
+from __future__ import annotations
 
 import json
 import re
