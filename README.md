@@ -24,13 +24,12 @@ Both modes enforce educational-only output via always-on guardrails.
 - No API keys required to start — falls back to `yfinance` automatically.
 - Time to first report: ~5 minutes from `git clone` on an existing OpenClaw install (tested: 50-holding portfolio, yfinance, standard broadband). A sample portfolio is in `docs/samples/sample_portfolio.csv`.
 
-Once you have portfolio data, type `/portfolio stonkmode on` and run any command. Your holdings will be
-reviewed live by 30 fictional cable TV finance personalities — a self-declared King of Markets who rates
-stocks by CEO likability, a Budapest socialite who compares NVDA to her fourth husband Helmut, a
-three-foot-tall goblin with a sacred ledger, a floor trader who has connected your ETF to twelve
-interlocking foundations using red string, a time traveler from the future who already knows how this
-ends and cannot say, cosmic philosophers, doom economists, crypto maximalists, and more.
-It is satire. It is not analysis. → [Stonkmode ↓](#stonkmode)
+After you've run your serious portfolio analysis, there's one more thing: `/portfolio stonkmode on`
+wraps every subsequent command in live commentary from 30 fictional cable TV finance personalities —
+a self-declared King of Markets, a Budapest socialite, a three-foot-tall goblin with a sacred ledger,
+a floor trader who has connected your ETF to twelve interlocking foundations using red string, a time
+traveler from the future who already knows how this ends and cannot say, and more. The analysis still
+runs normally. The entertainment layer is optional. It is satire. → [Stonkmode ↓](#stonkmode)
 
 ---
 
