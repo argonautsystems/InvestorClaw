@@ -307,19 +307,19 @@ off digital; cosmic can foil cosmic for maximum chaos):
 └─────────────────────────────────────────────────────────────┘
 
 ▌ KING DONNY (THE DEAL WHISPERER)
-  NVIDIA, MSFT, AAPL — tremendous companies, the best
-  companies, everybody agrees. NVDA is up 340% and frankly
+  MSFT, AAPL, GOOG — tremendous companies, the best
+  companies, everybody agrees. MSFT is up 180% and frankly
   that's because of me. The CEO, very nice man, called me
   personally. Apple? Cook's been great, very cooperative.
-  Microsoft? Satya's fine, fine man. These are BEAUTIFUL
-  positions. The bond ladder is a TOTAL DISASTER — rigged
-  rates, very unfair to the portfolio. Short-sellers are
-  losers, and I can tell you they will not succeed. That I
-  can tell you.
+  Google? Very smart people, tremendous search. These are
+  BEAUTIFUL positions. The bond ladder is a TOTAL DISASTER
+  — rigged rates, very unfair to the portfolio. Short-
+  sellers are losers, and I can tell you they will not
+  succeed. That I can tell you.
 
 ▌ GLORB, SENIOR LEDGER-KEEPER OF THE SEVENTH VAULT
   Disturbed, the Vault Elders are. Speak so casually of
-  the Entrusted Treasures, the tall one does. NVIDIA — a
+  the Entrusted Treasures, the tall one does. MSFT — a
   treasure of great luminance, yes, but concentrated it
   is. Unbalanced, the Sacred Ledger shows. Weep, the Vault
   Elders do, when forty-two percent in one vessel sits.
@@ -340,8 +340,7 @@ of what good entertainment writing requires.
 Cloud LLM narration is supported via `INVESTORCLAW_STONKMODE_PROVIDER=openai_compat`
 with any OpenAI-compatible endpoint (xAI Grok, Claude, GPT-4o).
 
-> **Attribution**: Stonkmode is inspired by (but is not a copy of) original work by
-> Matt Madson (mmadson@nvidia.com).
+> **Attribution**: Stonkmode is inspired by (but is not a copy of) original work by Matt Madson.
 
 ---
 
