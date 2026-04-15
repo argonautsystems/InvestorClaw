@@ -83,6 +83,16 @@ def _auto_prime_guardrails(scripts_dir: Path) -> None:
 SKILL_DIR = ROOT_DIR
 SCRIPTS_DIR = SKILL_DIR / "commands"
 
+# Commands that must never trigger stonkmode narration (would recurse or be
+# meaningless — stonkmode narrating itself, setup, or guardrails).
+STONKMODE_EXCLUDED_COMMANDS: frozenset = frozenset({
+    "stonkmode", "stonk-mode", "stonks",
+    "setup", "auto-setup", "init", "initialize",
+    "guardrails", "guardrail", "guardrails-prime", "guardrails-status",
+    "update-identity", "update_identity", "identity",
+})
+
+
 def main() -> int:
     """Thin router: bootstrap → resolve → build args → run."""
     command = sys.argv[1].lower() if len(sys.argv) > 1 else "setup"
@@ -109,7 +119,8 @@ def main() -> int:
     if error_code != 0:
         return error_code
 
-    return run_script(script_path, args, build_env(SKILL_DIR), SKILL_DIR, command)
+    narration_command = command if command not in STONKMODE_EXCLUDED_COMMANDS else ""
+    return run_script(script_path, args, build_env(SKILL_DIR), SKILL_DIR, narration_command)
 
 
 if __name__ == "__main__":

@@ -1368,6 +1368,7 @@ def maybe_narrate(command: str, skill_dir: Path) -> None:
             "consultation_mode": "deactivated",
             "satire_disclaimer": (
                 "STONKMODE \u2014 Seriously silly. "
+                "AI-generated entertainment satire — not analysis, not advice. "
                 "The math is real. The analysis is real. The people are not. "
                 "Fictional cable TV characters only. "
                 "Not financial advice. Not a substitute for your actual financial advisor, "

@@ -77,6 +77,9 @@ COMMANDS: dict = {
     "discussion-topics":             "fa_discussion.py",
     "run":                           "../pipeline.py",
     "pipeline":                      "../pipeline.py",
+    "stonkmode":                     "stonkmode_control.py",
+    "stonk-mode":                    "stonkmode_control.py",
+    "stonks":                        "stonkmode_control.py",
 }
 
 # Commands that should NOT trigger guardrail auto-priming (saves ~80 tokens/call)
