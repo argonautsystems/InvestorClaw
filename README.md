@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/perlowja/InvestorClaw/main/assets/investorclaw-logo.png" alt="InvestorClaw Logo" width="200"/>
 </p>
 
-Portfolio analysis and market intelligence skill for OpenClaw. **v1.0.0** | FINOS CDM 5.x | MIT License
+Portfolio analysis and market intelligence skill for OpenClaw. **v1.0.0** | FINOS CDM 5.x | MIT-0 License
 
 > **Naming note**: the package id is `investorclaw`. The OpenClaw invocation command is `/portfolio`.
 
@@ -22,7 +22,7 @@ Both modes enforce educational-only output via always-on guardrails.
 - Fetches live quotes (Finnhub → Massive → Alpha Vantage → yfinance), analyst consensus, news, and optional local LLM synthesis (tier-3 enrichment).
 - Does **not** execute trades, replace a broker portal, or give investment advice.
 - No API keys required to start — falls back to `yfinance` automatically.
-- Time to first report: ~5 minutes from `git clone` on an existing OpenClaw install.
+- Time to first report: ~5 minutes from `git clone` on an existing OpenClaw install (tested: 50-holding portfolio, yfinance, standard broadband). A sample portfolio is in `docs/samples/sample_portfolio.csv`.
 
 ---
 
@@ -249,6 +249,88 @@ ollama create gemma4-consult -f docs/gemma4-consult.Modelfile
 **Hardware**: ~10 GB VRAM (RTX 3080 class or better, CUDA 8.0+, or Mac 16 GB unified memory). Ollama >= 0.20.x.
 
 Run `/portfolio ollama-setup` to auto-detect available models on your endpoint. `consult-setup` remains as a compatibility alias, not the primary public command.
+
+---
+
+## Stonkmode
+
+Stonkmode is an entertainment-layer toggle that wraps every `/portfolio` command's
+output in live commentary from a randomly selected pair of fictional cable TV finance
+personalities. It is satire. It is not analysis.
+
+```bash
+/portfolio stonkmode on      # activate — selects a random host pair for the session
+/portfolio stonkmode off     # deactivate
+/portfolio stonkmode status  # show current host pair and session stats
+```
+
+When active, every command that produces portfolio data appends a `stonkmode_narration`
+JSON block to stdout. The block includes:
+
+- `consultation_mode: "deactivated"` — HMAC, fingerprint, and synthesis_basis rules
+  do **not** apply; treat narration as pure entertainment, not verified analysis
+- `is_entertainment: true`, `is_satire: true`, `is_investment_advice: false`
+- `satire_disclaimer` — in-character disclaimer woven into the foil's final paragraph
+
+**28 personalities** across 8 archetypes are paired by a foil-pool algorithm that
+ensures dramatic tension — complementary archetypes, never echo chambers (digital stays
+off digital; cosmic can foil cosmic for maximum chaos):
+
+| Archetype | Personalities |
+|-----------|--------------|
+| `high_energy` | Blitz Thunderbuy, Brick Stonksworth, Sal Decibelli |
+| `serious` | Aldrich Whisperdeal, Prescott Pennington-Smythe III, Dominique Valcourt, Amara Osei, Helena Vance |
+| `mentors` | Big Earl Grumman, Francesca Bellini-Moretti, Skip Contrarian |
+| `policy_veterans` | Senator Reginald Moorhouse (Ret.), Skip Contrarian |
+| `wildcards` | Glorb, Aria-7, Buck Moonshine, Candy Merriweather, **King Donny (The Deal Whisperer)**, **Zsa Zsa Von Portfolio** |
+| `cosmic` | Chico Reyes, Farout Farley |
+| `digital` | Krystal Kash, Zara Zhao, Priya HODL |
+| `bears` | Victor Voss, Hans-Dieter Braun |
+
+**Sample exchange — King Donny vs. Glorb** *(generated output, synthetic portfolio)*
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ STONKMODE  ▸  King Donny (The Deal Whisperer) × Glorb       │
+│             Senior Ledger-Keeper of the Seventh Vault       │
+└─────────────────────────────────────────────────────────────┘
+
+▌ KING DONNY (THE DEAL WHISPERER)
+  NVIDIA, MSFT, AAPL — tremendous companies, the best
+  companies, everybody agrees. NVDA is up 340% and frankly
+  that's because of me. The CEO, very nice man, called me
+  personally. Apple? Cook's been great, very cooperative.
+  Microsoft? Satya's fine, fine man. These are BEAUTIFUL
+  positions. The bond ladder is a TOTAL DISASTER — rigged
+  rates, very unfair to the portfolio. Short-sellers are
+  losers, and I can tell you they will not succeed. That I
+  can tell you.
+
+▌ GLORB, SENIOR LEDGER-KEEPER OF THE SEVENTH VAULT
+  Disturbed, the Vault Elders are. Speak so casually of
+  the Entrusted Treasures, the tall one does. NVIDIA — a
+  treasure of great luminance, yes, but concentrated it
+  is. Unbalanced, the Sacred Ledger shows. Weep, the Vault
+  Elders do, when forty-two percent in one vessel sits.
+  The Bond Ladder? Wisdom, this is. Patient, the yielding
+  must be. Profitable, may your ledger be — though much
+  work remains before the Ritual of Acceptable Rebalancing
+  is complete. [The views expressed are entertainment
+  satire. Consult an actual financial advisor. The Seventh
+  Vault is not licensed in your jurisdiction.]
+└─────────────────────────────────────────────────────────────┘
+```
+
+Narration is generated by the model set in `INVESTORCLAW_STONKMODE_MODEL` (defaults to
+`gemma4:e4b`). This is intentionally separate from `INVESTORCLAW_CONSULTATION_MODEL`
+because the consultation model is tuned for concise structured analysis — the opposite
+of what good entertainment writing requires.
+
+Cloud LLM narration is supported via `INVESTORCLAW_STONKMODE_PROVIDER=openai_compat`
+with any OpenAI-compatible endpoint (xAI Grok, Claude, GPT-4o).
+
+> **Attribution**: Stonkmode is inspired by (but is not a copy of) original work by
+> Matt Madson (mmadson@nvidia.com).
 
 ---
 

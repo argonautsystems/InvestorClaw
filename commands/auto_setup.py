@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 import logging
 from rendering.progress import bootstrap, phase, update, complete, error as report_error, Phase
+from rendering.stonkmode import stonkmode_tip
 from services.extract_pdf import PDFExtractor
 
 # Redirect logging to avoid interfering with progress reporting
@@ -414,6 +415,11 @@ def main():
         # Check if already setup
         if SETUP_MARKER.exists():
             phase(Phase.COMPLETE, "Setup already complete. Skipping.")
+            print()
+            tip = stonkmode_tip(always=False)
+            if tip:
+                print(tip)
+                print()
             return 0
 
         phase(Phase.INIT, "Initializing portfolio analyzer...",

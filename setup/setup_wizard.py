@@ -6,11 +6,49 @@ Interactive guided setup for single-model LLM configuration.
 Supports OpenAI (GPT-4.1-nano) and xAI (Grok 4.1 Fast) deployments.
 """
 
+import datetime
 import json
 import os
 import sys
 from pathlib import Path
 from typing import Dict, Optional
+
+# Ensure skill root is on sys.path so rendering.stonkmode is importable
+_SKILL_ROOT = Path(__file__).resolve().parent.parent
+if str(_SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SKILL_ROOT))
+
+try:
+    from rendering.stonkmode import stonkmode_tip as _stonkmode_tip
+except Exception:
+    def _stonkmode_tip(always: bool = False) -> str:  # type: ignore[misc]
+        return (
+            "📊 PRO TIP — STONKMODE:\n"
+            "  Once you have portfolio data, try the entertainment layer:\n"
+            "  /portfolio stonkmode on\n"
+            "  Then run any analysis command to get live commentary from\n"
+            "  28 fictional cable TV finance personalities — bears, bulls,\n"
+            "  crypto maxis, ESG crusaders, a Kardashian, a goblin, and more.\n"
+            "  /portfolio stonkmode off  to return to normal mode."
+        )
+
+
+def _log_fa_professional_activation() -> None:
+    """Append a timestamped entry to the FA Professional audit log.
+
+    Creates ~/.investorclaw/fa_audit.log if it doesn't exist.
+    Each line: ISO timestamp | event | attestation status
+    """
+    log_dir = Path.home() / ".investorclaw"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "fa_audit.log"
+    entry = (
+        f"{datetime.datetime.now().isoformat()} "
+        f"| FA Professional mode activated "
+        f"| attestation: user-confirmed via interactive wizard\n"
+    )
+    with open(log_file, "a", encoding="utf-8") as fh:
+        fh.write(entry)
 
 # Import portfolio analyzer
 try:
@@ -211,10 +249,31 @@ Which mode describes your use case?
 
         while True:
             choice = input("Select [1=Single Investor, 2=FA Professional]: ").strip()
-            if choice in ["1", "2"]:
-                mode = ["single_investor", "fa_professional"][int(choice) - 1]
-                print(f"\n✓ Selected: {mode.replace('_', ' ').title()}\n")
-                return mode
+            if choice == "1":
+                print("\n✓ Selected: Single Investor\n")
+                return "single_investor"
+            elif choice == "2":
+                print("""
+⚠️  FA PROFESSIONAL MODE — ATTESTATION REQUIRED
+
+This mode removes educational guardrails and enables advisory-grade output.
+By activating it you confirm that:
+
+  1. You are a licensed financial advisor acting under fiduciary duty
+  2. You will use this tool in compliance with all applicable regulations
+  3. You accept full fiduciary responsibility for all recommendations
+  4. This activation will be logged with a timestamp
+
+Type exactly  I ATTEST  to confirm, or press Enter to cancel:
+""")
+                confirm = input("Attestation: ").strip()
+                if confirm == "I ATTEST":
+                    _log_fa_professional_activation()
+                    print("\n✓ FA Professional mode activated. Activation logged to ~/.investorclaw/fa_audit.log\n")
+                    return "fa_professional"
+                else:
+                    print("\n⚠️  Attestation not confirmed. Defaulting to Single Investor mode.\n")
+                    return "single_investor"
             print("Invalid choice. Please enter 1 or 2.")
 
     def intro(self) -> None:
@@ -527,6 +586,9 @@ Examples:
         print("  • Architecture: docs/ARCHITECTURE.md")
         print("  • Deployment: DEPLOYMENT_ARCHITECTURE.md")
         print("  • Troubleshooting: SETUP.md")
+
+        print()
+        print(_stonkmode_tip(always=True))
 
         print("\n" + "=" * 70)
 
