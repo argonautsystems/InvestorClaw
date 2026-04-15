@@ -185,6 +185,10 @@ Run `/portfolio ollama-setup` to auto-detect available models. Full hardware spe
 
 ## Stonkmode
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/perlowja/InvestorClaw/main/assets/stonkmode-banner.png" alt="Stonkmode — A Silly Feature for a Serious Skill" width="900"/>
+</p>
+
 > **A silly feature for a serious skill — and that's the point.** The holdings data is
 > real. The analysis runs normally. The commentary is delivered by 30 fictional cable TV
 > finance personalities who have no idea what fiduciary means. It works because the
