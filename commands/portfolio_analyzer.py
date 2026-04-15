@@ -807,7 +807,7 @@ if __name__ == '__main__':
 
     holdings_file = sys.argv[1]
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
-    verbose = True
+    verbose = '--verbose' in sys.argv
 
     analyzer = PortfolioAnalyzer()
     report = analyzer.generate_report(holdings_file, output_file)

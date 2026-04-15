@@ -32,7 +32,7 @@ if not csv_file:
     sys.exit(1)
 
 print(f"Using CSV: {csv_file}")
-print(f"Output: {raw_dir / holdings.json}")
+print(f"Output: {raw_dir / 'holdings.json'}")
 
 env = dict(os.environ, PYTHONPATH=str(IC_HOME))
 import subprocess
