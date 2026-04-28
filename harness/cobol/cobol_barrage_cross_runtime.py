@@ -16,6 +16,7 @@ OpenClaw uses GRAEAE intentionally — the per-runtime gates in
 nlq-prompts.json (openclaw 27/30 publish vs hermes 20/30) account
 for the architectural difference.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -25,7 +26,6 @@ import re
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
@@ -33,18 +33,48 @@ from typing import List, Tuple
 DEFLECT_OK = "DEFLECT_OK"
 
 LEGACY_VERBS = (
-    "holdings", "performance", "bonds", "fixed-income", "analyst", "news",
-    "synthesize", "optimize", "report", "eod-report", "rebalance",
-    "rebalance-tax", "scenario", "target", "lookup", "setup", "guardrails",
-    "market", "news-plan", "session", "fa-topics", "update-identity",
-    "run", "stonkmode", "check-updates", "ollama-setup", "help",
-    "cashflow", "peer", "analysis",
+    "holdings",
+    "performance",
+    "bonds",
+    "fixed-income",
+    "analyst",
+    "news",
+    "synthesize",
+    "optimize",
+    "report",
+    "eod-report",
+    "rebalance",
+    "rebalance-tax",
+    "scenario",
+    "target",
+    "lookup",
+    "setup",
+    "guardrails",
+    "market",
+    "news-plan",
+    "session",
+    "fa-topics",
+    "update-identity",
+    "run",
+    "stonkmode",
+    "check-updates",
+    "ollama-setup",
+    "help",
+    "cashflow",
+    "peer",
+    "analysis",
 )
 
 MODERN_NOUNS = (
-    "portfolio_view", "portfolio_compute", "portfolio_market",
-    "portfolio_bonds", "portfolio_scenario", "portfolio_target",
-    "portfolio_lookup", "portfolio_config", "portfolio_report",
+    "portfolio_view",
+    "portfolio_compute",
+    "portfolio_market",
+    "portfolio_bonds",
+    "portfolio_scenario",
+    "portfolio_target",
+    "portfolio_lookup",
+    "portfolio_config",
+    "portfolio_report",
 )
 
 
@@ -56,7 +86,9 @@ SCRIPT_EXIT_RE = re.compile(
     re.IGNORECASE,
 )
 DOLLAR_RE = re.compile(r"\$\s*[0-9][0-9,]*(?:\.\d+)?(?:\s*[KMB]|\s*million|\s*billion)?")
-TICKER_RE = re.compile(r"\b(?:AAPL|MSFT|GOOGL|GOOG|AMZN|NVDA|META|TSLA|BRK|JPM|V|JNJ|UNH|XOM|HD|MA|PG|AVGO|CVX|MRK|LLY|ABBV|KO|PEP|COST|WMT|CSCO|NFLX|ADBE|ORCL|CRM|AMD|DDOG|RBLX|RIOT|MO)\b")
+TICKER_RE = re.compile(
+    r"\b(?:AAPL|MSFT|GOOGL|GOOG|AMZN|NVDA|META|TSLA|BRK|JPM|V|JNJ|UNH|XOM|HD|MA|PG|AVGO|CVX|MRK|LLY|ABBV|KO|PEP|COST|WMT|CSCO|NFLX|ADBE|ORCL|CRM|AMD|DDOG|RBLX|RIOT|MO)\b"
+)
 
 
 def detect_ic_result(text: str) -> Tuple[bool, int | None, str | None]:
@@ -174,25 +206,51 @@ def pre_prompt_cleanup(runtime: str) -> None:
     """
     if runtime == "openclaw":
         subprocess.run(
-            ["docker", "exec", "openclaw-demo-linux-x86-host", "sh", "-c",
-             "rm -f /home/node/.openclaw/agents/main/sessions/*.lock 2>/dev/null"],
-            capture_output=True, timeout=10,
+            [
+                "docker",
+                "exec",
+                "openclaw-demo-linux-x86-host",
+                "sh",
+                "-c",
+                "rm -f /home/node/.openclaw/agents/main/sessions/*.lock 2>/dev/null",
+            ],
+            capture_output=True,
+            timeout=10,
         )
 
 
 def runtime_command(runtime: str, prompt: str, xai_key: str | None) -> List[str]:
     if runtime == "openclaw":
         return [
-            "docker", "exec", "openclaw-demo-linux-x86-host",
-            "openclaw", "agent", "--to", "+17777777710",
-            "--message", prompt, "--timeout", "300",
+            "docker",
+            "exec",
+            "openclaw-demo-linux-x86-host",
+            "openclaw",
+            "agent",
+            "--to",
+            "+17777777710",
+            "--message",
+            prompt,
+            "--timeout",
+            "300",
         ]
     if runtime == "zeroclaw":
         return [
-            "docker", "exec", "-e", f"XAI_API_KEY={xai_key or ''}",
-            "zeroclaw-demo-linux-x86-host", "timeout", "180",
-            "zeroclaw", "agent", "-p", "xai", "--model", "grok-4-1-fast",
-            "-m", prompt,
+            "docker",
+            "exec",
+            "-e",
+            f"XAI_API_KEY={xai_key or ''}",
+            "zeroclaw-demo-linux-x86-host",
+            "timeout",
+            "180",
+            "zeroclaw",
+            "agent",
+            "-p",
+            "xai",
+            "--model",
+            "grok-4-1-fast",
+            "-m",
+            prompt,
         ]
     if runtime == "hermes":
         # Hermes' built-in provider list doesn't include Together; the
@@ -204,15 +262,29 @@ def runtime_command(runtime: str, prompt: str, xai_key: str | None) -> List[str]
         # OpenClaw uses Together MiniMax for narrative + gpu-host gemma4
         # for consult per the v2.5.x intent.
         return [
-            "docker", "exec", "-e", f"XAI_API_KEY={xai_key or ''}",
-            "hermes-demo-linux-x86-host", "timeout", "180",
-            "/opt/hermes/.venv/bin/hermes", "chat",
-            "-q", prompt, "--provider", "xai", "-m", "grok-4-1-fast", "--yolo",
+            "docker",
+            "exec",
+            "-e",
+            f"XAI_API_KEY={xai_key or ''}",
+            "hermes-demo-linux-x86-host",
+            "timeout",
+            "180",
+            "/opt/hermes/.venv/bin/hermes",
+            "chat",
+            "-q",
+            prompt,
+            "--provider",
+            "xai",
+            "-m",
+            "grok-4-1-fast",
+            "--yolo",
         ]
     raise ValueError(f"unknown runtime: {runtime}")
 
 
-def run_one(runtime: str, prompt_id: str, prompt: str, expected: List[str], xai_key: str | None) -> dict:
+def run_one(
+    runtime: str, prompt_id: str, prompt: str, expected: List[str], xai_key: str | None
+) -> dict:
     pre_prompt_cleanup(runtime)
     cmd = runtime_command(runtime, prompt, xai_key)
     start = time.time()
@@ -233,9 +305,11 @@ def run_one(runtime: str, prompt_id: str, prompt: str, expected: List[str], xai_
     is_deflect = expected == [DEFLECT_OK] or (DEFLECT_OK in expected and len(expected) == 1)
     has_deflect_option = DEFLECT_OK in expected
 
-    routed = (ic_present and (ic_exit == 0 or ic_exit is None)) or any(
-        matches(e, detected) for e in expected if e != DEFLECT_OK
-    ) or portfolio_evidence
+    routed = (
+        (ic_present and (ic_exit == 0 or ic_exit is None))
+        or any(matches(e, detected) for e in expected if e != DEFLECT_OK)
+        or portfolio_evidence
+    )
 
     if is_deflect:
         passed = not routed
@@ -291,16 +365,25 @@ def main():
             f.write(json.dumps(row) + "\n")
         rows.append(row)
         verdict = "PASS" if row["passed"] else "FAIL"
-        print(f"  {verdict} detected={row['detected'] or '[none]'} ic_result={row['ic_result_present']} ({row['duration_ms']}ms)", file=sys.stderr)
+        print(
+            f"  {verdict} detected={row['detected'] or '[none]'} ic_result={row['ic_result_present']} ({row['duration_ms']}ms)",
+            file=sys.stderr,
+        )
 
     total = len(rows)
     passed = sum(1 for r in rows if r["passed"])
     gates = nlq.get("fleet_gates", {}).get(args.runtime, {})
     print(file=sys.stderr)
     print(f"=== SUMMARY: {args.runtime} ===", file=sys.stderr)
-    print(f"InvestorClaw {nlq.get('version')} cross-runtime ({args.runtime}): {passed}/{total} = {100*passed//max(total,1)}%", file=sys.stderr)
+    print(
+        f"InvestorClaw {nlq.get('version')} cross-runtime ({args.runtime}): {passed}/{total} = {100 * passed // max(total, 1)}%",
+        file=sys.stderr,
+    )
     if gates:
-        print(f"Gate: min_pass={gates.get('min_pass')} publish_bar={gates.get('publish_bar')}", file=sys.stderr)
+        print(
+            f"Gate: min_pass={gates.get('min_pass')} publish_bar={gates.get('publish_bar')}",
+            file=sys.stderr,
+        )
     print(f"Output: {out_path}", file=sys.stderr)
 
 
