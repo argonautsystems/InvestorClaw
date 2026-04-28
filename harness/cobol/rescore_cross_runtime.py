@@ -13,6 +13,7 @@ signal lives past char 300 we'll miss it. For a true rescore we'd
 need to re-capture the full text, which means re-running the barrage.
 The truncated rescore catches the common case (markers appear early).
 """
+
 import argparse
 import json
 import sys

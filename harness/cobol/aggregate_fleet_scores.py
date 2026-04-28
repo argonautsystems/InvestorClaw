@@ -19,6 +19,7 @@ Per-runtime gates are read from harness/cobol/nlq-prompts.json under
 fleet_gates. Each runtime is reported against its own gate; the fleet
 verdict is the conjunction of all runtimes' min_pass gates passing.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -95,7 +96,9 @@ def gate_verdict(passed: int, total: int, gates: dict) -> Tuple[str, str]:
     return ("FAIL", f"< {minp}/{total} min_pass")
 
 
-def render_markdown(version: str, date: str, runtimes: Dict[str, dict], gates: Dict[str, dict]) -> str:
+def render_markdown(
+    version: str, date: str, runtimes: Dict[str, dict], gates: Dict[str, dict]
+) -> str:
     out = []
     out.append(f"# COBOL Barrage Fleet Aggregate — InvestorClaw {version}")
     out.append("")
@@ -110,13 +113,17 @@ def render_markdown(version: str, date: str, runtimes: Dict[str, dict], gates: D
         meta = runtimes.get(rt)
         gate = gates.get(rt, {})
         if meta is None:
-            out.append(f"| {RUNTIME_DISPLAY[rt]} | — | — | publish≥{gate.get('publish_bar', '?')} / min≥{gate.get('min_pass', '?')} | **NOT RUN** |")
+            out.append(
+                f"| {RUNTIME_DISPLAY[rt]} | — | — | publish≥{gate.get('publish_bar', '?')} / min≥{gate.get('min_pass', '?')} | **NOT RUN** |"
+            )
             continue
         rows = load_jsonl(meta["path"])
         passed, total = score(rows)
         pct = 100 * passed // max(total, 1)
         verdict, note = gate_verdict(passed, total, gate)
-        out.append(f"| {RUNTIME_DISPLAY[rt]} | {passed}/{total} | {pct}% | publish≥{gate.get('publish_bar', '?')} / min≥{gate.get('min_pass', '?')} | **{verdict}** ({note}) |")
+        out.append(
+            f"| {RUNTIME_DISPLAY[rt]} | {passed}/{total} | {pct}% | publish≥{gate.get('publish_bar', '?')} / min≥{gate.get('min_pass', '?')} | **{verdict}** ({note}) |"
+        )
     out.append("")
 
     # Per-prompt cross-runtime grid
@@ -148,11 +155,15 @@ def render_markdown(version: str, date: str, runtimes: Dict[str, dict], gates: D
     out.append("## Fleet verdict")
     out.append("")
     if missing:
-        out.append(f"- **Incomplete fleet:** missing runtimes — {', '.join(RUNTIME_DISPLAY[m] for m in missing)}")
+        out.append(
+            f"- **Incomplete fleet:** missing runtimes — {', '.join(RUNTIME_DISPLAY[m] for m in missing)}"
+        )
     if fleet_pass and not missing:
         out.append("- **Fleet PASS** — all runtimes cleared their min_pass gate")
     elif fleet_pass and missing:
-        out.append("- **Available runtimes pass**, but fleet result is partial pending missing runtimes above")
+        out.append(
+            "- **Available runtimes pass**, but fleet result is partial pending missing runtimes above"
+        )
     else:
         out.append("- **Fleet FAIL** — at least one runtime below its min_pass gate")
     out.append("")
@@ -163,7 +174,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--reports-dir", default="harness/reports")
     ap.add_argument("--nlq", default="harness/cobol/nlq-prompts.json")
-    ap.add_argument("--out", default=None, help="Output markdown path; .json sibling auto-generated")
+    ap.add_argument(
+        "--out", default=None, help="Output markdown path; .json sibling auto-generated"
+    )
     args = ap.parse_args()
 
     reports_dir = Path(args.reports_dir)
