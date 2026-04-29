@@ -21,12 +21,12 @@ CAP2 linux-x86-host REMEDIATION            SKILL_CODE_DEFECT workflow: Claude ed
                                    restart W0 for affected session. Non-optional.
 CAP3 linux-x86-host INFRA                  openclaw gateway|models|sessions|config commands; zeroclaw skills|config; hermes config (direct
                                    SSH shell, not via agent slash commands).
-CAP4 CLAWPI ORCHESTRATION          Claude issues zeroclaw agent CLI calls to pi-large (192.0.2.54) via SSH. 8GB Pi, ZeroClaw only.
-CAP5 CLAWPI REMEDIATION            Live-reload path: ssh pi-large && zeroclaw skills remove investorclaw && zeroclaw skills install
+CAP4 pi-large ORCHESTRATION          Claude issues zeroclaw agent CLI calls to pi-large (192.0.2.54) via SSH. 8GB Pi, ZeroClaw only.
+CAP5 pi-large REMEDIATION            Live-reload path: ssh pi-large && zeroclaw skills remove investorclaw && zeroclaw skills install
                                    ~/investorclaw. No rebuild required.
-CAP6 ZEROPI ORCHESTRATION          Claude issues zeroclaw agent CLI calls to pi-small (192.0.2.56) via SSH. 2GB Pi, ZeroClaw only.
+CAP6 pi-small ORCHESTRATION          Claude issues zeroclaw agent CLI calls to pi-small (192.0.2.56) via SSH. 2GB Pi, ZeroClaw only.
                                    NemoClaw openshell sandbox wraps every invocation.
-CAP7 ZEROPI REMEDIATION            Same as CAP5 but on pi-small. Memory pressure expected (peak RSS must stay <1.8GB).
+CAP7 pi-small REMEDIATION            Same as CAP5 but on pi-small. Memory pressure expected (peak RSS must stay <1.8GB).
 CAP8 CONFIG SWITCHING              Model combo switches require explicit: (1) openclaw models set OR zeroclaw config --model, (2)
                                    verify, (3) send /new to the targeted session, (4) rerun W0 verify.
 
@@ -200,8 +200,8 @@ INFRASTRUCTURE
 
 linux-x86-host   192.0.2.61  Linux       user  sshpass -p '<password>' ssh ...  hosts OpenClaw + ZeroClaw + Hermes daemons,
                                                                               holds canonical .env with all provider keys
-CLAWPI   192.0.2.54  Pi 4 8GB    pi            pubkey (pwd fallback ***REDACTED***) ZeroClaw 0.7.3 + /usr/local/bin/nemoclaw + investorclaw skill
-ZEROPI   192.0.2.56  Pi 4 2GB    pi            pubkey (pwd fallback ***REDACTED***) ZeroClaw 0.7.3 + investorclaw skill. 2GB constrained — peak RSS <1.8GB
+pi-large   192.0.2.54  Pi 4 8GB    pi            pubkey (pwd fallback ***REDACTED***) ZeroClaw 0.7.3 + /usr/local/bin/nemoclaw + investorclaw skill
+pi-small   192.0.2.56  Pi 4 2GB    pi            pubkey (pwd fallback ***REDACTED***) ZeroClaw 0.7.3 + investorclaw skill. 2GB constrained — peak RSS <1.8GB
 gpu-host 192.0.2.96  GPU host    (read-only)                               llama.cpp llama-server :8080 (OpenAI-compatible at
                                                                               /v1/*) serving gemma4-consult (local consultation
                                                                               for TG-H and GM-H hybrid configs). Health probe:
@@ -213,10 +213,10 @@ NAS  192.0.2.101 NAS/TrueNAS                                           run archi
 
 SSH template (used throughout):
   SSH_OPTS='-o PasswordAuthentication=yes -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o NumberOfPasswordPrompts=1'
-  linux-x86-host:  sshpass -p "$linux-x86-host_PASSWORD" ssh $SSH_OPTS user@192.0.2.61 '<cmd>'
-  CLAWPI:  sshpass -p "$PI_PASSWORD"     ssh $SSH_OPTS pi@192.0.2.54        '<cmd>'
-  ZEROPI:  sshpass -p "$PI_PASSWORD"     ssh $SSH_OPTS pi@192.0.2.56        '<cmd>'
-  (both $linux-x86-host_PASSWORD and $PI_PASSWORD are "***REDACTED***" — same credential, different user.
+  linux-x86-host:  sshpass -p "$LINUX_X86_HOST_PASSWORD" ssh $SSH_OPTS user@192.0.2.61 '<cmd>'
+  pi-large:  sshpass -p "$PI_PASSWORD"     ssh $SSH_OPTS pi@192.0.2.54        '<cmd>'
+  pi-small:  sshpass -p "$PI_PASSWORD"     ssh $SSH_OPTS pi@192.0.2.56        '<cmd>'
+  (both $LINUX_X86_HOST_PASSWORD and $PI_PASSWORD are "***REDACTED***" — same credential, different user.
    The ubiquitous "Please note that SSH may not work until a valid user has been set up" banner from Raspbian is benign
    and must NOT be interpreted as an auth failure — it prints before the auth completes.)
 
@@ -344,7 +344,7 @@ PRE-FLIGHT (before S01 W0.1)
 PF1 HOST REACHABILITY
   CLAUDE MUST EXECUTE (Bash):
     for host in 192.0.2.61 192.0.2.54 192.0.2.56; do
-      sshpass -p "$linux-x86-host_PASSWORD" ssh $SSH_OPTS user@$host 'echo OK' 2>&1
+      sshpass -p "$LINUX_X86_HOST_PASSWORD" ssh $SSH_OPTS user@$host 'echo OK' 2>&1
     done
   CLAUDE VALIDATES: each host returns "OK".
   ON FAIL: BLOCKED. Matrix cannot run with unreachable hosts. Surface + halt.

@@ -11,7 +11,7 @@ v2.5.0 | Apache 2.0 Dual License | Educational Use Only
 This directory contains InvestorClaw's **OpenClaw skill manifest and installer**.
 
 If you're looking for:
-- **Claude Code plugin**: use the forwarded InvestorClaude marketplace entry; see root `README.md`
+- **Claude Code plugin**: install from the [InvestorClaude](https://gitlab.com/argonautsystems/InvestorClaude) repo (separate marketplace); see root `README.md`
 - **Standalone Python CLI**: See root `README.md` (Advanced section)
 - **OpenClaw skill** (this): Keep reading
 
@@ -63,5 +63,4 @@ OpenClaw manifest, installer, routing contract, and `investorclaw` shim.
 The user-facing surface is `portfolio_ask` / `investorclaw ask` plus
 `portfolio_refresh` / `investorclaw refresh`.
 
-Claude Code plugin code lives in InvestorClaude. The local `.claude-plugin`
-marketplace entry forwards installs there for compatibility.
+Claude Code plugin code lives in [InvestorClaude](https://gitlab.com/argonautsystems/InvestorClaude) — install from that repo's marketplace, not this one.
