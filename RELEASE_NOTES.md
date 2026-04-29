@@ -1,8 +1,18 @@
 # InvestorClaw Release Notes
 
-**Current: v2.5.0** (Apache 2.0, `gitlab.com/argonautsystems/InvestorClaw`)
+**Current: v2.6.0** (Apache 2.0, `gitlab.com/argonautsystems/InvestorClaw`)
 
 InvestorClaw is the adapter package for Claws-family and standalone portfolio-analysis runtimes. It owns install scripts, manifests, routing contracts, and the compatibility CLI shim. The deterministic Python engine lives in [`ic-engine`](https://gitlab.com/argonautsystems/ic-engine); foundation primitives live in [`clio`](https://gitlab.com/argonautsystems/clio).
+
+## v2.6.0
+
+Public-hygiene cleanse and Claude Code marketplace separation.
+
+- **History rewrite (filter-repo).** Removed internal infrastructure identifiers (private LAN IPs, fleet hostnames, internal NAS paths, a sudo password used in test docs) from all of git history. Replaced internal codenames with role-name placeholders (`linux-x86-host`, `gpu-host`, `mac-arm-host`, etc.); replaced private LAN IPs with RFC5737 documentation IPs (`192.0.2.x`); deleted internal-only artifacts (test result dumps, Claude session handoffs, harness backups). Force-pushed to all three remotes. **Action for downstream clones:** delete and re-clone, or `git fetch && git reset --hard origin/main`.
+- **Claude Code marketplace removed from this repo.** The forwarding `.claude-plugin/marketplace.json` is gone; Claude Code installs now redirect users straight to the [InvestorClaude](https://gitlab.com/argonautsystems/InvestorClaude) repo. The forwarding pattern relied on a non-canonical `source.url` that Anthropic's plugin loader expects to be `source: "./"` per documented contract. InvestorClaude is the canonical Claude Code marketplace target.
+- **Ship-readiness baseline added.** `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `DISCLAIMER.md` (financial software disclaimer + Provider Data Flows), `CHANGELOG.md` (this file's machine-readable companion), SPDX-License-Identifier headers across `bin/`, top-level entry points, and harness Python.
+- **License field SPDX-aligned.** `pyproject.toml` license set to `Apache-2.0` (was `Apache 2.0 Dual License`). LICENSE itself is plain Apache 2.0; the dual-license model returns when the unreleased commercial tier ships, in its own LICENSE for that product.
+- **Engine pin** `ic-engine` aligned to `v2.6.0`.
 
 ## v2.5.0
 

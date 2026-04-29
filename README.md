@@ -261,7 +261,7 @@ Use the Quick Start section to choose a path.
 
 | Runtime | Vendor | What it is | Quick start |
 |---|---|---|---|
-| Claude Code | Anthropic | Separate InvestorClaude plugin; this repo forwards marketplace installs | [docs/claude/README.md](docs/claude/README.md) |
+| Claude Code | Anthropic | Claude Code plugin lives in the separate [InvestorClaude](https://gitlab.com/argonautsystems/InvestorClaude) repo; install directly from there | [InvestorClaude README](https://gitlab.com/argonautsystems/InvestorClaude/-/blob/main/README.md) |
 | OpenClaw | Open-source | Agentic CLI + gateway (WebSocket, web UI, plugin SDK) | [docs/QUICKSTART_OPENCLAW.md](docs/QUICKSTART_OPENCLAW.md) → [docs/claw/openclaw/README.md](docs/claw/openclaw/README.md) |
 | ZeroClaw | Open-source (Rust) | Lightweight agent runtime. It is edge-native and Raspberry Pi / ARM friendly. | [docs/claw/zeroclaw/zeroclaw_install.md](docs/claw/zeroclaw/zeroclaw_install.md) → [docs/claw/zeroclaw/README.md](docs/claw/zeroclaw/README.md) |
 | Hermes Agent | NousResearch | Agentic CLI ([github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)). Not to be confused with the Hermes LLM family, which is a separate NousResearch model product. Hermes Agent can use a Hermes LLM as its backend, or any other provider it supports. | [hermes/README.md](hermes/README.md) |
