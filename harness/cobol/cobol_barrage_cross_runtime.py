@@ -346,7 +346,9 @@ def main():
     args = ap.parse_args()
 
     today = datetime.now().strftime("%Y-%m-%d")
-    out_path = Path(args.out or f"harness/reports/v2.5.1-linux-x86-host-{args.runtime}-cobol-{today}.jsonl")
+    out_path = Path(
+        args.out or f"harness/reports/v2.5.1-linux-x86-host-{args.runtime}-cobol-{today}.jsonl"
+    )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text("")
 
