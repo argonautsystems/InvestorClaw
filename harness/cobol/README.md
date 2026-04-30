@@ -42,9 +42,12 @@ release-evidence document.
 ## Per-runtime acceptance gates
 
 Reflects each platform's LLM-routing noise floor on a multi-tool
-surface. OpenClaw uses GRAEAE consensus orchestration (deterministic-ish);
-the LLM-driven runtimes have observed ~80% noise floors on similar
-surfaces; Hermes runs smaller models so its floor is lower.
+surface under our recommended inference stack (Together MiniMax-M2.7
+narrative + local Gemma4 consult for non-Anthropic-hosted runtimes).
+LLM-driven runtimes show observed ~80% noise floors on similar
+surfaces; Hermes runs smaller models by default so its floor is
+lower. Re-derive these gates on your own provider configuration —
+they are empirical, not universal.
 
 | Runtime | min_pass (strict) | publish_bar |
 |---|---:|---:|

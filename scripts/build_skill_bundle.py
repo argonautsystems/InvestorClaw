@@ -65,6 +65,7 @@ WHITELIST_TOP_LEVEL = [
     "pyproject.toml",
     "uv.lock",
     "package.json",
+    "openclaw.plugin.json",  # openclaw 4.29-beta.4+ plugin manifest (required for register)
     ".skillignore",
 ]
 

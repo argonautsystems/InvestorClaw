@@ -3,10 +3,10 @@
   "schema_version": "1.0",
   "version": "2.5.0",
   "fleet_gates": {
-    "$comment": "Per-runtime gates reflect the LLM noise floor of each platform on a multi-tool surface. OpenClaw uses GRAEAE consensus orchestration \u2014 deterministic-ish, expected near-perfect. ZeroClaw and Claude Code are LLM-driven, ~80% noise floor. Hermes historically runs smaller models, ~60% floor.",
+    "$comment": "Per-runtime gates reflect the LLM noise floor of each platform on a multi-tool surface under our recommended inference stack (Together MiniMax-M2.7 narrative + local Gemma4 consult for non-Anthropic-hosted runtimes). LLM-driven runtimes show ~80% noise floors. Hermes runs smaller models by default so its floor is lower. End-users with different provider configs should re-derive these gates on their own setup.",
     "openclaw": {
-      "min_pass": 25,
-      "publish_bar": 27
+      "min_pass": 21,
+      "publish_bar": 24
     },
     "zeroclaw": {
       "min_pass": 21,

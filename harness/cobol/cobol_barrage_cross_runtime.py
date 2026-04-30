@@ -9,13 +9,17 @@ shape as the Claude Code v2.5.x reports.
 
 Provider parity (per ~/.harness/lib/run_nl_pilot_crossruntime.sh
 convention):
-  - openclaw — native (GRAEAE consensus); no provider arg
-  - zeroclaw — xai / grok-4-1-fast (parity with hermes)
-  - hermes   — xai / grok-4-1-fast (parity with zeroclaw)
+  - openclaw — uses the agent's configured provider chain; no
+    per-call provider arg. The container ships with a Together
+    MiniMax-M2.7 narrative + local Gemma4 consult + Groq fallback
+    (primary+fallback chain, no orchestration layer added).
+  - zeroclaw — caller specifies provider/model via -p/--model
+  - hermes   — caller specifies provider/model via --provider/-m
 
-OpenClaw uses GRAEAE intentionally — the per-runtime gates in
-nlq-prompts.json (openclaw 27/30 publish vs hermes 20/30) account
-for the architectural difference.
+Per-runtime gates in nlq-prompts.json reflect each runtime's
+empirical noise floor under our recommended inference stack;
+end-users with different provider configs should expect different
+floors and re-derive the gates on their own setup.
 """
 
 from __future__ import annotations
@@ -197,7 +201,7 @@ def matches(expected: str, detected: List[str]) -> bool:
 def pre_prompt_cleanup(runtime: str) -> None:
     """Best-effort cleanup of stale session state before invoking the agent.
 
-    OpenClaw's GRAEAE agent stores per-session JSONL locks under
+    OpenClaw's agent loop stores per-session JSONL locks under
     ~/.openclaw/agents/main/sessions/. If a previous invocation crashed
     or was killed, the lock file persists and blocks every subsequent
     call (observed: a single stale lock cascaded into 9 consecutive

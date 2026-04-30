@@ -5,23 +5,32 @@
 #   1) Install the audit-compliant skill bundle to ~/.openclaw/workspace/skills/
 #   2) Configure the openai-compatible provider config so calls route to
 #      the user's chosen LLM endpoint (Together / OpenAI / etc).
-#      openclaw reads `models.providers.openai.baseUrl` from openclaw.json
-#      and the API key from auth-profiles.json — env-var-only auth is
-#      NOT supported by openclaw (verified upstream RCA 2026-04-30:
+#      openclaw 4.29-beta.4+ ships a config-health daemon that detects raw
+#      JSON writes lacking required schema fields (per-provider models[]) as
+#      "reload-invalid-config", clobbers the file, and restores from
+#      .last-good. We therefore drive every provider config write through the
+#      validated `openclaw config patch` CLI. Env-var-only auth is still NOT
+#      supported by openclaw (verified upstream RCA 2026-04-30:
 #      `git log --all -S OPENAI_API_BASE` finds zero historical handlers).
 #   3) Register the InvestorClaw plugin via `openclaw plugins install --link`
 #      so the agent's tool list includes investorclaw.portfolio_ask etc.
 #
 # Env overrides:
-#   IC_BUNDLE_TGZ        — path to local bundle tarball (default: auto-detect)
-#   IC_BUNDLE_VERSION    — version (default: 2.6.3)
-#   IC_VENV_DIR          — venv location (default: ~/.cache/investorclaw/.venv)
-#   IC_PROVIDER_BASE_URL — openai-compatible endpoint to route to
-#                          (default: https://api.together.xyz/v1)
-#   IC_PROVIDER_API_KEY  — auth token for that endpoint
-#                          (default: $TOGETHER_API_KEY env var)
-#   OPENCLAW_HOME        — openclaw config root (default: ~/.openclaw)
-#   OPENCLAW_AGENT_ID    — which agent's auth store to write to (default: main)
+#   IC_BUNDLE_TGZ            — path to local bundle tarball (default: auto-detect)
+#   IC_BUNDLE_VERSION        — version (default: 2.6.3)
+#   IC_VENV_DIR              — venv location (default: ~/.cache/investorclaw/.venv)
+#   IC_PROVIDER_BASE_URL     — openai-compatible endpoint to route to
+#                              (default: https://api.together.xyz/v1)
+#   IC_PROVIDER_API_KEY      — auth token for that endpoint
+#                              (default: $TOGETHER_API_KEY env var)
+#   IC_PROVIDER_MODEL_ID     — model id at provider (default: MiniMaxAI/MiniMax-M2.7)
+#   IC_PROVIDER_MODEL_NAME   — display name for that model (default: MiniMax M2.7)
+#   IC_PROVIDER_API_ADAPTER  — openclaw API adapter (default: openai-completions —
+#                              other valid: openai-responses, anthropic-messages,
+#                              google-generative-ai, ollama, etc.)
+#   IC_FORCE_PROVIDER_CONFIG=1 — overwrite existing provider config on this run
+#   OPENCLAW_HOME            — openclaw config root (default: ~/.openclaw)
+#   OPENCLAW_AGENT_ID        — which agent's auth store to write to (default: main)
 #
 # Copyright 2026 InvestorClaw Contributors. Apache-2.0.
 
@@ -46,6 +55,9 @@ AUTH_STORE="$OC_HOME/agents/$AGENT_ID/agent/auth-profiles.json"
 
 PROVIDER_BASE_URL="${IC_PROVIDER_BASE_URL:-https://api.together.xyz/v1}"
 PROVIDER_API_KEY="${IC_PROVIDER_API_KEY:-${TOGETHER_API_KEY:-}}"
+PROVIDER_MODEL_ID="${IC_PROVIDER_MODEL_ID:-MiniMaxAI/MiniMax-M2.7}"
+PROVIDER_MODEL_NAME="${IC_PROVIDER_MODEL_NAME:-MiniMax M2.7}"
+PROVIDER_API_ADAPTER="${IC_PROVIDER_API_ADAPTER:-openai-completions}"
 
 [ -n "$PROVIDER_API_KEY" ] || die "IC_PROVIDER_API_KEY (or \$TOGETHER_API_KEY) must be set"
 
@@ -79,6 +91,29 @@ tar -xzf "$BUNDLE_TGZ" -C "$OC_HOME/workspace/skills"
 mv "$OC_HOME/workspace/skills/${BUNDLE_NAME}" "$SKILL_DIR"
 ok "extracted ($(find "$SKILL_DIR" -type f | wc -l | tr -d ' ') files)"
 
+# Backstop for bundles built before openclaw.plugin.json was added to the
+# whitelist (pre-2.6.3). openclaw 4.29-beta.4 refuses to register a plugin
+# without this manifest; we synthesize a minimal one if absent.
+if [ ! -f "$SKILL_DIR/openclaw.plugin.json" ]; then
+    warn "bundle missing openclaw.plugin.json — synthesizing minimal manifest (upgrade bundle to v2.6.3+ to ship one)"
+    cat > "$SKILL_DIR/openclaw.plugin.json" <<MANIFEST
+{
+  "id": "investorclaw",
+  "name": "InvestorClaw",
+  "description": "Portfolio analysis tools for OpenClaw agents (FINOS CDM 5.x)",
+  "version": "${VERSION}",
+  "activation": { "onStartup": false },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean" }
+    }
+  }
+}
+MANIFEST
+fi
+
 log "creating ic-engine venv at $VENV_DIR..."
 mkdir -p "$(dirname "$VENV_DIR")"
 (cd "$SKILL_DIR" && UV_PROJECT_ENVIRONMENT="$VENV_DIR" uv sync --python 3.12 >/dev/null 2>&1) \
@@ -97,122 +132,111 @@ fi
 
 log "preflight check on existing openclaw configuration..."
 mkdir -p "$OC_HOME"
-if [ ! -f "$OC_CONFIG" ]; then
-    echo '{}' > "$OC_CONFIG"
+
+# openclaw 4.29-beta.4+ has a config-health daemon that detects raw JSON writes
+# missing required schema fields (per-provider models[]) as "reload-invalid-config",
+# clobbers them, and restores from .last-good. We therefore drive all writes through
+# the validated `openclaw config patch` CLI which guarantees schema conformance.
+
+EXISTING_BASEURL="$(openclaw config get models.providers.openai.baseUrl 2>/dev/null || true)"
+EXISTING_APIKEY="$(openclaw config get models.providers.openai.apiKey 2>/dev/null || true)"
+EXISTING_MODELS_JSON="$(openclaw config get models.providers.openai.models 2>/dev/null || true)"
+EXISTING_AGENT_MODEL="$(openclaw config get agents.defaults.model 2>/dev/null || true)"
+EXISTING_MODE="$(openclaw config get models.mode 2>/dev/null || true)"
+
+echo ""
+echo "  ┌─ openclaw configuration preflight ─────────────────────────────"
+echo "  │ openclaw config: $(openclaw config file 2>/dev/null || echo "$OC_CONFIG")"
+if [ -n "$EXISTING_BASEURL" ]; then
+    echo "  │   models.providers.openai.baseUrl = $EXISTING_BASEURL"
+    [ "$EXISTING_BASEURL" != "$PROVIDER_BASE_URL" ] && \
+        echo "  │     (installer suggests:        $PROVIDER_BASE_URL — preserved unless IC_FORCE_PROVIDER_CONFIG=1)"
+else
+    echo "  │   models.providers.openai.baseUrl = (unset — will set to $PROVIDER_BASE_URL)"
+fi
+if [ -n "$EXISTING_APIKEY" ]; then
+    echo "  │   models.providers.openai.apiKey  = (set, preserved unless IC_FORCE_PROVIDER_CONFIG=1)"
+else
+    echo "  │   models.providers.openai.apiKey  = (unset — will set from \$TOGETHER_API_KEY)"
+fi
+if [ -n "$EXISTING_MODELS_JSON" ] && [ "$EXISTING_MODELS_JSON" != "[]" ]; then
+    echo "  │   models.providers.openai.models  = (configured, preserved)"
+else
+    echo "  │   models.providers.openai.models  = (unset — will set [{$PROVIDER_MODEL_ID, $PROVIDER_MODEL_NAME}])"
+fi
+echo "  │   models.mode                     = ${EXISTING_MODE:-(unset — will set to replace)}"
+echo "  │   agents.defaults.model           = ${EXISTING_AGENT_MODEL:-(unset — will set to openai/$PROVIDER_MODEL_ID)}"
+echo "  └─────────────────────────────────────────────────────────────────"
+echo ""
+
+FORCE="${IC_FORCE_PROVIDER_CONFIG:-0}"
+
+# Build incremental JSON5 patch — only set fields that are missing (or all if --force).
+PATCH_FILE="$(mktemp -t ic-openclaw-patch.XXXXXX.json5)"
+trap 'rm -f "$PATCH_FILE"' EXIT
+
+PATCH_BODY=""
+add_field() {
+    [ -n "$PATCH_BODY" ] && PATCH_BODY="${PATCH_BODY},
+"
+    PATCH_BODY="${PATCH_BODY}        $1"
+}
+
+if [ -z "$EXISTING_BASEURL" ] || [ "$FORCE" = "1" ]; then
+    add_field "\"baseUrl\": \"$PROVIDER_BASE_URL\""
+fi
+if [ -z "$EXISTING_APIKEY" ] || [ "$FORCE" = "1" ]; then
+    add_field "\"apiKey\": \"$PROVIDER_API_KEY\""
+fi
+if [ -z "$EXISTING_MODELS_JSON" ] || [ "$EXISTING_MODELS_JSON" = "[]" ] || [ "$FORCE" = "1" ]; then
+    add_field "\"models\": [{ \"id\": \"$PROVIDER_MODEL_ID\", \"name\": \"$PROVIDER_MODEL_NAME\" }]"
+fi
+# auth + api adapter are required for openai-compatible providers; safe to always set.
+add_field "\"auth\": \"api-key\""
+add_field "\"api\": \"$PROVIDER_API_ADAPTER\""
+
+cat > "$PATCH_FILE" <<JSON
+{
+  "models": {
+    "providers": {
+      "openai": {
+$PATCH_BODY
+      }
+    }
+  }
+}
+JSON
+
+log "validating patch (dry-run)..."
+if openclaw config patch --file "$PATCH_FILE" --dry-run 2>&1 | tail -5 | grep -q "Dry run successful"; then
+    ok "patch validates against openclaw schema"
+else
+    err "patch failed validation:"
+    openclaw config patch --file "$PATCH_FILE" --dry-run 2>&1 | tail -20
+    die "schema validation failed — refusing to apply"
 fi
 
-# Preflight: detect existing config + report; only patch what's missing.
-# IC_FORCE_PROVIDER_CONFIG=1 to overwrite existing provider config.
-OC_CONFIG="$OC_CONFIG" \
-AUTH_STORE="$AUTH_STORE" \
-PROVIDER_BASE_URL="$PROVIDER_BASE_URL" \
-PROVIDER_API_KEY="$PROVIDER_API_KEY" \
-IC_FORCE="${IC_FORCE_PROVIDER_CONFIG:-0}" python3 <<'PYEOF'
-import json, os, sys
-oc_path = os.environ['OC_CONFIG']
-auth_path = os.environ['AUTH_STORE']
-suggested_url = os.environ['PROVIDER_BASE_URL']
-suggested_key = os.environ['PROVIDER_API_KEY']
-force = os.environ.get('IC_FORCE') == '1'
+log "applying patch..."
+openclaw config patch --file "$PATCH_FILE" 2>&1 | tail -3 | grep -E "(Applied|Restart)" || true
+ok "config patched"
 
-# ---- Inspect openclaw.json ----
-try:
-    config = json.load(open(oc_path))
-except (json.JSONDecodeError, FileNotFoundError):
-    config = {}
+# Set agent default model + replace-mode (so embedded fallback uses our provider).
+if [ -z "$EXISTING_MODE" ] || [ "$FORCE" = "1" ]; then
+    openclaw config set models.mode replace 2>&1 | tail -2 | grep -v "^$" || true
+fi
+if [ -z "$EXISTING_AGENT_MODEL" ] || [ "$FORCE" = "1" ]; then
+    openclaw config set agents.defaults.model "openai/$PROVIDER_MODEL_ID" 2>&1 | tail -2 | grep -v "^$" || true
+fi
 
-existing_providers = (config.get('models', {}) or {}).get('providers', {}) or {}
-existing_openai = existing_providers.get('openai') or {}
-existing_url = existing_openai.get('baseUrl')
-existing_key = existing_openai.get('apiKey')
+if openclaw config validate 2>&1 | grep -q "Config valid"; then
+    ok "openclaw config valid"
+else
+    warn "openclaw config validate reported issues — review with: openclaw config validate"
+fi
 
-# ---- Inspect auth-profiles.json ----
-try:
-    store = json.load(open(auth_path))
-except (json.JSONDecodeError, FileNotFoundError):
-    store = {'version': 1, 'profiles': {}}
-existing_profiles = store.get('profiles', {})
-profiles_for_openai = [
-    pid for pid, p in existing_profiles.items()
-    if isinstance(p, dict) and p.get('provider') == 'openai'
-]
-
-# ---- Report findings ----
-print("")
-print("  ┌─ openclaw configuration preflight ─────────────────────────────")
-print(f"  │ openclaw.json:        {oc_path}")
-if existing_url:
-    print(f"  │   models.providers.openai.baseUrl = {existing_url}")
-    if existing_url != suggested_url:
-        print(f"  │     (installer suggests:        {suggested_url})")
-else:
-    print(f"  │   models.providers.openai.baseUrl = (unset — will set to {suggested_url})")
-if existing_key:
-    print(f"  │   models.providers.openai.apiKey  = (set, {len(str(existing_key))} chars — preserved)")
-else:
-    print(f"  │   models.providers.openai.apiKey  = (unset — will set from $TOGETHER_API_KEY)")
-
-print(f"  │ auth-profiles.json:   {auth_path}")
-if profiles_for_openai:
-    print(f"  │   existing openai profiles: {profiles_for_openai}")
-    print(f"  │     (preserved — installer adds 'openai-default' alongside, won't overwrite)")
-else:
-    print(f"  │   no openai profiles — will write 'openai-default' with $TOGETHER_API_KEY")
-print("  └─────────────────────────────────────────────────────────────────")
-print("")
-
-# ---- Apply changes (additive, preserve existing) ----
-config_changed = False
-models = config.setdefault('models', {})
-providers = models.setdefault('providers', {})
-openai_provider = providers.setdefault('openai', {})
-
-if not existing_url:
-    openai_provider['baseUrl'] = suggested_url
-    config_changed = True
-    print(f"  → openclaw.json: set providers.openai.baseUrl = {suggested_url}")
-elif force:
-    openai_provider['baseUrl'] = suggested_url
-    config_changed = True
-    print(f"  → openclaw.json: OVERWRITE providers.openai.baseUrl = {suggested_url} (--force)")
-else:
-    print(f"  → openclaw.json: providers.openai.baseUrl unchanged ({existing_url})")
-
-if not existing_key:
-    openai_provider['apiKey'] = suggested_key
-    config_changed = True
-    print(f"  → openclaw.json: set providers.openai.apiKey from env")
-elif force:
-    openai_provider['apiKey'] = suggested_key
-    config_changed = True
-    print(f"  → openclaw.json: OVERWRITE providers.openai.apiKey (--force)")
-
-if config_changed:
-    json.dump(config, open(oc_path, 'w'), indent=2)
-
-# ---- auth-profiles.json: only add openai-default if absent ----
-store_changed = False
-if 'openai-default' not in existing_profiles:
-    store.setdefault('profiles', {})['openai-default'] = {
-        'type': 'api_key',
-        'provider': 'openai',
-        'key': suggested_key,
-        'displayName': 'Together AI (openai-compatible, added by InvestorClaw installer)',
-    }
-    store_changed = True
-    print("  → auth-profiles.json: added 'openai-default' profile")
-elif force:
-    store['profiles']['openai-default']['key'] = suggested_key
-    store_changed = True
-    print("  → auth-profiles.json: OVERWRITE openai-default key (--force)")
-else:
-    print("  → auth-profiles.json: openai-default unchanged (existing profile preserved)")
-
-if store_changed:
-    json.dump(store, open(auth_path, 'w'), indent=2)
-    os.chmod(auth_path, 0o600)
-PYEOF
-ok "configuration preflight complete"
+# Note: auth-profiles.json is no longer required as of openclaw 4.29-beta.4 —
+# provider apiKey on models.providers.openai.apiKey is the canonical auth path
+# and is wired through the gateway's embedded fallback.
 
 log "registering skill plugin with openclaw..."
 if openclaw plugins install --link "$SKILL_DIR" 2>&1 | tail -3 | grep -q "Linked plugin"; then

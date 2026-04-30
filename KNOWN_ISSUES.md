@@ -41,7 +41,7 @@ all three gates idempotently. Manual fix: edit `~/.zeroclaw/config.toml`:
 
 ---
 
-## OC-1 — openclaw provider config requires `models.providers.openai.baseUrl` (not env vars)
+## OC-1 — openclaw provider config requires `models.providers.openai.{baseUrl,models[]}` (not env vars), validated via `openclaw config patch`
 
 **Symptom:** `docker run -e OPENAI_API_KEY=tgp_v1_... -e OPENAI_API_BASE=https://api.together.xyz/v1 openclaw/openclaw:<any-version>`
 then `openclaw agent ...` fails with `401 Incorrect API key provided` from
@@ -57,20 +57,70 @@ because the `perlowja/openclaw-demo` private image pre-configured
 shipped openclaw.json. We assumed env-var routing existed because we never
 actually tested env-var-only on a clean openclaw install.
 
-**Confirmed broken in:** v2026.3.25, v2026.4.26, v2026.4.27, v2026.4.29-beta.3.
-All these versions have the same architectural design — env-var-only auth
-isn't supported.
+**Schema-validation finding (2026-04-30, openclaw v2026.4.29-beta.4):** Even
+the canonical `models.providers.openai.{baseUrl,apiKey}` write does **not**
+survive on 4.29-beta.4 if attempted as a raw JSON file write. openclaw ships a
+config-health daemon that, on every gateway-reload of `openclaw.json`,
+re-validates against the JSON schema. If the file is missing schema-required
+fields it flags it `"suspicious":["reload-invalid-config"]`, moves the file
+aside as `openclaw.json.clobbered.<ts>`, and restores from
+`openclaw.json.last-good`. Required fields per `openclaw config schema`:
+- `models.providers.<name>.baseUrl` (URL string)
+- `models.providers.<name>.models` (array of `{id, name}` entries — at least one)
 
-**Resolution (in `installers/openclaw/install.sh`):** The installer auto-writes:
-1. `~/.openclaw/openclaw.json` — `models.providers.openai.baseUrl` + `apiKey`
-2. `~/.openclaw/agents/<id>/agent/auth-profiles.json` — `ApiKeyCredential` for `openai` provider
+Optional but commonly required for OpenAI-compatible providers:
+- `auth: "api-key"` (enum: api-key, token, oauth, aws-sdk)
+- `api: "openai-completions"` (enum incl. openai-responses, anthropic-messages,
+  google-generative-ai, ollama, etc.)
 
-Default routing target: Together AI (`https://api.together.xyz/v1`). Override via
-`IC_PROVIDER_BASE_URL` and `IC_PROVIDER_API_KEY` env vars at install time.
+**Resolution (in `installers/openclaw/install.sh`):** All config writes go
+through `openclaw config patch --file <patch.json5>` (the validated CLI path),
+never `cat > openclaw.json`. The installer:
+1. Reads existing config via `openclaw config get` (preflight)
+2. Builds an incremental JSON5 patch with only fields that need setting
+3. `openclaw config patch --dry-run` to validate before write
+4. `openclaw config patch` to apply (rejected by validator if invalid)
+5. `openclaw config set agents.defaults.model openai/<MODEL_ID>` so the gateway
+   has a default and callers don't need `--model`
+6. `openclaw config set models.mode replace` so embedded fallback uses our
+   provider catalog (otherwise it merges in built-in `gpt-5.5` as default)
+
+Default routing target: Together AI (`https://api.together.xyz/v1`) with model
+`MiniMaxAI/MiniMax-M2.7`. Override at install time via `IC_PROVIDER_BASE_URL`,
+`IC_PROVIDER_API_KEY`, `IC_PROVIDER_MODEL_ID`, `IC_PROVIDER_MODEL_NAME`,
+`IC_PROVIDER_API_ADAPTER`.
 
 **Preflight UX (2026-04-30):** The installer detects existing config state and
 preserves user customizations — only patches missing fields. `IC_FORCE_PROVIDER_CONFIG=1`
 to override.
+
+**Plugin manifest finding (2026-04-30, openclaw v2026.4.29-beta.4):** In addition
+to the provider config schema, openclaw 4.29-beta.4 also requires the plugin
+manifest itself to follow the new `openclaw.plugin.json` format with proper
+JSON-Schema-style `configSchema` (`{type: "object", additionalProperties: false,
+properties: {...}}`). The legacy InvestorClaw manifest stored field metadata
+(`label`, `description`, `secret`, `default`) inline next to each property,
+which 4.29-beta.4 rejects as "plugin manifest requires configSchema". Required
+fields in the manifest:
+- `id`, `name`, `description`, `version`
+- `activation: {onStartup: bool}`
+- `configSchema: {type: "object", properties: {...}}`
+
+UI metadata moves to a separate top-level `uiHints: {<KEY>: {label, help, sensitive,
+placeholder}}` block. The installer/bundle ships `openclaw.plugin.json` at the
+skill root; the bundle build pipeline includes it via WHITELIST_TOP_LEVEL.
+
+**Verified working on:** v2026.4.29-beta.4 (TYPHON Windows-WSL Debian Docker,
+2026-04-30): real `MiniMax M2.7` response over Together via gateway path with
+no `--model` override; investorclaw plugin loaded with all 15 tools registered
+(`investorclaw_setup`, `_holdings`, `_performance`, `_analysis`, `_bonds`,
+`_fixed_income`, `_news`, `_analyst`, `_report`, `_session`, `_lookup`,
+`_ollama_setup`, `_guardrails`, `_update_identity`, `_stonkmode`).
+
+**Confirmed broken with raw JSON write on:** v2026.3.25, v2026.4.26, v2026.4.27,
+v2026.4.29-beta.3, v2026.4.29-beta.4 (only beta.4 has the active config-health
+auto-revert daemon — earlier versions silently kept the invalid config but
+the gateway didn't pick it up).
 
 **Upstream feature request opportunity (low priority):** A follow-up issue could
 propose `OPENAI_API_BASE` env var as a fallback when `models.providers.openai.baseUrl`

@@ -119,7 +119,7 @@ floors are accepted; gates are sub-100% and per-runtime.
 
 | Runtime | Substrate | Strict floor | Publish bar |
 |---|---|---:|---:|
-| OpenClaw | GRAEAE consensus orchestration | 25/30 (83%) | 27/30 (90%) |
+| OpenClaw | LLM-driven (Together MiniMax-M2.7 + local Gemma4 fallback) | 21/30 (70%) | 24/30 (80%) |
 | ZeroClaw | LLM-driven (configurable provider) | 21/30 (70%) | 24/30 (80%) |
 | Hermes | Smaller-model LLM | 17/30 (57%) | 20/30 (67%) |
 | Claude Code | LLM-driven (Anthropic) | 21/30 (70%) | 24/30 (80%) |
