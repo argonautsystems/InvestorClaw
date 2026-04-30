@@ -95,60 +95,124 @@ if [ -f "$SKILL_DIR/package.json" ] && command -v npm >/dev/null 2>&1; then
         warn "npm install hit issues — plugin may fail to load"
 fi
 
-log "patching $OC_CONFIG..."
+log "preflight check on existing openclaw configuration..."
 mkdir -p "$OC_HOME"
 if [ ! -f "$OC_CONFIG" ]; then
     echo '{}' > "$OC_CONFIG"
 fi
 
-OC_CONFIG="$OC_CONFIG" PROVIDER_BASE_URL="$PROVIDER_BASE_URL" PROVIDER_API_KEY="$PROVIDER_API_KEY" python3 <<'PYEOF'
-import json, os
-path = os.environ['OC_CONFIG']
-base_url = os.environ['PROVIDER_BASE_URL']
-api_key = os.environ['PROVIDER_API_KEY']
+# Preflight: detect existing config + report; only patch what's missing.
+# IC_FORCE_PROVIDER_CONFIG=1 to overwrite existing provider config.
+OC_CONFIG="$OC_CONFIG" \
+AUTH_STORE="$AUTH_STORE" \
+PROVIDER_BASE_URL="$PROVIDER_BASE_URL" \
+PROVIDER_API_KEY="$PROVIDER_API_KEY" \
+IC_FORCE="${IC_FORCE_PROVIDER_CONFIG:-0}" python3 <<'PYEOF'
+import json, os, sys
+oc_path = os.environ['OC_CONFIG']
+auth_path = os.environ['AUTH_STORE']
+suggested_url = os.environ['PROVIDER_BASE_URL']
+suggested_key = os.environ['PROVIDER_API_KEY']
+force = os.environ.get('IC_FORCE') == '1'
 
+# ---- Inspect openclaw.json ----
 try:
-    config = json.load(open(path))
+    config = json.load(open(oc_path))
 except (json.JSONDecodeError, FileNotFoundError):
     config = {}
 
+existing_providers = (config.get('models', {}) or {}).get('providers', {}) or {}
+existing_openai = existing_providers.get('openai') or {}
+existing_url = existing_openai.get('baseUrl')
+existing_key = existing_openai.get('apiKey')
+
+# ---- Inspect auth-profiles.json ----
+try:
+    store = json.load(open(auth_path))
+except (json.JSONDecodeError, FileNotFoundError):
+    store = {'version': 1, 'profiles': {}}
+existing_profiles = store.get('profiles', {})
+profiles_for_openai = [
+    pid for pid, p in existing_profiles.items()
+    if isinstance(p, dict) and p.get('provider') == 'openai'
+]
+
+# ---- Report findings ----
+print("")
+print("  ┌─ openclaw configuration preflight ─────────────────────────────")
+print(f"  │ openclaw.json:        {oc_path}")
+if existing_url:
+    print(f"  │   models.providers.openai.baseUrl = {existing_url}")
+    if existing_url != suggested_url:
+        print(f"  │     (installer suggests:        {suggested_url})")
+else:
+    print(f"  │   models.providers.openai.baseUrl = (unset — will set to {suggested_url})")
+if existing_key:
+    print(f"  │   models.providers.openai.apiKey  = (set, {len(str(existing_key))} chars — preserved)")
+else:
+    print(f"  │   models.providers.openai.apiKey  = (unset — will set from $TOGETHER_API_KEY)")
+
+print(f"  │ auth-profiles.json:   {auth_path}")
+if profiles_for_openai:
+    print(f"  │   existing openai profiles: {profiles_for_openai}")
+    print(f"  │     (preserved — installer adds 'openai-default' alongside, won't overwrite)")
+else:
+    print(f"  │   no openai profiles — will write 'openai-default' with $TOGETHER_API_KEY")
+print("  └─────────────────────────────────────────────────────────────────")
+print("")
+
+# ---- Apply changes (additive, preserve existing) ----
+config_changed = False
 models = config.setdefault('models', {})
 providers = models.setdefault('providers', {})
 openai_provider = providers.setdefault('openai', {})
-openai_provider['baseUrl'] = base_url
-openai_provider['apiKey'] = api_key
 
-json.dump(config, open(path, 'w'), indent=2)
-print(f"openclaw.json: providers.openai.baseUrl = {base_url}")
+if not existing_url:
+    openai_provider['baseUrl'] = suggested_url
+    config_changed = True
+    print(f"  → openclaw.json: set providers.openai.baseUrl = {suggested_url}")
+elif force:
+    openai_provider['baseUrl'] = suggested_url
+    config_changed = True
+    print(f"  → openclaw.json: OVERWRITE providers.openai.baseUrl = {suggested_url} (--force)")
+else:
+    print(f"  → openclaw.json: providers.openai.baseUrl unchanged ({existing_url})")
+
+if not existing_key:
+    openai_provider['apiKey'] = suggested_key
+    config_changed = True
+    print(f"  → openclaw.json: set providers.openai.apiKey from env")
+elif force:
+    openai_provider['apiKey'] = suggested_key
+    config_changed = True
+    print(f"  → openclaw.json: OVERWRITE providers.openai.apiKey (--force)")
+
+if config_changed:
+    json.dump(config, open(oc_path, 'w'), indent=2)
+
+# ---- auth-profiles.json: only add openai-default if absent ----
+store_changed = False
+if 'openai-default' not in existing_profiles:
+    store.setdefault('profiles', {})['openai-default'] = {
+        'type': 'api_key',
+        'provider': 'openai',
+        'key': suggested_key,
+        'displayName': 'Together AI (openai-compatible, added by InvestorClaw installer)',
+    }
+    store_changed = True
+    print("  → auth-profiles.json: added 'openai-default' profile")
+elif force:
+    store['profiles']['openai-default']['key'] = suggested_key
+    store_changed = True
+    print("  → auth-profiles.json: OVERWRITE openai-default key (--force)")
+else:
+    print("  → auth-profiles.json: openai-default unchanged (existing profile preserved)")
+
+if store_changed:
+    json.dump(store, open(auth_path, 'w'), indent=2)
+    os.chmod(auth_path, 0o600)
 PYEOF
-ok "openclaw.json patched"
-
-log "writing $AUTH_STORE..."
-mkdir -p "$(dirname "$AUTH_STORE")"
-
-AUTH_STORE="$AUTH_STORE" PROVIDER_API_KEY="$PROVIDER_API_KEY" python3 <<'PYEOF'
-import json, os
-path = os.environ['AUTH_STORE']
-api_key = os.environ['PROVIDER_API_KEY']
-
-try:
-    store = json.load(open(path))
-except (json.JSONDecodeError, FileNotFoundError):
-    store = {'version': 1, 'profiles': {}}
-
-store.setdefault('profiles', {})
-store['profiles']['openai-default'] = {
-    'type': 'api_key',
-    'provider': 'openai',
-    'key': api_key,
-    'displayName': 'Together AI (openai-compatible, set by InvestorClaw installer)',
-}
-
-json.dump(store, open(path, 'w'), indent=2)
-os.chmod(path, 0o600)
-print(f"auth-profiles.json: openai-default api_key credential written")
-PYEOF
-ok "auth-profiles.json written"
+ok "configuration preflight complete"
 
 log "registering skill plugin with openclaw..."
 if openclaw plugins install --link "$SKILL_DIR" 2>&1 | tail -3 | grep -q "Linked plugin"; then
