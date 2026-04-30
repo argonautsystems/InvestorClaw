@@ -91,74 +91,121 @@ ln -sf "$VENV_DIR/bin/investorclaw" "$BIN_LINK"
 ok "symlinked $BIN_LINK"
 
 # ------------- patch zeroclaw config ---------------------------------
-log "patching $CONFIG_FILE..."
+log "preflight check on existing zeroclaw configuration..."
 mkdir -p "$ZC_HOME"
 
-# If config doesn't exist yet, init defaults
 if [ ! -f "$CONFIG_FILE" ]; then
     zeroclaw config init >/dev/null 2>&1 || true
 fi
 [ -f "$CONFIG_FILE" ] || die "could not create $CONFIG_FILE"
 
 CONFIG_FILE="$CONFIG_FILE" python3 <<'PYEOF'
-import os, re
+import os, re, sys
 config_path = os.environ['CONFIG_FILE']
 content = open(config_path).read()
 
+def parse_array(text, key):
+    """Find a TOML array and return its current items as a list of strings."""
+    pat = re.compile(
+        rf'^{re.escape(key)}\s*=\s*\[([^\]]*)\]',
+        re.MULTILINE | re.DOTALL,
+    )
+    m = pat.search(text)
+    if not m:
+        return None
+    return re.findall(r'"([^"]*)"', m.group(1))
+
 def patch_array(content, key, removals=(), additions=()):
+    """Idempotent: only modifies if there's actual change to make."""
     pat = re.compile(
         rf'(^{re.escape(key)}\s*=\s*\[)([^\]]*)(\])',
         re.MULTILINE | re.DOTALL,
     )
     m = pat.search(content)
     if not m:
-        return content
+        return content, False
     body = m.group(2)
     items = re.findall(r'"([^"]*)"', body)
+    original = list(items)
     for r in removals:
         items = [x for x in items if x != r]
     for a in additions:
         if a not in items:
             items.append(a)
+    if items == original:
+        return content, False
     new_body = ',\n    '.join(f'"{x}"' for x in items)
     if new_body:
         new_body = '\n    ' + new_body + ',\n'
-    return content[:m.start()] + f'{key} = [{new_body}]' + content[m.end():]
+    return content[:m.start()] + f'{key} = [{new_body}]' + content[m.end():], True
 
-content = patch_array(content, 'forbidden_paths', removals=['/home', '/opt'])
-content = patch_array(
-    content,
-    'auto_approve',
-    additions=['investorclaw.portfolio_ask', 'investorclaw.portfolio_refresh'],
-)
-content = patch_array(
-    content,
-    'allowed_commands',
-    additions=['investorclaw', 'uv', 'sh'],
-)
-if re.search(r'^\[skills\]', content, re.MULTILINE):
-    content = re.sub(
-        r'^(allow_scripts\s*=\s*)(false|true)',
-        r'\1true',
-        content,
-        flags=re.MULTILINE,
-    )
-    if 'allow_scripts' not in content:
-        content = re.sub(
-            r'(^\[skills\]\s*\n)',
-            r'\1allow_scripts = true\n',
-            content,
-            count=1,
-            flags=re.MULTILINE,
-        )
+# Inspect current state
+existing_forbidden = parse_array(content, 'forbidden_paths') or []
+existing_auto_approve = parse_array(content, 'auto_approve') or []
+existing_allowed = parse_array(content, 'allowed_commands') or []
+allow_scripts_match = re.search(r'^allow_scripts\s*=\s*(true|false)', content, re.MULTILINE)
+allow_scripts = allow_scripts_match.group(1) if allow_scripts_match else None
+
+print("")
+print("  ┌─ zeroclaw configuration preflight ─────────────────────────────")
+print(f"  │ config:                {config_path}")
+print(f"  │ skills.allow_scripts:  {allow_scripts or '(unset)'}")
+forbidden_blocking = [p for p in ('/home', '/opt') if p in existing_forbidden]
+if forbidden_blocking:
+    print(f"  │ autonomy.forbidden_paths blocks skill: {forbidden_blocking}")
+    print(f"  │   (installer will REMOVE these — they block /home/$USER/.zeroclaw)")
 else:
-    content += '\n[skills]\nallow_scripts = true\n'
+    print(f"  │ autonomy.forbidden_paths:  no blocking entries for skill dirs")
+needed_approve = ['investorclaw.portfolio_ask', 'investorclaw.portfolio_refresh']
+missing_approve = [a for a in needed_approve if a not in existing_auto_approve]
+if missing_approve:
+    print(f"  │ autonomy.auto_approve missing: {missing_approve}")
+    print(f"  │   (installer will ADD — required for non-interactive skill calls)")
+else:
+    print(f"  │ autonomy.auto_approve:     investorclaw tools already approved")
+needed_cmds = ['investorclaw', 'uv', 'sh']
+missing_cmds = [c for c in needed_cmds if c not in existing_allowed]
+if missing_cmds:
+    print(f"  │ autonomy.allowed_commands missing: {missing_cmds}")
+    print(f"  │   (installer will ADD — covers shell-tool fallback paths)")
+else:
+    print(f"  │ autonomy.allowed_commands: covers investorclaw / uv / sh")
+print("  └─────────────────────────────────────────────────────────────────")
+print("")
 
-open(config_path, 'w').write(content)
-print("config patched")
+# Apply patches (idempotent — only writes when changed)
+content, changed1 = patch_array(content, 'forbidden_paths', removals=['/home', '/opt'])
+content, changed2 = patch_array(content, 'auto_approve', additions=needed_approve)
+content, changed3 = patch_array(content, 'allowed_commands', additions=needed_cmds)
+changed = changed1 or changed2 or changed3
+
+if re.search(r'^\[skills\]', content, re.MULTILINE):
+    if allow_scripts != 'true':
+        if 'allow_scripts' not in content:
+            content = re.sub(
+                r'(^\[skills\]\s*\n)',
+                r'\1allow_scripts = true\n',
+                content, count=1, flags=re.MULTILINE,
+            )
+        else:
+            content = re.sub(
+                r'^(allow_scripts\s*=\s*)(false|true)',
+                r'\1true',
+                content, flags=re.MULTILINE,
+            )
+        changed = True
+elif allow_scripts != 'true':
+    content += '\n[skills]\nallow_scripts = true\n'
+    changed = True
+
+if changed:
+    open(config_path, 'w').write(content)
+    print("  → config patched (idempotent: only changed entries that needed it)")
+else:
+    print("  → config already configured correctly — no changes")
 PYEOF
 
-ok "config patched"
+ok "configuration preflight complete"
 
 # ------------- verify ------------------------------------------------
 log "verifying skill registration..."
