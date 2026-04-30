@@ -41,32 +41,41 @@ all three gates idempotently. Manual fix: edit `~/.zeroclaw/config.toml`:
 
 ---
 
-## OC-1 — openclaw 2026.4.27 env-var-only provider auth regression
+## OC-1 — openclaw provider config requires `models.providers.openai.baseUrl` (not env vars)
 
-**Symptom:** `docker run -e OPENAI_API_KEY=tgp_v1_... -e OPENAI_API_BASE=https://api.together.xyz/v1 openclaw/openclaw:2026.4.27`
+**Symptom:** `docker run -e OPENAI_API_KEY=tgp_v1_... -e OPENAI_API_BASE=https://api.together.xyz/v1 openclaw/openclaw:<any-version>`
 then `openclaw agent ...` fails with `401 Incorrect API key provided` from
 `api.openai.com` — the gateway routes the Together token to OpenAI's
-upstream instead of respecting `OPENAI_API_BASE`.
+upstream because it never reads `OPENAI_API_BASE`/`OPENAI_BASE_URL`.
 
-**Cause:** openclaw 2026.4.27 (and earlier; predates available release
-history) requires explicit `~/.openclaw/agents/main/agent/auth-profiles.json`
-with provider configuration. Env vars alone don't satisfy the gateway's
-auth resolver.
+**RCA finding (2026-04-30):** This is **NOT a regression** — `git log --all -S OPENAI_API_BASE`
+on openclaw upstream finds **zero historical handlers** for that env var. The
+codebase always reads provider baseUrl from `models.providers.<name>.baseUrl`
+(in `~/.openclaw/openclaw.json`). The "Linux baseline that worked" was
+because the `perlowja/openclaw-demo` private image pre-configured
+`models.providers.openai.baseUrl = https://api.together.xyz/v1` in its
+shipped openclaw.json. We assumed env-var routing existed because we never
+actually tested env-var-only on a clean openclaw install.
 
-**Workaround:** Configure `auth-profiles.json` explicitly with Together
-provider mapping (TBD — codex investigation in flight to capture the
-exact schema; will be in `installers/openclaw/install.sh` once known).
+**Confirmed broken in:** v2026.3.25, v2026.4.26, v2026.4.27, v2026.4.29-beta.3.
+All these versions have the same architectural design — env-var-only auth
+isn't supported.
 
-**Filing status:** Issue draft prepared; not yet filed at github.com/openclaw/openclaw.
-Multiple adjacent regressions filed today by other reporters:
-- #74886 — WhatsApp session unstable, fell back to MiniMax (similar embedded-fallback symptom)
-- #74909 — `fix(pi-embedded-runner): only cooldown auth profile on real auth signals` (in-flight PR)
-- #74911 — Feishu response delay 4.27 regression, "resolved by downgrading to 4.23"
+**Resolution (in `installers/openclaw/install.sh`):** The installer auto-writes:
+1. `~/.openclaw/openclaw.json` — `models.providers.openai.baseUrl` + `apiKey`
+2. `~/.openclaw/agents/<id>/agent/auth-profiles.json` — `ApiKeyCredential` for `openai` provider
 
-This means **openclaw skill execution is currently un-validatable on Windows
-without the auth-profiles workaround**. Linux containers using older
-openclaw images (`ghcr.io/perlowja/openclaw-demo:latest`, private fork)
-still work because they ship a pre-configured auth-profiles.json.
+Default routing target: Together AI (`https://api.together.xyz/v1`). Override via
+`IC_PROVIDER_BASE_URL` and `IC_PROVIDER_API_KEY` env vars at install time.
+
+**Preflight UX (2026-04-30):** The installer detects existing config state and
+preserves user customizations — only patches missing fields. `IC_FORCE_PROVIDER_CONFIG=1`
+to override.
+
+**Upstream feature request opportunity (low priority):** A follow-up issue could
+propose `OPENAI_API_BASE` env var as a fallback when `models.providers.openai.baseUrl`
+is unset — would match OpenAI SDK / litellm / Together CLI conventions. Not
+on v2.6.3's critical path since the config-based approach works now.
 
 ---
 
