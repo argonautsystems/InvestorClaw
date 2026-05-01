@@ -7,9 +7,11 @@
   </picture>
 </p>
 
-Portfolio analysis and market intelligence | v2.6.0 | Apache 2.0 License
+Portfolio analysis and market intelligence | v2.6.3 (final 2.x ship) | Apache 2.0 License
 
 > ⚠️ The dashboard is in development and is not shipped in the default install. Ask dashboard questions through `investorclaw ask "<question>"`; the deterministic engine returns the current deferral envelope where applicable.
+
+> 📌 **2.x branch frozen for development.** v2.6.3 is the final 2.x ship; only security backports going forward. See [CHANGELOG.md](CHANGELOG.md) for the v2.6.3 release notes (openclaw 4.29-beta.4 schema fixes, bundle-based install pipeline, ic-engine cold-cache cascade fix).
 
 InvestorClaw is the adapter package for Claws-family and standalone portfolio analysis. It ships install scripts, manifests, routing contracts, and the back-compatible CLI shim.
 
