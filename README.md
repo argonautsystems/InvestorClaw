@@ -7,11 +7,14 @@
   </picture>
 </p>
 
-Portfolio analysis and market intelligence | v2.6.3 (final 2.x ship) | Apache 2.0 License
+Portfolio analysis and market intelligence | v2.6.3 | Apache 2.0 License
 
 > ⚠️ The dashboard is in development and is not shipped in the default install. Ask dashboard questions through `investorclaw ask "<question>"`; the deterministic engine returns the current deferral envelope where applicable.
 
-> 📌 **2.x branch frozen for development.** v2.6.3 is the final 2.x ship; only security backports going forward. See [CHANGELOG.md](CHANGELOG.md) for the v2.6.3 release notes (openclaw 4.29-beta.4 schema fixes, bundle-based install pipeline, ic-engine cold-cache cascade fix).
+> 📌 **Two-path development policy** (effective 2026-04-30):
+> **InvestorClaude** (Claude Code marketplace plugin + Claude Desktop config path) continues independent development as long as needed — v2.6.4, v2.7, etc. land via marketplace updates.
+> **Claws-stack install paths** (zeroclaw / openclaw / hermes via `installers/<runtime>/install.sh`) are end-of-line at v2.6.3; Claws users migrate to v4.x (containerized application service) for ongoing development.
+> See [CHANGELOG.md](CHANGELOG.md) for the v2.6.3 release notes.
 
 InvestorClaw is the adapter package for Claws-family and standalone portfolio analysis. It ships install scripts, manifests, routing contracts, and the back-compatible CLI shim.
 

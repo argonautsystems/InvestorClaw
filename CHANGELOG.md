@@ -1,11 +1,24 @@
 # Changelog
 
-## v2.6.3 — 2026-04-30 (final 2.x ship)
+## v2.6.3 — 2026-04-30
 
-The 2.x branch is frozen for development. Only security backports going
-forward. Future development continues on v4.x (containerized application
-service architecture). The v3.x track continues independently as the
-enterprise/compliance tier on the v2.x architecture.
+**Two-path development policy** (effective 2026-04-30):
+
+- **InvestorClaude (Claude Code marketplace plugin + Claude Desktop config
+  path)** continues independent development as long as needed. v2.6.4,
+  v2.7, etc. land via marketplace updates and direct config snippets.
+  Claude users have a continuous path forward through the v2.x channel.
+- **Claws-stack install paths** (zeroclaw / openclaw / hermes
+  skill-bundle install via `installers/<runtime>/install.sh`) are **end
+  of line at v2.6.3.** No further development on the claw-side install
+  paths. Claws users migrate to v4.x (containerized application service)
+  for ongoing development, or stay on v2.6.3 frozen.
+- **v3.x enterprise tier** (Phase 3A audit ledger, party hierarchies,
+  EMIR/MiFID exports) continues independently as the
+  compliance/regulated-deployments tier on the v2.x architecture.
+- **v4.x application service** is greenfield — containerized service
+  every agent connects to via MCP-HTTP. Replaces the claw-install
+  pattern entirely.
 
 **openclaw 4.29-beta.4 schema fixes** (commits `08b7376`, `eb2c901`) —
 openclaw 4.29-beta.4 ships an active config-health daemon that detects
