@@ -110,12 +110,29 @@ UI metadata moves to a separate top-level `uiHints: {<KEY>: {label, help, sensit
 placeholder}}` block. The installer/bundle ships `openclaw.plugin.json` at the
 skill root; the bundle build pipeline includes it via WHITELIST_TOP_LEVEL.
 
+**Workspace bootstrap loop finding (2026-04-30, openclaw v2026.4.29-beta.4):**
+openclaw 4.29-beta.4 ships a workspace-bootstrap workflow at
+`~/.openclaw/workspace/{BOOTSTRAP,IDENTITY,USER}.md`. On first contact, the
+gateway agent's system prompt directs the LLM to ask the operator for name /
+timezone / persona / emoji and refuse to do anything else (including calling
+configured tools) until the bootstrap is "complete." `agents.defaults.skipBootstrap=true`
+does NOT bypass it — the bootstrap content is injected via workspace files,
+not the config flag. For non-interactive automation (cron, barrage harness,
+etc.) the bootstrap loops indefinitely on "Who am I? Who are you?" prompts.
+
+**Resolution:** The installer now seeds those three workspace files with
+COMPLETED content (`Status: COMPLETE`, identity = `InvestorClaw`, user =
+`Operator`). The LLM picks up the seeded files on next gateway reload and
+proceeds to tool calls instead of onboarding chat.
+
 **Verified working on:** v2026.4.29-beta.4 (TYPHON Windows-WSL Debian Docker,
 2026-04-30): real `MiniMax M2.7` response over Together via gateway path with
 no `--model` override; investorclaw plugin loaded with all 15 tools registered
 (`investorclaw_setup`, `_holdings`, `_performance`, `_analysis`, `_bonds`,
 `_fixed_income`, `_news`, `_analyst`, `_report`, `_session`, `_lookup`,
-`_ollama_setup`, `_guardrails`, `_update_identity`, `_stonkmode`).
+`_ollama_setup`, `_guardrails`, `_update_identity`, `_stonkmode`); after
+seeding bootstrap, agent ran `investorclaw_setup` and reported "ready_for_analysis: Yes"
+when a portfolio xls was present in `portfolios/`.
 
 **Confirmed broken with raw JSON write on:** v2026.3.25, v2026.4.26, v2026.4.27,
 v2026.4.29-beta.3, v2026.4.29-beta.4 (only beta.4 has the active config-health

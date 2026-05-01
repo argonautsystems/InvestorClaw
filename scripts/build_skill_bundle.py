@@ -66,6 +66,7 @@ WHITELIST_TOP_LEVEL = [
     "uv.lock",
     "package.json",
     "openclaw.plugin.json",  # openclaw 4.29-beta.4+ plugin manifest (required for register)
+    "investorclaw.py",       # CLI shim referenced by pyproject.toml's py-modules
     ".skillignore",
 ]
 

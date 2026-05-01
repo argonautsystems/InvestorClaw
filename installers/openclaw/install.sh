@@ -228,6 +228,50 @@ if [ -z "$EXISTING_AGENT_MODEL" ] || [ "$FORCE" = "1" ]; then
     openclaw config set agents.defaults.model "openai/$PROVIDER_MODEL_ID" 2>&1 | tail -2 | grep -v "^$" || true
 fi
 
+# openclaw 4.29-beta.4+ ships a workspace-bootstrap workflow (BOOTSTRAP.md +
+# IDENTITY.md + USER.md templates the LLM is instructed to fill in interactively
+# on first contact). For deterministic non-interactive use (cron, barrage,
+# automated tooling) this loops the agent indefinitely on "who am I?" prompts.
+# Seed the workspace files with COMPLETED content so the agent skips onboarding.
+WORKSPACE_DIR="$OC_HOME/workspace"
+if [ ! -f "$WORKSPACE_DIR/BOOTSTRAP.md" ] || ! grep -q "^Status: COMPLETE" "$WORKSPACE_DIR/BOOTSTRAP.md" 2>/dev/null; then
+    log "seeding workspace bootstrap files (IDENTITY.md + USER.md + BOOTSTRAP.md)..."
+    mkdir -p "$WORKSPACE_DIR"
+    cat > "$WORKSPACE_DIR/IDENTITY.md" <<'IDMD'
+# IDENTITY.md - Who Am I?
+
+- **Name:** InvestorClaw
+- **Creature:** AI portfolio analyst (deterministic-first via investorclaw skill)
+- **Vibe:** terse, factual, financial-analysis-focused
+- **Emoji:** 📊
+- **Avatar:** (none)
+
+Bootstrap COMPLETE. Do not ask the operator for identity again. Use the
+investorclaw skill tools to answer all portfolio questions.
+IDMD
+    cat > "$WORKSPACE_DIR/USER.md" <<'USRMD'
+# USER.md - Who Is My Operator?
+
+- **Name:** Operator
+- **Timezone:** UTC
+- **Communication:** webchat (one-shot prompts)
+
+Bootstrap COMPLETE. Treat all incoming prompts as one-shot questions about the
+configured portfolio. Respond directly using investorclaw tools.
+USRMD
+    cat > "$WORKSPACE_DIR/BOOTSTRAP.md" <<'BTMD'
+# Bootstrap
+
+Status: COMPLETE
+IdentityFile: IDENTITY.md (filled)
+UserFile: USER.md (filled)
+
+Do NOT ask the operator for identity, name, timezone, or vibe. Bootstrap is
+finished. Answer questions directly using the investorclaw skill tools.
+BTMD
+    ok "bootstrap files seeded"
+fi
+
 if openclaw config validate 2>&1 | grep -q "Config valid"; then
     ok "openclaw config valid"
 else
