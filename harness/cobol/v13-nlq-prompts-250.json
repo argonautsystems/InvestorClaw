@@ -1,0 +1,2287 @@
+{
+  "$comment": "Agentic COBOL — 250-NLQ canonical set extracted VERBATIM from V13 matrix spec (~/v13_matrix_spec.txt lines 602-866). Source predates v2.5.0 30-prompt smoke set; this is the original 250-prompt acceptance set referenced by V13 matrix spec S10 NL_PROMPT_MUTATION_VIOLATION rule. Mutation = violation. v4.0 surface routes everything through portfolio_ask (the engine handles deflection narratives for finance-concept and market-wide questions). Use this set for full barrages; use nlq-prompts.json (30) for smoke.",
+  "schema_version": "1.0",
+  "version": "4.0.0-v13-250",
+  "source": "v13_matrix_spec.txt:602-866",
+  "fleet_gates": {
+    "$comment": "v4.0 dockerized-skill convention: ic-engine in container, all four agents call portfolio_ask. Gates TBD after first full 250-prompt run.",
+    "ic-engine-direct": {
+      "min_pass": 200,
+      "publish_bar": 225
+    },
+    "openclaw": {
+      "min_pass": 175,
+      "publish_bar": 200
+    },
+    "zeroclaw": {
+      "min_pass": 175,
+      "publish_bar": 200
+    },
+    "hermes": {
+      "min_pass": 150,
+      "publish_bar": 175
+    }
+  },
+  "categories": [
+    "A - Portfolio Analysis & Holdings",
+    "B - Market Intelligence & Trends",
+    "C - Economic Data & Indicators",
+    "D - Fixed Income & Bonds",
+    "E - Financial Education & Concepts",
+    "F - Tax & Planning",
+    "G - Risk Management",
+    "H - System & Operational"
+  ],
+  "prompts": [
+    {
+      "id": "n001",
+      "v13_id": "N001",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show my holdings",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n002",
+      "v13_id": "N002",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my total portfolio value?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n003",
+      "v13_id": "N003",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Analyze my asset allocation",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n004",
+      "v13_id": "N004",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my sector allocation?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n005",
+      "v13_id": "N005",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "How am I doing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n006",
+      "v13_id": "N006",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my total return?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n007",
+      "v13_id": "N007",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Am I beating the S&P 500?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n008",
+      "v13_id": "N008",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show me my Sharpe ratio",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n009",
+      "v13_id": "N009",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my portfolio volatility?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n010",
+      "v13_id": "N010",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show my bond exposure",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n011",
+      "v13_id": "N011",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Analyze my fixed income",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n012",
+      "v13_id": "N012",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my bond allocation?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n013",
+      "v13_id": "N013",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What does Wall Street think?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n014",
+      "v13_id": "N014",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show analyst ratings",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n015",
+      "v13_id": "N015",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Any analyst upgrades?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n016",
+      "v13_id": "N016",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Any news on my stocks?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n017",
+      "v13_id": "N017",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show recent headlines",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n018",
+      "v13_id": "N018",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's happening with my holdings?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n019",
+      "v13_id": "N019",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "How should I rebalance?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n020",
+      "v13_id": "N020",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my risk score?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n021",
+      "v13_id": "N021",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Calculate my tax loss harvesting opportunities",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n022",
+      "v13_id": "N022",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my dividend yield?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n023",
+      "v13_id": "N023",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show dividend payments",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n024",
+      "v13_id": "N024",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What are my largest positions?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n025",
+      "v13_id": "N025",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Which stocks are underperforming?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n026",
+      "v13_id": "N026",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my cash position?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n027",
+      "v13_id": "N027",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show my concentration risk",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n028",
+      "v13_id": "N028",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Analyze my momentum positions",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n029",
+      "v13_id": "N029",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my correlation matrix?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n030",
+      "v13_id": "N030",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show my Sortino ratio",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n031",
+      "v13_id": "N031",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Calculate my maximum drawdown",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n032",
+      "v13_id": "N032",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my beta to the market?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n033",
+      "v13_id": "N033",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Show my value vs growth ratio",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n034",
+      "v13_id": "N034",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "Analyze my ESG score",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n035",
+      "v13_id": "N035",
+      "category": "A - Portfolio Analysis & Holdings",
+      "prompt": "What's my leverage ratio?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n036",
+      "v13_id": "N036",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's happening in the market today?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n037",
+      "v13_id": "N037",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show me market trends",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n038",
+      "v13_id": "N038",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "How is the S&P 500 performing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n039",
+      "v13_id": "N039",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the Nasdaq doing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n040",
+      "v13_id": "N040",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show Dow Jones performance",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n041",
+      "v13_id": "N041",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Which sectors are up today?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n042",
+      "v13_id": "N042",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show sector performance",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n043",
+      "v13_id": "N043",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's leading the market?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n044",
+      "v13_id": "N044",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Any major market news?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n045",
+      "v13_id": "N045",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's moving the markets?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n046",
+      "v13_id": "N046",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Recent market movers",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n047",
+      "v13_id": "N047",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What about earnings season?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n048",
+      "v13_id": "N048",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show upcoming earnings reports",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n049",
+      "v13_id": "N049",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Volatility index update",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n050",
+      "v13_id": "N050",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the VIX at?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n051",
+      "v13_id": "N051",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show implied volatility skew",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n052",
+      "v13_id": "N052",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the put/call ratio?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n053",
+      "v13_id": "N053",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show market breadth indicators",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n054",
+      "v13_id": "N054",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the advance-decline line?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n055",
+      "v13_id": "N055",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show sector rotation patterns",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n056",
+      "v13_id": "N056",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the market sentiment?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n057",
+      "v13_id": "N057",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Analyze technical chart patterns",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n058",
+      "v13_id": "N058",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show support and resistance levels",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n059",
+      "v13_id": "N059",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's happening with commodities?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n060",
+      "v13_id": "N060",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show crude oil prices",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n061",
+      "v13_id": "N061",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What about precious metals?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n062",
+      "v13_id": "N062",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show gold and silver trends",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n063",
+      "v13_id": "N063",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the dollar strength?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n064",
+      "v13_id": "N064",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show currency correlations",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n065",
+      "v13_id": "N065",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the yield curve?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n066",
+      "v13_id": "N066",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show treasury bond yields",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n067",
+      "v13_id": "N067",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's happening with cryptocurrencies?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n068",
+      "v13_id": "N068",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show Bitcoin and Ethereum prices",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n069",
+      "v13_id": "N069",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What about DeFi markets?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n070",
+      "v13_id": "N070",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show IPO pipeline",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n071",
+      "v13_id": "N071",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the SPAC activity?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n072",
+      "v13_id": "N072",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show short interest data",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n073",
+      "v13_id": "N073",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "What's the put/call open interest?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n074",
+      "v13_id": "N074",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Analyze insider trading activity",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n075",
+      "v13_id": "N075",
+      "category": "B - Market Intelligence & Trends",
+      "prompt": "Show buyback announcements",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n076",
+      "v13_id": "N076",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the earnings surprise rate?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n077",
+      "v13_id": "N077",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Analyze guidance revisions",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n078",
+      "v13_id": "N078",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the Federal Reserve doing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n079",
+      "v13_id": "N079",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Latest Fed decision",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n080",
+      "v13_id": "N080",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Interest rate outlook",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n081",
+      "v13_id": "N081",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Are rates going up or down?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n082",
+      "v13_id": "N082",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Any major economic news?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n083",
+      "v13_id": "N083",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show economic calendar",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n084",
+      "v13_id": "N084",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Latest inflation data",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n085",
+      "v13_id": "N085",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's inflation at?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n086",
+      "v13_id": "N086",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Jobs report analysis",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n087",
+      "v13_id": "N087",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Latest unemployment rate",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n088",
+      "v13_id": "N088",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "GDP growth trends",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n089",
+      "v13_id": "N089",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "How's the economy doing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n090",
+      "v13_id": "N090",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show CPI components",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n091",
+      "v13_id": "N091",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What about core inflation?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n092",
+      "v13_id": "N092",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show PPI data",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n093",
+      "v13_id": "N093",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the wage growth?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n094",
+      "v13_id": "N094",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show initial jobless claims",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n095",
+      "v13_id": "N095",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What about continuing claims?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n096",
+      "v13_id": "N096",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show labor force participation",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n097",
+      "v13_id": "N097",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the consumer confidence index?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n098",
+      "v13_id": "N098",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show manufacturing data",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n099",
+      "v13_id": "N099",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What about services PMI?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n100",
+      "v13_id": "N100",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show construction spending",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n101",
+      "v13_id": "N101",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the housing starts?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n102",
+      "v13_id": "N102",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show existing home sales",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n103",
+      "v13_id": "N103",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What about home prices?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n104",
+      "v13_id": "N104",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show mortgage rates",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n105",
+      "v13_id": "N105",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the consumer spending?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n106",
+      "v13_id": "N106",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show retail sales data",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n107",
+      "v13_id": "N107",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What about durable goods orders?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n108",
+      "v13_id": "N108",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show factory orders",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n109",
+      "v13_id": "N109",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "What's the trade deficit?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n110",
+      "v13_id": "N110",
+      "category": "C - Economic Data & Indicators",
+      "prompt": "Show export/import data",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n111",
+      "v13_id": "N111",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What about corporate profits?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n112",
+      "v13_id": "N112",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show business investment trends",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n113",
+      "v13_id": "N113",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's the debt situation?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n114",
+      "v13_id": "N114",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Explain bonds to me",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n115",
+      "v13_id": "N115",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's yield to maturity?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n116",
+      "v13_id": "N116",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show bond duration analysis",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n117",
+      "v13_id": "N117",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What about credit spreads?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n118",
+      "v13_id": "N118",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show investment grade vs high-yield",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n119",
+      "v13_id": "N119",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's the municipal bond market doing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n120",
+      "v13_id": "N120",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show Treasury yield curve",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n121",
+      "v13_id": "N121",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What about TIPS?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n122",
+      "v13_id": "N122",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show emerging market bonds",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n123",
+      "v13_id": "N123",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's the corporate bond spread?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n124",
+      "v13_id": "N124",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Explain duration risk",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n125",
+      "v13_id": "N125",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What about convexity?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n126",
+      "v13_id": "N126",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show bond fund flows",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n127",
+      "v13_id": "N127",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's the Fed's balance sheet doing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n128",
+      "v13_id": "N128",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show quantitative easing impact",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n129",
+      "v13_id": "N129",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What about reverse repos?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n130",
+      "v13_id": "N130",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show swap spreads",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n131",
+      "v13_id": "N131",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's the repo market?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n132",
+      "v13_id": "N132",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show bond market technicals",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n133",
+      "v13_id": "N133",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What about fallen angels?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n134",
+      "v13_id": "N134",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "Show distressed credit opportunities",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n135",
+      "v13_id": "N135",
+      "category": "D - Fixed Income & Bonds",
+      "prompt": "What's the junk bond situation?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n136",
+      "v13_id": "N136",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Show convertible bond market",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n137",
+      "v13_id": "N137",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about bond laddering?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n138",
+      "v13_id": "N138",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain barbell strategy",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n139",
+      "v13_id": "N139",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's a Sharpe ratio?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n140",
+      "v13_id": "N140",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain beta to me",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n141",
+      "v13_id": "N141",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What is volatility?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n142",
+      "v13_id": "N142",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "How do I calculate returns?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n143",
+      "v13_id": "N143",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's asset allocation?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n144",
+      "v13_id": "N144",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Diversification strategies",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n145",
+      "v13_id": "N145",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "How do I rebalance?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n146",
+      "v13_id": "N146",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain bond duration",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n147",
+      "v13_id": "N147",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's yield to maturity?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n148",
+      "v13_id": "N148",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "How do bonds work?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n149",
+      "v13_id": "N149",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain options trading",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n150",
+      "v13_id": "N150",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What are calls and puts?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n151",
+      "v13_id": "N151",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "How do I use options for hedging?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n152",
+      "v13_id": "N152",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain straddles and strangles",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n153",
+      "v13_id": "N153",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about covered calls?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n154",
+      "v13_id": "N154",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain put spreads",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n155",
+      "v13_id": "N155",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's value at risk?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n156",
+      "v13_id": "N156",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain expected shortfall",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n157",
+      "v13_id": "N157",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's the efficient frontier?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n158",
+      "v13_id": "N158",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain modern portfolio theory",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n159",
+      "v13_id": "N159",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about factor investing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n160",
+      "v13_id": "N160",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain factor tilts",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n161",
+      "v13_id": "N161",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's smart beta?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n162",
+      "v13_id": "N162",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain fundamental analysis",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n163",
+      "v13_id": "N163",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about technical analysis?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n164",
+      "v13_id": "N164",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain sentiment analysis",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n165",
+      "v13_id": "N165",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's the Fama-French model?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n166",
+      "v13_id": "N166",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain the capital asset pricing model",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n167",
+      "v13_id": "N167",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about value investing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n168",
+      "v13_id": "N168",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain growth investing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n169",
+      "v13_id": "N169",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's momentum investing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n170",
+      "v13_id": "N170",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain mean reversion",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n171",
+      "v13_id": "N171",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about pairs trading?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n172",
+      "v13_id": "N172",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain statistical arbitrage",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n173",
+      "v13_id": "N173",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What's market microstructure?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n174",
+      "v13_id": "N174",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "Explain algorithmic trading",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n175",
+      "v13_id": "N175",
+      "category": "E - Financial Education & Concepts",
+      "prompt": "What about high-frequency trading?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n176",
+      "v13_id": "N176",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain dark pools",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n177",
+      "v13_id": "N177",
+      "category": "F - Tax & Planning",
+      "prompt": "What's the bid-ask spread?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n178",
+      "v13_id": "N178",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain market impact",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n179",
+      "v13_id": "N179",
+      "category": "F - Tax & Planning",
+      "prompt": "How do I optimize my taxes?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n180",
+      "v13_id": "N180",
+      "category": "F - Tax & Planning",
+      "prompt": "What about tax-loss harvesting?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n181",
+      "v13_id": "N181",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain wash sale rules",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n182",
+      "v13_id": "N182",
+      "category": "F - Tax & Planning",
+      "prompt": "What's the long-term capital gains rate?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n183",
+      "v13_id": "N183",
+      "category": "F - Tax & Planning",
+      "prompt": "How do I minimize taxes?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n184",
+      "v13_id": "N184",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain income shifting strategies",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n185",
+      "v13_id": "N185",
+      "category": "F - Tax & Planning",
+      "prompt": "What about charitable giving?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n186",
+      "v13_id": "N186",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain donor-advised funds",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n187",
+      "v13_id": "N187",
+      "category": "F - Tax & Planning",
+      "prompt": "What's tax-efficient investing?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n188",
+      "v13_id": "N188",
+      "category": "F - Tax & Planning",
+      "prompt": "Show my tax efficiency",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n189",
+      "v13_id": "N189",
+      "category": "F - Tax & Planning",
+      "prompt": "How do I use municipal bonds?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n190",
+      "v13_id": "N190",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain qualified dividends",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n191",
+      "v13_id": "N191",
+      "category": "F - Tax & Planning",
+      "prompt": "What about qualified business income?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n192",
+      "v13_id": "N192",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain the NIIT tax",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n193",
+      "v13_id": "N193",
+      "category": "F - Tax & Planning",
+      "prompt": "What's the alternative minimum tax?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n194",
+      "v13_id": "N194",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain net unrealized appreciation",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n195",
+      "v13_id": "N195",
+      "category": "F - Tax & Planning",
+      "prompt": "What about inherited IRAs?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n196",
+      "v13_id": "N196",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain required minimum distributions",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n197",
+      "v13_id": "N197",
+      "category": "F - Tax & Planning",
+      "prompt": "What's the SECURE Act?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n198",
+      "v13_id": "N198",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain mega backdoor Roth",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n199",
+      "v13_id": "N199",
+      "category": "F - Tax & Planning",
+      "prompt": "What about 1031 exchanges?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n200",
+      "v13_id": "N200",
+      "category": "F - Tax & Planning",
+      "prompt": "Explain opportunity zones",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n201",
+      "v13_id": "N201",
+      "category": "G - Risk Management",
+      "prompt": "What's the kiddie tax?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n202",
+      "v13_id": "N202",
+      "category": "G - Risk Management",
+      "prompt": "Explain state tax considerations",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n203",
+      "v13_id": "N203",
+      "category": "G - Risk Management",
+      "prompt": "What about foreign accounts?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n204",
+      "v13_id": "N204",
+      "category": "G - Risk Management",
+      "prompt": "What's my portfolio risk?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n205",
+      "v13_id": "N205",
+      "category": "G - Risk Management",
+      "prompt": "Show my risk decomposition",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n206",
+      "v13_id": "N206",
+      "category": "G - Risk Management",
+      "prompt": "What about tail risk?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n207",
+      "v13_id": "N207",
+      "category": "G - Risk Management",
+      "prompt": "Explain correlation breakdown",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n208",
+      "v13_id": "N208",
+      "category": "G - Risk Management",
+      "prompt": "What's systemic risk?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n209",
+      "v13_id": "N209",
+      "category": "G - Risk Management",
+      "prompt": "Show my hedge effectiveness",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n210",
+      "v13_id": "N210",
+      "category": "G - Risk Management",
+      "prompt": "What about VaR by position?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n211",
+      "v13_id": "N211",
+      "category": "G - Risk Management",
+      "prompt": "Explain stress testing",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n212",
+      "v13_id": "N212",
+      "category": "G - Risk Management",
+      "prompt": "What's my recovery time?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n213",
+      "v13_id": "N213",
+      "category": "G - Risk Management",
+      "prompt": "Show my drawdown scenarios",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n214",
+      "v13_id": "N214",
+      "category": "G - Risk Management",
+      "prompt": "What about concentration risk?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n215",
+      "v13_id": "N215",
+      "category": "G - Risk Management",
+      "prompt": "Explain liquidity risk",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n216",
+      "v13_id": "N216",
+      "category": "G - Risk Management",
+      "prompt": "What's counterparty risk?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n217",
+      "v13_id": "N217",
+      "category": "G - Risk Management",
+      "prompt": "Show my geopolitical exposure",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n218",
+      "v13_id": "N218",
+      "category": "G - Risk Management",
+      "prompt": "What about inflation protection?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n219",
+      "v13_id": "N219",
+      "category": "G - Risk Management",
+      "prompt": "Explain credit risk management",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n220",
+      "v13_id": "N220",
+      "category": "G - Risk Management",
+      "prompt": "What's my interest rate sensitivity?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n221",
+      "v13_id": "N221",
+      "category": "H - System & Operational",
+      "prompt": "Show currency hedging needs",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n222",
+      "v13_id": "N222",
+      "category": "H - System & Operational",
+      "prompt": "What about Black Swan events?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n223",
+      "v13_id": "N223",
+      "category": "H - System & Operational",
+      "prompt": "Explain scenario analysis",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n224",
+      "v13_id": "N224",
+      "category": "H - System & Operational",
+      "prompt": "Setup",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n225",
+      "v13_id": "N225",
+      "category": "H - System & Operational",
+      "prompt": "Status",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n226",
+      "v13_id": "N226",
+      "category": "H - System & Operational",
+      "prompt": "Help",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n227",
+      "v13_id": "N227",
+      "category": "H - System & Operational",
+      "prompt": "What can you do?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n228",
+      "v13_id": "N228",
+      "category": "H - System & Operational",
+      "prompt": "List commands",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n229",
+      "v13_id": "N229",
+      "category": "H - System & Operational",
+      "prompt": "Show options",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n230",
+      "v13_id": "N230",
+      "category": "H - System & Operational",
+      "prompt": "Available features",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n231",
+      "v13_id": "N231",
+      "category": "H - System & Operational",
+      "prompt": "Current settings",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n232",
+      "v13_id": "N232",
+      "category": "H - System & Operational",
+      "prompt": "Configuration status",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n233",
+      "v13_id": "N233",
+      "category": "H - System & Operational",
+      "prompt": "System check",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n234",
+      "v13_id": "N234",
+      "category": "H - System & Operational",
+      "prompt": "Diagnostics",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n235",
+      "v13_id": "N235",
+      "category": "H - System & Operational",
+      "prompt": "Test connection",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n236",
+      "v13_id": "N236",
+      "category": "H - System & Operational",
+      "prompt": "Performance check",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n237",
+      "v13_id": "N237",
+      "category": "H - System & Operational",
+      "prompt": "Verify connectivity",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n238",
+      "v13_id": "N238",
+      "category": "H - System & Operational",
+      "prompt": "Check latency",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n239",
+      "v13_id": "N239",
+      "category": "H - System & Operational",
+      "prompt": "Network status",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n240",
+      "v13_id": "N240",
+      "category": "H - System & Operational",
+      "prompt": "API status",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n241",
+      "v13_id": "N241",
+      "category": "H - System & Operational",
+      "prompt": "Service health",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n242",
+      "v13_id": "N242",
+      "category": "H - System & Operational",
+      "prompt": "Running normally",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n243",
+      "v13_id": "N243",
+      "category": "H - System & Operational",
+      "prompt": "Ping",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n244",
+      "v13_id": "N244",
+      "category": "H - System & Operational",
+      "prompt": "Version info",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n245",
+      "v13_id": "N245",
+      "category": "H - System & Operational",
+      "prompt": "Show capabilities",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n246",
+      "v13_id": "N246",
+      "category": "H - System & Operational",
+      "prompt": "List data sources",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n247",
+      "v13_id": "N247",
+      "category": "H - System & Operational",
+      "prompt": "What data do you have?",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n248",
+      "v13_id": "N248",
+      "category": "H - System & Operational",
+      "prompt": "Show update frequency",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n249",
+      "v13_id": "N249",
+      "category": "H - System & Operational",
+      "prompt": "Data freshness check",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    },
+    {
+      "id": "n250",
+      "v13_id": "N250",
+      "category": "H - System & Operational",
+      "prompt": "Accuracy verification",
+      "expected_routes": [
+        "portfolio_ask"
+      ]
+    }
+  ]
+}
