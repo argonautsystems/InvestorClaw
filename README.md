@@ -57,8 +57,9 @@ Cursor, custom MCP clients) at `http://localhost:18090/mcp` with transport
   blurbs, hallucinated portfolio context, and rejection markers). This is
   the v4.x ship gate. Methodology + empirical narrative in
   [`mnemos-ic-runtime/docs/COBOL_TESTING.md`](https://github.com/mnemos-os/mnemos-ic-runtime/blob/main/docs/COBOL_TESTING.md);
-  long-form publishable rationale in
-  [`harness/cobol/BLOG_DRAFT_techbroiler.md`](harness/cobol/BLOG_DRAFT_techbroiler.md).
+  published long-form rationale at
+  [**"All Our Tests Passed. The Agent Was Still Broken."**](https://techbroiler.net/all-our-tests-passed-the-agent-was-still-broken/)
+  (techbroiler.net, 2026-04-29).
 
 ## Cobol regression harness
 
