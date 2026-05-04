@@ -1,7 +1,19 @@
 # Agentic COBOL — multi-flavor natural-language routing acceptance harness
 
 > *Why we reverted to a 60-year-old testing pattern to validate 2026 agentic systems.*
-> See `AGENTIC_COBOL_SPEC.md` for the full methodology.
+
+**Start here:**
+
+- **[`AGENTIC_COBOL_SPEC.md`](AGENTIC_COBOL_SPEC.md)** — full methodology spec.
+  See §4.0 for the visual COBOL view of `nlq-prompts.json` (the spec rendered
+  the way COBOL renders DATA + PROCEDURE divisions) and §4.0a for a
+  strict-1959-style version with a fidelity-rating audit.
+- **["All Our Tests Passed. The Agent Was Still Broken."](https://techbroiler.net/all-our-tests-passed-the-agent-was-still-broken/)** —
+  published long-form rationale (techbroiler.net, Jason Perlow, 2026-04-29).
+- **[`mnemos-os/mnemos-ic-runtime/docs/COBOL_TESTING.md`](https://github.com/mnemos-os/mnemos-ic-runtime/blob/main/docs/COBOL_TESTING.md)** —
+  v4.x ship-gate methodology including the strict verdict (rejects
+  catalog blurbs + rejection markers) and the empirical pass-rate climb
+  from 1/250 → 245-249/250 across v4.1.x.
 
 ## What this is
 

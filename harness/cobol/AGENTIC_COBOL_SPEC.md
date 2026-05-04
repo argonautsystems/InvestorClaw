@@ -240,6 +240,298 @@ This is the v2.5 fleet target architecture.
 
 ## 4. Prompt format
 
+### 4.0 Visual COBOL view — what the spec actually looks like
+
+The methodology is named after COBOL because the *visual structure* of the
+spec maps onto COBOL's two-division program layout. COBOL programs were
+deliberately written so a non-programmer (an accountant, a payroll clerk)
+could read them aloud and verify behavior:
+
+```cobol
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PAYROLL-BONUS.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  EMPLOYEE-RECORD.
+           05  EMP-NAME              PIC X(30).
+           05  MONTHLY-PAY           PIC 9(7)V99.
+           05  YEAR-TO-DATE-EARNINGS PIC 9(9)V99.
+       01  CONSTANTS.
+           05  BONUS-THRESHOLD       PIC 9(7)V99 VALUE 100000.00.
+
+       PROCEDURE DIVISION.
+       MAIN-PROCESS.
+           READ EMPLOYEE-FILE INTO EMPLOYEE-RECORD
+               AT END GO TO END-PROGRAM.
+           ADD MONTHLY-PAY TO YEAR-TO-DATE-EARNINGS
+               GIVING NEW-TOTAL.
+           IF NEW-TOTAL > BONUS-THRESHOLD THEN
+               PERFORM CALCULATE-BONUS.
+           GO TO MAIN-PROCESS.
+       END-PROGRAM.
+           CLOSE EMPLOYEE-FILE.
+           STOP RUN.
+```
+
+A 1959 accountant could read that aloud — *"READ employee record. ADD
+monthly pay to year-to-date earnings. IF new total greater than bonus
+threshold, PERFORM calculate bonus."* — and verify the program represented
+what payroll actually wanted. The English-prose surface *was* the
+acceptance test.
+
+Agentic COBOL's spec format is the same shape: a **DATA DIVISION** of
+natural-language prompts users actually say, paired with a **PROCEDURE
+DIVISION** of expected tool routes the agent must invoke. Read aloud, it
+should be possible for a domain expert (a portfolio manager, a finance
+analyst) to verify both.
+
+Here's an actual slice of `nlq-prompts.json` rendered the same way COBOL
+renders DATA + PROCEDURE divisions:
+
+```cobol
+      *  ───────────────  AGENTIC COBOL DIVISION  ───────────────
+      *  Spec: harness/cobol/nlq-prompts.json
+      *  Domain: portfolio analysis (InvestorClaw)
+      *  Acceptance: read aloud; verify the routes match the prompts.
+
+       DATA DIVISION.
+       NLQ-CORPUS SECTION.
+
+       01  P01-HOLDINGS-1.
+           05  PROMPT-TEXT     "What is in my portfolio right now?".
+           05  INTENT          "portfolio-snapshot".
+           05  CATEGORY        "holdings".
+
+       01  P03-PERFORMANCE-1.
+           05  PROMPT-TEXT     "How has my portfolio performed this year?".
+           05  INTENT          "performance-check".
+           05  CATEGORY        "performance".
+
+       01  P04-PERFORMANCE-2.
+           05  PROMPT-TEXT     "What is my Sharpe ratio and max drawdown?".
+           05  INTENT          "performance-check".
+           05  CATEGORY        "performance".
+
+       01  P16-NEWS-MERGER.
+           05  PROMPT-TEXT     "Any big mergers or acquisitions in the
+                                news today?".
+           05  INTENT          "news-merger".
+           05  CATEGORY        "news".
+
+       01  P22-BONDS-DURATION.
+           05  PROMPT-TEXT     "Show my bond duration.".
+           05  INTENT          "bonds-duration".
+           05  CATEGORY        "bonds".
+
+
+       PROCEDURE DIVISION.
+       AGENT-ROUTING SECTION.
+
+       WHEN PROMPT MATCHES P01-HOLDINGS-1
+           PERFORM PORTFOLIO-VIEW SECTION="holdings".
+           ON CLAUDE-CODE INVOKE "/investorclaw:ask".
+           ON OPENCLAW    INVOKE "portfolio_view section=holdings".
+           ON ZEROCLAW    INVOKE "portfolio_view section=holdings".
+           ON HERMES      INVOKE "portfolio_view section=holdings".
+
+       WHEN PROMPT MATCHES P03-PERFORMANCE-1
+           PERFORM PORTFOLIO-VIEW SECTION="performance".
+
+       WHEN PROMPT MATCHES P04-PERFORMANCE-2
+           PERFORM PORTFOLIO-VIEW SECTION="performance".
+
+       WHEN PROMPT MATCHES P16-NEWS-MERGER
+           PERFORM PORTFOLIO-MARKET SECTION="news" TOPIC="merger".
+
+       WHEN PROMPT MATCHES P22-BONDS-DURATION
+           PERFORM PORTFOLIO-VIEW SECTION="bonds" TOPIC="duration".
+
+       VERDICT SECTION.
+       ACCEPT WHEN
+           IC-RESULT-PRESENT IS TRUE
+           AND HMAC-PRESENT IS TRUE
+           AND NARRATIVE-CHARS NOT LESS THAN 200
+           AND BODY-CHARS NOT LESS THAN 100
+           AND REJECTION-MARKERS COUNT EQUALS 0.
+       REJECT WHEN
+           NARRATIVE CONTAINS "I don't have data on that"
+           OR NARRATIVE CONTAINS "Section did not run"
+           OR NARRATIVE STARTS-WITH "ic-engine completed your portfolio
+                                     analysis with [".
+
+       END PROGRAM.
+```
+
+That's not actually executable COBOL — it's a **visualization** of the
+acceptance spec in the form a 1959 COBOL programmer would recognize. The
+real on-disk format is JSON (machine-friendly, see §4.1) but the
+conceptual shape is the same: prompts are data records; expected routes
+are procedure clauses; verdict is the acceptance gate.
+
+The visualization can be machine-generated from `nlq-prompts.json` via
+`tools/emit-cobol.py` (planned alongside the Gherkin emitter in §4.2).
+The JSON stays authoritative; the COBOL view is a reading lens for
+domain experts who want to walk the spec in the original 1959 form.
+
+#### 4.0a How close is the visualization to actual 1959 COBOL?
+
+Honest answer: the DATA DIVISION above is mostly faithful 1959-style
+COBOL; the PROCEDURE DIVISION above is COBOL-*flavored pseudocode* with
+several invented constructs.
+
+**What's authentic** (would parse on a 1959 compiler):
+
+- `IDENTIFICATION DIVISION` / `DATA DIVISION` / `PROCEDURE DIVISION` —
+  the three top-level divisions, in correct order.
+- `WORKING-STORAGE SECTION` — real DATA DIVISION sub-section.
+- `01` group items with `05` subordinate items, level numbers correct.
+- Hyphenated UPPERCASE identifiers, period terminators, free-form
+  area-A/area-B layout (modern compilers relax the strict 7-72 columns).
+- Comment lines starting with `*`.
+
+**What's invented** (would NOT parse on any COBOL compiler):
+
+- `WHEN PROMPT MATCHES P01-HOLDINGS-1` — there's no `WHEN ... MATCHES`
+  construct. COBOL-85 has `EVALUATE` / `WHEN` / `END-EVALUATE` for case
+  branching, and 1959 COBOL uses `IF` / `ELSE`. Both require explicit
+  wrapping.
+- `ON CLAUDE-CODE INVOKE "..."` — `ON` clauses exist (`ON SIZE ERROR`,
+  `ON OVERFLOW`) but not as a generic dispatch construct.
+- `ACCEPT WHEN` / `REJECT WHEN` — `ACCEPT` is a real verb (it reads
+  console input) but not used this way.
+- `STARTS-WITH`, `COUNT EQUALS 0` — string functions like that landed
+  much later (`INSPECT`, `STRING`/`UNSTRING`); 1959 had only `MOVE` and
+  comparison.
+
+So §4.0 is best read as a *visual rendering* — the silhouette of a COBOL
+program — not as something a 1959 IBM 705 would actually compile.
+
+A **strict-1959-style** version of the same spec, using only verbs
+that existed in COBOL-60 (Read / Move / If / Perform / Stop Run / Add /
+Subtract):
+
+```cobol
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. INVESTORCLAW-AGENT-ROUTING.
+       AUTHOR. JASON-PERLOW.
+       INSTALLATION. ARGONAUTSYSTEMS.
+       DATE-WRITTEN. 2026-05-04.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT NLQ-CORPUS-FILE
+               ASSIGN TO "harness/cobol/nlq-prompts.json"
+               ORGANIZATION IS LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  NLQ-CORPUS-FILE.
+       01  CORPUS-RECORD              PIC X(512).
+
+       WORKING-STORAGE SECTION.
+       01  CURRENT-PROMPT.
+           05  PROMPT-ID              PIC X(20).
+           05  PROMPT-TEXT            PIC X(200).
+           05  PROMPT-INTENT          PIC X(40).
+           05  PROMPT-CATEGORY        PIC X(20).
+
+       01  EXPECTED-ROUTE.
+           05  RT-RUNTIME             PIC X(20).
+           05  RT-COMMAND             PIC X(80).
+
+       01  AGENT-RESPONSE.
+           05  IC-RESULT-FLAG         PIC X    VALUE "N".
+               88  IC-RESULT-OK              VALUE "Y".
+           05  HMAC-FLAG              PIC X    VALUE "N".
+               88  HMAC-OK                   VALUE "Y".
+           05  NARRATIVE-CHARS        PIC 9(7) VALUE 0.
+           05  BODY-CHARS             PIC 9(7) VALUE 0.
+           05  REJECTION-COUNT        PIC 9(3) VALUE 0.
+
+       01  VERDICT                    PIC X(4) VALUE "FAIL".
+           88  VERDICT-PASS                  VALUE "PASS".
+
+       01  EOF-FLAG                   PIC X    VALUE "N".
+           88  END-OF-CORPUS                  VALUE "Y".
+
+       PROCEDURE DIVISION.
+
+       MAIN-LINE SECTION.
+           OPEN INPUT NLQ-CORPUS-FILE.
+           PERFORM LOAD-PROMPT
+               UNTIL END-OF-CORPUS.
+           CLOSE NLQ-CORPUS-FILE.
+           STOP RUN.
+
+       LOAD-PROMPT.
+           READ NLQ-CORPUS-FILE INTO CURRENT-PROMPT
+               AT END MOVE "Y" TO EOF-FLAG
+               NOT AT END
+                   PERFORM ROUTE-AGENT
+                   PERFORM SCORE-RESPONSE.
+
+       ROUTE-AGENT.
+           IF PROMPT-ID = "P01-HOLDINGS-1"
+               MOVE "portfolio_view section=holdings" TO RT-COMMAND.
+           IF PROMPT-ID = "P03-PERFORMANCE-1"
+               MOVE "portfolio_view section=performance" TO RT-COMMAND.
+           IF PROMPT-ID = "P04-PERFORMANCE-2"
+               MOVE "portfolio_view section=performance" TO RT-COMMAND.
+           IF PROMPT-ID = "P16-NEWS-MERGER"
+               MOVE "portfolio_market section=news topic=merger"
+                   TO RT-COMMAND.
+           IF PROMPT-ID = "P22-BONDS-DURATION"
+               MOVE "portfolio_view section=bonds topic=duration"
+                   TO RT-COMMAND.
+           PERFORM INVOKE-AGENT-WITH-ROUTE.
+
+       SCORE-RESPONSE.
+           MOVE "FAIL" TO VERDICT.
+           IF IC-RESULT-OK
+              AND HMAC-OK
+              AND NARRATIVE-CHARS NOT LESS THAN 200
+              AND BODY-CHARS NOT LESS THAN 100
+              AND REJECTION-COUNT = 0
+               MOVE "PASS" TO VERDICT.
+
+       INVOKE-AGENT-WITH-ROUTE.
+           DISPLAY "Invoking agent on " RT-RUNTIME " with " RT-COMMAND.
+      *    Real implementation: shells out to the runtime CLI.
+      *    Captures IC-RESULT-FLAG, HMAC-FLAG, *-CHARS, REJECTION-COUNT.
+```
+
+That version uses only verbs that shipped in COBOL-60 (the first
+standard, ratified December 1959): `OPEN` / `CLOSE` / `READ` / `WRITE`
+/ `MOVE` / `IF` / `ELSE` / `PERFORM` / `PERFORM ... UNTIL` / `STOP RUN`
+/ `DISPLAY` / `ADD` / `SUBTRACT`. Level-88 condition names existed.
+`AT END` / `NOT AT END` clauses on `READ` existed. Period terminators
+end statements. `*` indicator in column 7 marks comments.
+
+A 1959 COBOL programmer would recognize this as a small file-processing
+program that reads a corpus, dispatches per record ID, and scores a
+boolean response. The only thing a 1959 programmer would have to imagine
+is the `INVOKE-AGENT-WITH-ROUTE` paragraph — there were no agents to
+dispatch to in 1959.
+
+**Fidelity rating** (relative to COBOL-60 standard):
+
+| Element | §4.0 visualization | §4.0a strict version |
+|---|---|---|
+| Division layout | ✅ correct | ✅ correct |
+| Section structure | ✅ correct | ✅ correct |
+| Level numbers (01/05/88) | ✅ correct | ✅ correct |
+| Period terminators | ✅ correct | ✅ correct |
+| Verbs used | ❌ invents `WHEN MATCHES`, `ACCEPT WHEN`, `STARTS-WITH` | ✅ all from COBOL-60 (OPEN/READ/MOVE/IF/PERFORM/STOP) |
+| File-control + FD | ❌ omitted | ✅ correct |
+| Condition flags | partial | ✅ proper level-88 names |
+| Compilable in 1959? | No | Yes (modulo the `INVOKE` paragraph stub) |
+
+§4.0 is the *poster*; §4.0a is the *program*. Both are useful — the
+poster reads aloud well to a finance audience, the program reads aloud
+well to a COBOL audience.
+
 ### 4.1 Canonical JSON
 
 `nlq-prompts.json` is the canonical exchange format. Each prompt:
