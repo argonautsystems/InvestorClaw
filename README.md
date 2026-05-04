@@ -42,6 +42,24 @@ Cursor, custom MCP clients) at `http://localhost:18090/mcp` with transport
 `streamable-http`. Full setup instructions in
 [mnemos-os/mnemos-ic-runtime/SKILL.md](https://github.com/mnemos-os/mnemos-ic-runtime/blob/main/SKILL.md).
 
+## Why this architecture
+
+- **Two install models, one engine** — the claw runtimes (OpenClaw,
+  ZeroClaw, Hermes) use a dockerized-skill convention (one container,
+  MCP-HTTP, agents are pure clients) because they're daemon-style runtimes
+  without a "workspace" concept. Claude Code uses the same path today,
+  but will eventually get a native-workspace SKILL.md install model
+  layered on top once Anthropic marketplace approval lands. Both consume
+  the same `ic-engine` source. Architectural rationale + diagrams in
+  [`mnemos-ic-runtime/docs/INSTALL_MODELS.md`](https://github.com/mnemos-os/mnemos-ic-runtime/blob/main/docs/INSTALL_MODELS.md).
+- **Cobol determinism testing** — every release ships through the 250-prompt
+  Agentic COBOL regression set with a strict verdict (rejects catalog
+  blurbs, hallucinated portfolio context, and rejection markers). This is
+  the v4.x ship gate. Methodology + empirical narrative in
+  [`mnemos-ic-runtime/docs/COBOL_TESTING.md`](https://github.com/mnemos-os/mnemos-ic-runtime/blob/main/docs/COBOL_TESTING.md);
+  long-form publishable rationale in
+  [`harness/cobol/BLOG_DRAFT_techbroiler.md`](harness/cobol/BLOG_DRAFT_techbroiler.md).
+
 ## Cobol regression harness
 
 `harness/cobol/` is the canonical 250-NLQ regression test set used to validate
