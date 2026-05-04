@@ -1,42 +1,55 @@
 # InvestorClaw Version Management
 
-**Canonical version**: `2.5.0` (defined in `pyproject.toml`).
+**Canonical version**: `4.0.0` (this repo, distribution shell).
 
-Phase 2 of the IC_DECOMPOSITION (v2.3.0) moved the engine into a separate
-package (`ic-engine`). The InvestorClaw repo is now an adapter package; its
-version is the **adapter** version. The CLI version reported by
-`investorclaw --version` comes from the underlying ic-engine.
+The InvestorClaw repo is the v4.x distribution shell — a thin shell around the
+substrate repos that hold the actual code. It tracks its own version
+independently from the substrates.
 
-## Accessing the version
+## Versioning across the v4.x stack
+
+| Repo | Role | Versioning | Source of truth |
+|---|---|---|---|
+| **`InvestorClaw`** (this) | Distribution shell + cobol harness | semver, set in CHANGELOG | `CHANGELOG.md`, this file |
+| **`ic-engine`** | Portfolio math + analyzers | semver, set in `pyproject.toml` | `argonautsystems/ic-engine` |
+| **`mnemos-ic-runtime`** | Container runtime + SKILL.md | image tag (`X.Y.Z-cpu`) | `mnemos-os/mnemos-ic-runtime` |
+| **`clio`** | AI primitives | semver | `argonautsystems/clio` |
+
+A new version of this distribution shell does not require an engine bump or
+runtime bump (and vice versa). The shell's job is to track which versions
+are tested-together and the install URL pointing at the runtime.
+
+## Accessing version info at runtime
 
 ```bash
-# Adapter (this repo) — pyproject.toml
-grep '^version' pyproject.toml
+# This repo's version
+head -5 CHANGELOG.md
 
-# Engine — ic-engine pyproject + __version__
-python3 -c "import ic_engine; print(ic_engine.__version__)"
+# Engine version (running container)
+docker exec ic-engine python3 -c "import ic_engine; print(ic_engine.__version__)"
 
-# CLI
-investorclaw --version
+# Image tag
+docker inspect ic-engine --format '{{.Config.Image}}'
+
+# MCP server version (via tools/list)
+curl -s -X POST http://localhost:18090/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","clientInfo":{"name":"probe","version":"1"},"capabilities":{}}}' \
+  | grep -o '"version":"[^"]*"' | head -1
 ```
 
-## Bumping the version
+## Bumping the distribution shell version
 
-1. Update `version = "..."` in `pyproject.toml`.
-2. Update `version` in `openclaw/skill.json`.
-3. Update the version in `SKILL.toml`, `openclaw/skill.json`, `openclaw.plugin.json`, `package.json`, and `investorclaw.py`.
-4. Tag with `git tag -a vX.Y.Z` and push to nas + gitlab.
+1. Append entry to `CHANGELOG.md` describing what's tracked.
+2. Update this `VERSION.md` if the canonical version line changes.
+3. Tag with `git tag -a vX.Y.Z` and push to argonas + gitlab + github.
+4. Update README.md "Status" table if the engine/image versions changed.
 
-## Adapter vs engine versioning
+The shell version SHOULD bump when:
 
-The adapter and the engine version independently:
+- The cobol regression spec changes (new prompts, different verdict)
+- The README install instructions change (new image registry, new compose URL)
+- The substrate repo URLs change (new namespace, new mirrors)
 
-| Repo            | Versioning             | Source of truth                          |
-| --------------- | ---------------------- | ---------------------------------------- |
-| `InvestorClaw`  | adapter version (this) | `pyproject.toml`                         |
-| `ic-engine`     | engine version         | `ic-engine/pyproject.toml` + `__version__` |
-| `clio`          | foundation version     | `clio/pyproject.toml` + `__version__`    |
-
-A new adapter release does not require an engine bump (and vice versa).
-The adapter declares an engine compatibility range via the dependency pin
-in `pyproject.toml` (currently `ic-engine @ git+...@v2.5.0`).
+The shell version does NOT need to bump for routine engine fixes — those
+ship as new image tags from `mnemos-ic-runtime`.
