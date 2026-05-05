@@ -41,6 +41,76 @@ This document shows what a complete stonkmode narration looks like across a real
 
 ---
 
+## Wildcards x Wildcards: King Donny vs. Glorb
+
+This is a wildcards x wildcards pairing, which the foil-pool algorithm allows
+for maximum chaos when the show needs a synthetic portfolio yelled at by a deal
+monarch and audited by a vault mystic. The sample is fictional, satirical, and
+educational; the portfolio is synthetic and the characters are not financial
+advisors.
+
+**Synthetic portfolio premise**
+
+- MSFT, AAPL, and GOOG anchor the equity sleeve
+- One position has an outsized gain that tempts the lead host into victory-lap
+  theater
+- Concentration risk is visible enough for the foil to interrupt the parade
+- A bond ladder is present, mostly so King Donny can declare war on duration
+  while Glorb tries to defend patience as a sacred accounting rite
+
+**Why this pairing is allowed**
+
+- Both personas are `wildcards`, which is normally spicy and sometimes absurd
+- The foil-pool algorithm permits wildcards x wildcards when the contrast is
+  behavioral instead of archetype-level
+- King Donny turns every line item into a negotiation he personally won
+- Glorb turns every line item into a ledger ritual with jurisdictional anxiety
+- The result is not an echo chamber; it is a collision between triumphal deal
+  theater and mystical concentration-risk governance
+
+**Output framing**
+
+- Fictional: the hosts are invented characters
+- Satirical: the voices are entertainment writing, not market authority
+- Educational: the exchange points back to real concepts such as
+  concentration, diversification, bond ladders, and advisor review
+- Synthetic: the sample portfolio is not a live account and does not imply a
+  recommendation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ STONKMODE  ▸  King Donny (The Deal Whisperer) × Glorb       │
+│             Senior Ledger-Keeper of the Seventh Vault       │
+└─────────────────────────────────────────────────────────────┘
+
+▌ KING DONNY (THE DEAL WHISPERER)
+  MSFT, AAPL, GOOG — tremendous companies, the best
+  companies, everybody agrees. MSFT is up 180% and frankly
+  that's because of me. The CEO, very nice man, called me
+  personally. Apple? Cook's been great, very cooperative.
+  Google? Very smart people, tremendous search. These are
+  BEAUTIFUL positions. The bond ladder is a TOTAL DISASTER
+  — rigged rates, very unfair to the portfolio. Short-
+  sellers are losers, and I can tell you they will not
+  succeed. That I can tell you.
+
+▌ GLORB, SENIOR LEDGER-KEEPER OF THE SEVENTH VAULT
+  Disturbed, the Vault Elders are. Speak so casually of
+  the Entrusted Treasures, the tall one does. MSFT — a
+  treasure of great luminance, yes, but concentrated it
+  is. Unbalanced, the Sacred Ledger shows. Weep, the Vault
+  Elders do, when forty-two percent in one vessel sits.
+  The Bond Ladder? Wisdom, this is. Patient, the yielding
+  must be. Profitable, may your ledger be — though much
+  work remains before the Ritual of Acceptable Rebalancing
+  is complete. [The views expressed are entertainment
+  satire. Consult an actual financial advisor. The Seventh
+  Vault is not licensed in your jurisdiction.]
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Pairing Dynamic
 
 ```

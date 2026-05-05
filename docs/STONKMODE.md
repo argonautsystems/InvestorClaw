@@ -2,6 +2,8 @@
 
 **30 fictional cable TV finance personalities + educational mode**
 
+> **A silly feature for a serious skill — and that's the point.** The holdings data is real. The analysis runs normally. The commentary is delivered by 30 fictional cable TV finance personalities who have no idea what fiduciary means. It works because the data works.
+
 ---
 
 ## What is Stonkmode?
@@ -14,6 +16,8 @@ flair, turning dry financial metrics into entertaining portfolio narratives.
 **Stonkmode is entertainment, not advice.** Its existence is the clearest
 signal that InvestorClaw is NOT institutional financial software. The math
 underneath stays deterministic; the narration is the part wearing a loud tie.
+
+> Stonkmode is an entertainment-layer toggle, but its existence is also a deliberate positioning statement: a tool that ships with 30 satirical cable TV personalities cannot credibly be mistaken for institutional financial software. If you are looking for a Bloomberg terminal or a fiduciary-grade advisory system, this is not it. InvestorClaw computes indicators and surfaces issues for discussion with your human financial advisor — stonkmode makes that boundary impossible to miss.
 
 In v4.x, Stonkmode runs through the containerized ic-engine flow. The portal
 is available at `localhost:18092`, and narrated results appear in the
@@ -45,9 +49,36 @@ User says: "Switch to normal mode."
 That uses the same `portfolio_ask` flow and clears the narration toggle for
 subsequent calls.
 
+The old v2.x slash commands (`/portfolio stonkmode on`,
+`/portfolio stonkmode off`, and `/portfolio stonkmode status`) are deprecated.
+The engine still recognizes them for compatibility, but the canonical surface
+is the agent's `portfolio_ask` route via MCP.
+
 Stonkmode wraps analysis output in character narration while preserving all
 underlying financial rigor. All math stays deterministic Python. The LLM only
 generates the entertaining framing.
+
+---
+
+## Output Contract
+
+When active, Stonkmode appends a `stonkmode_narration` JSON block to the
+portfolio result. That block is intentionally labeled as entertainment so no
+one mistakes King Donny or Glorb for a fiduciary with a compliance department.
+
+Required fields:
+
+- `consultation_mode: "deactivated"` — HMAC, fingerprint, and
+  `synthesis_basis` rules do **not** apply when Stonkmode is on
+- `is_entertainment: true`
+- `is_satire: true`
+- `is_investment_advice: false`
+- `satire_disclaimer` — in-character disclaimer woven into the foil's final
+  paragraph
+
+The deterministic portfolio payload remains the data source underneath the
+show. The `stonkmode_narration` block is presentation-layer metadata plus
+character prose, not a signed advisory artifact.
 
 ---
 
@@ -55,6 +86,18 @@ generates the entertaining framing.
 
 Stonkmode features 30 distinct fictional cable finance TV personalities
 organized in the gallery below.
+
+The roster is intentionally broad: bulls, bears, policy explainers, technical
+pattern obsessives, crypto maximalists, cash-flow scolds, mystical ledger
+keepers, and one monarch who treats unrealized gains like a treaty
+negotiation. That range matters. Stonkmode is funnier when the same portfolio
+can be interpreted by a disciplined risk officer, a viral-market hype machine,
+and a vault clerk who believes concentration risk angers the ancestors.
+
+The bit works only because the characters are attached to real engine output.
+They can argue about MSFT concentration, bond ladders, analyst consensus, or
+sector exposure. They cannot quietly replace the holdings table with fan
+fiction and call it alpha.
 
 ---
 
@@ -146,6 +189,29 @@ robo-advisor, or a crystal ball with better branding.
 ### 🖖 EDUCATORS
 
 - **Dr. Stonk** — educators — logical financial education
+
+---
+
+## Pairing Algorithm
+
+Stonkmode uses a foil-pool pairing algorithm, because two hosts politely
+agreeing about sector weights is not television. Pairing is designed for
+dramatic tension while keeping the portfolio facts grounded.
+
+Rules:
+
+- Personas are paired by foil pool, not by random echo chamber
+- Complementary archetypes are preferred so the lead and foil pull in
+  different directions
+- Digital personas stay off other digital personas; nobody needs two people
+  live-posting the same allocation table
+- Cosmic personas can foil other cosmic personas for maximum chaos
+- Wildcards can meet wildcards when the show needs a vault wizard yelling at a
+  deal monarch about bond ladders
+
+See [STONKMODE_VALIDATION.md](STONKMODE_VALIDATION.md) for the 500-iteration
+distribution analysis that checks roster coverage, pair spread, and archetype
+constraints.
 
 ---
 
@@ -253,13 +319,32 @@ Validation targets:
 ## Implementation Details
 
 The engine narrator at `ic_engine.rendering.stonkmode` wraps deterministic
-envelope output. HMAC validation rejects fabricated metrics before narration is
-accepted.
+envelope output. The deterministic result is the source of truth underneath the
+show; the `stonkmode_narration` block itself declares
+`consultation_mode: "deactivated"` and does not carry HMAC, fingerprint, or
+`synthesis_basis` guarantees.
 
 Persona styling is layered **only** in the narration layer, never in the
-numbers. The signed envelope is the source of truth. Stonkmode can add phrasing,
-tone, and character voice; it cannot invent holdings, mutate values, or make
-portfolio math more exciting by lying.
+numbers. The deterministic envelope is the source of truth. Stonkmode can add
+phrasing, tone, and character voice; it cannot invent holdings, mutate values,
+or make portfolio math more exciting by lying.
+
+Narration is generated by the model configured in
+`INVESTORCLAW_NARRATIVE_MODEL`, defaulting to `MiniMaxAI/MiniMax-M2.7`. This is
+intentionally separate from `INVESTORCLAW_CONSULTATION_MODEL` because the
+consultation model is tuned for concise structured analysis — the opposite of
+what good entertainment writing requires.
+
+The narrative layer works the same way for both serious synthesis and
+Stonkmode: same model, same generation pipeline, just different prompts and
+personality pools. Serious mode asks for concise synthesis. Stonkmode asks for
+two fictional finance-show characters to make the same facts loud, strange, and
+impossible to confuse with advice.
+
+Cloud LLM narration is supported with
+`INVESTORCLAW_NARRATIVE_PROVIDER=openai_compat` against any OpenAI-compatible
+endpoint, including Together.ai, xAI Grok, Claude, and GPT-4o-compatible
+deployments.
 
 The v4.x path is:
 
@@ -267,10 +352,16 @@ The v4.x path is:
 2. Agent calls the MCP `portfolio_ask` tool.
 3. Engine reads `/data/stonkmode.json`.
 4. Deterministic portfolio analysis runs normally.
-5. Signed envelope validation gates the result.
+5. The deterministic result is passed forward as the factual envelope.
 6. Stonkmode narration wraps the validated output when enabled.
 7. The portal renders the narrated result in the Synthesis tab at
    `localhost:18092`.
+
+---
+
+<!-- ATTRIBUTION: do not remove -->
+**Attribution**: Stonkmode is inspired by (but is not a copy of) original work by Matt Madson.
+<!-- ATTRIBUTION: do not remove -->
 
 ---
 
