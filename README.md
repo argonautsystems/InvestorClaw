@@ -304,6 +304,8 @@ InvestorClaw runs as a containerized MCP package for multiple agent runtimes. Cl
 
 Use the Quick Start section to choose a path.
 
+[docs/blog/deterministic-agentic-skill.md](docs/blog/deterministic-agentic-skill.md) - Draft TechBroiler post on deterministic agentic skills and the v4.1.34 container architecture.
+
 ### Supported Agent Runtimes
 
 | Page | What's there |
