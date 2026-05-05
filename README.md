@@ -321,6 +321,7 @@ Use the Quick Start section to choose a path.
 
 | Page | What's there |
 |------|--------------|
+| [docs/DASHBOARD.md](docs/DASHBOARD.md) | Dashboard portal reference for the 17-tab localhost web UI |
 | [docs/MCP_TOOLS_REFERENCE.md](docs/MCP_TOOLS_REFERENCE.md) | MCP tool names, request shapes, and response contracts |
 
 ### Architecture and Design

@@ -525,6 +525,7 @@ InvestorClaw supports three deployment modes.
 
 ### Dashboard / web portal
 
+Full portal reference: [docs/DASHBOARD.md](docs/DASHBOARD.md).
 The deployed web portal runs at `localhost:18092` with 17 tabs:
 Overview · Holdings · Performance · WhatChanged · Scenarios · Bonds ·
 Optimize · Cashflow · Peer · Analyst · News · Markets · Lookup ·
