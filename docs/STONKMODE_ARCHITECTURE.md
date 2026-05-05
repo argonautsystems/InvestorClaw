@@ -12,6 +12,17 @@ Stonkmode is InvestorClaw's **entertainment layer**—a presentation-only system
 
 **Key principle**: Data analysis runs normally. Stonkmode only changes *how results are narrated* to the user.
 
+For the restored user-facing reference, configuration schema, examples, and
+canonical roster pointers, see [STONKMODE.md](STONKMODE.md).
+
+### v4.1.34 Runtime Reality
+
+In v4.1.34, Stonkmode is reached through the containerized MCP-HTTP agent flow:
+the agent calls `portfolio_ask`, ic-engine reads `/data/stonkmode.json`
+(mounted from `~/.investorclaw/stonkmode.json`), and the portal renders the
+result at `localhost:18092` in the Synthesis tab. Legacy slash-command snippets
+are historical context, not the current user path.
+
 ---
 
 ## Architecture Flow
@@ -310,6 +321,9 @@ print(f"Archetype weights: {weights}")
 
 ## References
 
+- **Deep reference**: [STONKMODE.md](STONKMODE.md) (user flow, roster,
+  configuration, examples)
+- **Structured roster**: [STONKMODE_CHARACTER_REFERENCE.json](STONKMODE_CHARACTER_REFERENCE.json)
 - **Personas**: `rendering/stonkmode_personas.py` (30 characters + archetypes)
 - **Pairings**: `rendering/stonkmode_pairings.py` (archetype pools, foil rules, 100+ dynamics)
 - **Dashboard**: `commands/dashboard.py` (market detection, weighting, narration)

@@ -1,6 +1,6 @@
 # Stonkmode — Entertainment Mode + Dr. Stonk Financial Education
 
-**v4.1.34** | 30 fictional cable TV finance personalities + educational mode
+30 fictional cable TV finance personalities + educational mode
 
 ---
 
@@ -45,9 +45,25 @@ Turn off stonkmode.
 
 ---
 
+## Deep Reference
+
+This top-level file is the short entry point. For the complete Stonkmode
+reference set, see:
+
+- [docs/STONKMODE.md](docs/STONKMODE.md) — deep user-facing reference,
+  configuration, examples, validation notes
+- [docs/STONKMODE_CHARACTER_REFERENCE.json](docs/STONKMODE_CHARACTER_REFERENCE.json)
+  — structured canonical roster
+- [docs/STONKMODE_ARCHITECTURE.md](docs/STONKMODE_ARCHITECTURE.md) —
+  implementation architecture
+- [docs/STONKMODE_AVATAR_LEGEND.md](docs/STONKMODE_AVATAR_LEGEND.md) —
+  persona grid and avatar legend
+
+---
+
 ## The 30 Personas
 
-Stonkmode includes personalities across five archetypes:
+Stonkmode includes personalities across eight fictional-host archetypes:
 
 **HIGH ENERGY** (3): Blitz Thunderbuy, Brick "Diamond Hands"
 Stonksworth, Sal "The Pit" Decibelli
@@ -62,14 +78,17 @@ Cashflow
 **POLICY VETERANS** (2): Biff Chadsworth III, Skip "Well, Actually"
 Contrarian
 
-**HUMOR** (5): Professor What?, Penny "The Algorithm" Stock, Zeke
-"YOLO" Riskowitz, Isabella "Vibe Check" Sentiment, Chad "Calls Only"
-Bullion
+**WILDCARDS** (10): Dorin Goleli, ARIA-7, Professor Digby Goldbug,
+Chaz "The Razor" Leveridge, Lafayette "$tacks" Beaumont, Glorb, King
+Donny, Zsa Zsa Von Portfolio, Wendell "The Pattern" Pruitt,
+Professor What?
 
-**SPECIALTY** (7): Rashida "ESG Mandate" Williams, Koji "Yield Curve"
-Tanaka, Margot "Rebalance" Dutoit, Felix "Carry Trade" Leverage,
-Priya "Margin" Malhotra, Wolfgang "Volatility Surface" Heisenberg,
-Nora "Market Hours" Overnight
+**COSMIC** (2): Chico "The Vibe" Reyes, "Far Out" Farley McGee
+
+**DIGITAL** (3): Krystal "The Receipt" Kash, Zara "Viral" Zhao,
+Priya "HODL" Sharma
+
+**BEARS** (2): Victor "The Vulture" Voss, Hans-Dieter Braun
 
 **EDUCATORS** (1): Dr. Stonk — Spock-like persona for financial
 education explanations
@@ -173,6 +192,9 @@ the persona narration. The deterministic pipeline runtime is unchanged.
 
 - [docs/STONKMODE_ARCHITECTURE.md](docs/STONKMODE_ARCHITECTURE.md) —
   full pipeline, market-condition detection, archetype weighting
+- [docs/STONKMODE.md](docs/STONKMODE.md) — deep Stonkmode reference
+- [docs/STONKMODE_CHARACTER_REFERENCE.json](docs/STONKMODE_CHARACTER_REFERENCE.json)
+  — structured persona roster
 - [docs/STONKMODE_AVATAR_LEGEND.md](docs/STONKMODE_AVATAR_LEGEND.md) —
   30-persona avatar grid reference
 - [SKILL.md](SKILL.md) — agent-readable spec, model recommendations,
