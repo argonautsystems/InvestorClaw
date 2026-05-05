@@ -1,68 +1,96 @@
 # Security Policy
 
-## Supported versions
+## Reporting a Vulnerability
 
-| Version | Supported |
-|---------|-----------|
-| Latest `main` | Yes |
-| Older releases | No — update to `main` |
+If you believe you've found a security issue in InvestorClaw, please
+email &lt;jperlow@gmail.com&gt; rather than opening a public issue.
+Coordinated disclosure helps keep users safe while a fix is prepared.
 
----
+A useful report typically includes:
 
-## Reporting a vulnerability
+- The version of `mnemos-os/mnemos-ic-runtime` and the
+  `ghcr.io/argonautsystems/ic-engine:*` image tag in use
+- A concise description of what you observed
+- Reproduction steps or proof-of-concept
+- Logs or `docker inspect` output that helps validate the issue
 
-**Do not open a public GitLab issue for security vulnerabilities.**
+We acknowledge reports promptly, investigate in good faith, and
+coordinate disclosure timing with reporters.
 
-Email the maintainer directly, or open a
-[confidential issue on GitLab](https://gitlab.com/argonautsystems/InvestorClaw/new?confidential=true)
-(private disclosure).
+## Coordinated disclosure timeline
 
-Include:
-- A description of the vulnerability and its potential impact
-- Steps to reproduce (or a proof-of-concept, if applicable)
-- The version or commit hash where you observed it
+For high-severity issues we will:
 
-We aim to acknowledge reports within 3 business days and provide a fix or
-mitigation plan within 14 days for confirmed vulnerabilities.
-
----
-
-## Personal and financial data
-
-InvestorClaw processes personal portfolio data (holdings, prices, account names).
-The following rules apply to all contributors and all code in this repository:
-
-**Never commit to this repository:**
-- Personal account names, brokerage account IDs, or institution names paired
-  with personal quantities
-- Specific holdings quantities (share counts, dollar values, cost basis)
-- Portfolio snapshots or exported CSV/XLS files containing real holdings
-- API keys, tokens, or credentials of any kind (use `.env`, never committed)
-- Any file whose content could identify a real individual's financial position
-
-The `.gitignore` excludes `.env`, `~/portfolios/`, and `~/portfolio_reports/`.
-These exclusions must not be removed.
-
-**Sample / test data:**
-Any sample data committed to the repository must use entirely fictional symbols,
-quantities, and values with no resemblance to any real person's portfolio.
-
----
+1. Acknowledge within 5 business days
+2. Confirm reproduction within 10 business days where possible
+3. Coordinate a fix timeline with the reporter
+4. Credit the reporter in `CHANGELOG.md` (with their permission) when
+   the fix ships
 
 ## Scope
 
-| In scope | Out of scope |
-|----------|-------------|
-| Injection vulnerabilities in CSV/PDF parsing | Issues with third-party APIs (yfinance, Finnhub, etc.) |
-| PII/financial data leakage in outputs or logs | Rate-limit behavior of external providers |
-| Prompt injection via portfolio text columns | OpenClaw gateway security (report to OpenClaw) |
-| Disclaimer bypass or guardrail circumvention | Broker portal or brokerage account security |
-| Dependency vulnerabilities (`requirements.txt`) | |
+In scope:
 
----
+- The `mnemos-ic-runtime` Docker image (bridge code, dashboard,
+  Dockerfile)
+- The `ghcr.io/argonautsystems/ic-engine:*` image
+- The bundled `compose.yml`, `install.yaml`, and `SKILL.md`
+- Per-runtime install paths under `agent-skills/**`
 
-## Dependency security
+Out of scope (please report to the upstream maintainers):
 
-Run `pip audit` or `safety check` to scan for known CVEs in dependencies before
-contributing changes to `requirements.txt`. Pull requests that introduce
-dependencies with known critical or high CVEs will not be merged.
+- The `argonautsystems/ic-engine` Python source — file at
+  https://github.com/argonautsystems/ic-engine/issues
+- Third-party providers the engine talks to (Together AI, Finnhub,
+  Polygon, etc.) — see their respective security pages
+
+## Security posture
+
+InvestorClaw is built around a tight, minimal-surface security model:
+
+- **Localhost-only by default.** The MCP server and dashboard bind
+  exclusively to `127.0.0.1` — no external network surface.
+- **Read-only by design.** InvestorClaw never executes trades, moves
+  money, or authenticates to any brokerage account. It analyzes
+  broker-export files the user voluntarily places in the portfolio
+  directory.
+- **Deterministic computation.** All portfolio math runs in
+  Python — never an LLM — so numerical results are reproducible and
+  auditable. The signed envelope underlying every response carries an
+  HMAC fingerprint that proves the response came from the engine,
+  not a fabricated source.
+- **Non-root container.** The engine process runs as `uid=1000(ic)`
+  inside the container, not root.
+- **API keys stay local.** Provider keys persist to `/data/keys.env`
+  (mode 0600) inside a named Docker volume — managed via the
+  allowlisted `portfolio_keys_set` / `portfolio_keys_delete` REST
+  endpoints, never logged in plain text.
+- **Image pinned by digest.** `compose.yml` references the engine
+  image by sha256 digest, guaranteeing reproducible builds even if
+  the tag is later mutated.
+- **Open-source + auditable.** Bridge / Dockerfile / dashboard /
+  tests are Apache 2.0; distribution-edge artifacts (`SKILL.md`,
+  `compose.yml`, `install.yaml`, `agent-skills/**`) are MIT-0. Every
+  file can be reviewed before deployment.
+- **Data flow control.** The user controls what leaves the machine.
+  No telemetry, no analytics, no phone-home. With a local LLM
+  endpoint configured, no prompt or envelope leaves the local
+  network. See [`PRIVACY.md`](PRIVACY.md) for the full data-flow
+  matrix.
+
+## Hardening for shared / production deployments
+
+The defaults above suit single-user installs on a personal machine.
+For shared or production deployments, consider:
+
+- Run the host with regular OS-level patching and a host firewall
+  that allows only the loopback interface to reach `:18090` / `:18092`
+- For remote access, front the service with Tailscale / nginx + mTLS
+  / your VPN of choice — InvestorClaw stays bound to loopback inside
+  the container
+- Rotate `TOGETHER_API_KEY` (and other provider keys) regularly via
+  `portfolio_keys_set`
+- Pin to the sha256 digest in `compose.yml` (default) and
+  re-validate the digest when upgrading
+- Review `compose.yml` and `SKILL.md` before each install — both are
+  intentionally short and human-readable

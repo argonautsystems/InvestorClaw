@@ -1,46 +1,56 @@
-# Disclaimer
+## Important Disclaimer
 
-InvestorClaw is financial software intended for portfolio analysis, market data
-review, and narrative exploration. Use it with care and independently verify
-all outputs before relying on them.
+**InvestorClaw is an educational analysis tool.** It is NOT financial advice
+and NOT provided by a fiduciary advisor.
 
-## Educational Use Only
+**Before acting on any recommendation:**
+- Discuss these findings with your qualified financial advisor
+- Verify all data and calculations align with your actual holdings
+- Consider your full financial situation, not just this portfolio
 
-InvestorClaw is provided for educational and informational use only. It is not
-investment, legal, tax, accounting, or financial planning advice. The project,
-maintainers, contributors, software outputs, model responses, examples, and
-documentation do not create a fiduciary duty or advisory relationship with any
-user.
+*No action should be taken based solely on InvestorClaw analysis.*
 
-You are solely responsible for investment decisions, trading decisions,
-portfolio construction, risk management, compliance obligations, and any losses
-or consequences resulting from use of this software.
-
-## No Warranty
-
-InvestorClaw is provided "as is" and "as available" without warranties of any
-kind, express or implied, including but not limited to warranties of accuracy,
-availability, completeness, merchantability, fitness for a particular purpose,
-title, and non-infringement.
-
-Market data, economic data, provider responses, generated narratives, and
-derived calculations may be delayed, incomplete, stale, incorrect, or
-unavailable. Do not treat any output as authoritative.
+InvestorClaw never executes trades, never moves money, and never connects
+to brokerage accounts. It is a read-only analysis tool that operates on
+broker-export files (CSV / XLS / XLSX / PDF / screenshots) the user
+voluntarily places in the portfolio directory.
 
 ## Provider Data Flows
 
-Depending on configuration, InvestorClaw may send prompts, queries, portfolio
-context, ticker symbols, or other user-provided inputs to third-party or local
-providers. Review each provider's terms and privacy practices before enabling
-the corresponding integration.
+InvestorClaw v4.x ships as a Docker Compose stack and exposes its
+analytical capabilities to your agent over MCP-HTTP at `localhost:18090`.
+Different parts of a typical request leave the local machine on different
+paths, depending on what the user has configured:
 
-Provider data flows include:
+- **Narrative LLM** — Prompts and the signed JSON envelope are sent to
+  the configured narrative provider (Together AI by default —
+  `google/gemma-4-31B-it`). The endpoint is set via
+  `INVESTORCLAW_NARRATIVE_ENDPOINT` and the API key via
+  `TOGETHER_API_KEY` (or other provider key).
+- **Optional consultative model** — Only enabled when
+  `INVESTORCLAW_CONSULTATION_ENABLED=true`. Off by default. When on,
+  heavier synthesis prompts go to the configured consult endpoint
+  (typically a local model server on the user's GPU; can be a cloud
+  provider).
+- **Market-data providers** — Quotes, news, analyst ratings, FRED yield
+  curve, etc. flow to NewsAPI, Finnhub, Alpha Vantage, FRED, MarketAux,
+  and Polygon (via Massive) **only when the user supplies the
+  corresponding API keys**. Without keys, InvestorClaw falls back to
+  free `yfinance` queries (no auth, no key, but rate-limited).
+- **Portfolio CSV / XLS / PDF data** stays local in the bind-mounted
+  `./portfolios/` directory. Only computed summaries (the signed JSON
+  envelope) and the user's question are sent to the narrative provider —
+  not raw broker files.
 
-* Together AI: default LLM narrative.
-* Google AI Studio: optional consult.
-* local llama.cpp: optional consult.
-* NewsAPI: market news when key configured.
-* Finnhub: market data when key configured.
-* Alpha Vantage: market data when key configured.
-* FRED: economic data when key configured.
-* Polygon-via-Massive: market data when key configured.
+Account numbers and Social Security numbers are scrubbed at ingest time
+before any data leaves the container. See `PRIVACY.md` for the complete
+data-handling policy.
+
+## See also
+
+- `PRIVACY.md` — full data-handling policy, what stays local vs what is
+  sent to which provider
+- `SECURITY.md` — vulnerability-disclosure path
+- `SKILL.md` — agent-readable install and usage spec
+- `LICENSE` — Apache 2.0 (substantive code) and MIT-0 (distribution-edge
+  artifacts)

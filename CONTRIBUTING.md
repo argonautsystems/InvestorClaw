@@ -1,173 +1,79 @@
-# Contributing to InvestorClaw
+# Contributing to mnemos-ic-runtime (InvestorClaw v4.x)
 
-**Status**: Open for contributions  
-**Last Updated**: April 16, 2026
+InvestorClaw v4.x is split across three repositories. Pick the right
+one for your contribution:
 
----
+| Layer | Repository | What lives here |
+|---|---|---|
+| **Engine source** | [`argonautsystems/ic-engine`](https://github.com/argonautsystems/ic-engine) | Python portfolio analyzers, FINOS-CDM-inspired data model, deterministic computation |
+| **Runtime + skill** (this repo) | [`mnemos-os/mnemos-ic-runtime`](https://github.com/mnemos-os/mnemos-ic-runtime) | Docker image build, MCP-HTTP bridge, dashboard, agent skill files, ClawHub-publishable distribution-edge artifacts |
+| **AI primitives** | [`argonautsystems/clio`](https://gitlab.com/argonautsystems/clio) | Schema-map, normalize, vision-extract |
 
-## Welcome! 👋
+If you're not sure which repo your change belongs in, file an issue
+here first; we'll redirect.
 
-Thank you for your interest in contributing to InvestorClaw. This document explains how to contribute code, report bugs, suggest features, and participate in the community.
+## At minimum
 
----
+- **License compatibility** — substantive code (bridge, dashboard,
+  Dockerfile, tests) must be Apache 2.0–compatible. Distribution-edge
+  artifacts (`SKILL.md`, `compose.yml`, `install.yaml`,
+  `agent-skills/**`) must stay MIT-0 — required by ClawHub schema.
+- **Conventional Commits** — use the
+  [Conventional Commits](https://www.conventionalcommits.org/) spec
+  (e.g. `feat(bridge):`, `fix(skill):`, `docs:`).
+- **Tests pass** — for bridge changes, the bridge unit tests under
+  `bridge/` must remain green. For engine-affecting changes, the
+  Agentic COBOL regression in `harness/cobol/` must hold its baseline
+  pass rate (≥ 245/250).
+- **Don't push directly to main** — open a PR for review. CI on the
+  GitLab mirror will run lint + tests.
 
-## Quick Start
-
-### For Bug Reports
-1. Check [existing issues](https://gitlab.com/argonautsystems/InvestorClaw/-/issues)
-2. Create a new issue with: title, description, steps to reproduce, expected vs actual behavior
-3. Include: Python version, OpenClaw version, error logs
-
-### For Feature Suggestions
-1. Open an issue labeled `enhancement`
-2. Describe the feature and use case
-3. Explain how it fits the InvestorClaw vision
-
-### For Code Contributions
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Make changes following our code style
-4. Write tests for new functionality
-5. Create a pull request with description of changes
-
----
-
-## Licensing & Legal
-
-InvestorClaw uses a **dual license model**:
-
-- **Free Tier**: Apache 2.0 + Commons Clause (non-commercial use)
-- **Commercial Tier**: Proprietary (commercial use)
-
-**All contributions are made under the Apache 2.0 license** for the free tier, with the understanding that:
-
-1. Your contribution may be included in commercial products
-2. InvestorClaw may be relicensed commercially
-3. You grant InvestorClaw full rights to your contribution
-4. You retain the right to use your contribution (non-exclusive)
-
----
-
-## Contribution Scope
-
-### ✅ Welcome Contributions
-
-- Portfolio analysis improvements (holdings, performance, risk)
-- Data provider integrations (Finnhub, Alpha Vantage, Polygon, etc.)
-- Performance optimizations for large portfolios
-- Unit tests and integration tests
-- API documentation and user guides
-- Bugfixes and security patches
-
-### ❌ Not Open for Contribution
-
-- Premium tier features (tax optimization, advisor mode, multi-portfolio)
-- UI/frontend changes (OpenClaw integration)
-- Commercial features (require commercial license)
-
-Premium features should be proposed via: licensing@investorclaw.io
-
----
-
-## Code Style
-
-We follow **PEP 8** with:
-- Type hints: Required for all functions
-- Docstrings: Google style, required for public functions
-- Line length: Max 100 characters
-- Testing: 85%+ coverage for new code
-
-### Format & Lint
+## Building the container locally
 
 ```bash
-black investorclaw/ --line-length=100
-flake8 investorclaw/ --max-line-length=100
-mypy investorclaw/ --strict
-pytest tests/ -v --cov
+git clone https://github.com/mnemos-os/mnemos-ic-runtime.git
+cd mnemos-ic-runtime
+docker build -t ic-engine:dev --build-arg IC_ENGINE_REF=main .
 ```
 
----
+Then test:
 
-## Pull Request Process
-
-1. Fork and create feature branch
-2. Make changes with tests
-3. Run: `black`, `flake8`, `mypy`, `pytest`
-4. Write PR description (use template below)
-5. GitHub Actions will run automated tests
-6. Team reviews and approves
-7. Merged to main
-
-### PR Template
-
-```markdown
-## Summary
-[Brief description]
-
-## Type
-- [ ] Bug fix
-- [ ] Feature
-- [ ] Documentation
-- [ ] Refactoring
-
-## Related Issue
-Closes #123
-
-## Changes
-- Change 1
-- Change 2
-
-## Testing
-- [ ] Added unit tests
-- [ ] All tests pass
-- [ ] Tested with sample data
-
-## Documentation
-- [ ] Updated docs if needed
-- [ ] Added docstrings
+```bash
+mkdir -p portfolios
+docker run --rm -p 18090:8090 -p 18092:8092 \
+  -v $(pwd)/portfolios:/data/portfolios \
+  ic-engine:dev
 ```
 
----
+## Reporting bugs and feature requests
 
-## Bug Reports & Features
+- **Bugs**: open an issue with reproduction steps, version, and
+  platform (host OS, Docker version, agent runtime).
+- **Security-sensitive reports**: see [SECURITY.md](SECURITY.md) — do
+  not open a public issue.
+- **Feature requests**: open an issue describing the use case before
+  writing code.
 
-**Bug Report**: Include steps to reproduce, environment info, error logs  
-**Feature Request**: Problem statement, proposed solution, use cases
+## Documentation contributions
 
----
+Doc-only PRs are welcome. The `SKILL.md` is the agent-readable spec
+that ClawHub publishes — keep its frontmatter intact and the structure
+agent-friendly. The `README.md` is the human-facing entry point — keep
+it concise and link out for depth.
 
-## Community Standards
+## Architectural changes
 
-We follow the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/).
+For non-trivial architectural changes, file an RFC under
+`docs/RFC-v<n>.md` first; use [`RFC-v0.1.md`](RFC-v0.1.md) as a
+template. RFCs go through the same PR review as code changes.
 
-Violations: conduct@investorclaw.io
+## Commit author identity
 
----
+Commit author email must match the contributor's public OSS identity.
+Employer-affiliated email addresses are not appropriate for OSS
+contributions to this project — use a personal address.
 
-## Getting Help
+## Code of Conduct
 
-- **Questions**: [GitHub Discussions](https://gitlab.com/argonautsystems/InvestorClaw/discussions)
-- **Bugs**: [GitHub Issues](https://gitlab.com/argonautsystems/InvestorClaw/-/issues)
-- **Email**: support@investorclaw.io
-
----
-
-## Recognition
-
-Contributors are credited in:
-- `CONTRIBUTORS.md`
-- Release notes
-- GitHub contributors page
-
----
-
-## Contact
-
-- **Maintainer**: Jason Perlow (@perlowja)
-- **Issues**: [GitHub Issues](https://gitlab.com/argonautsystems/InvestorClaw/-/issues)
-- **Discussions**: [GitHub Discussions](https://gitlab.com/argonautsystems/InvestorClaw/discussions)
-- **Support**: support@investorclaw.io
-
----
-
-Thank you for contributing! 🚀
+All contributors are expected to follow the
+[Code of Conduct](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1).
