@@ -12,8 +12,8 @@ bind-mounted `./portfolios/`.
 
 # Input Contract
 
-Supported portfolio file types: CSV, Excel (`.xls`, `.xlsx`). Place files in
-`portfolios/` or `$INVESTOR_CLAW_PORTFOLIO_DIR`.
+Supported portfolio file types: `.csv .tsv .xls .xlsx .pdf .json .ofx .qfx`.
+Place files in `portfolios/` or `$INVESTOR_CLAW_PORTFOLIO_DIR`.
 
 ## Auto-detected column names
 

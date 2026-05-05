@@ -314,6 +314,10 @@ shipped in the v2.1.0 default install. The `/investorclaw:ic-dashboard`
 slash command is moved to `claude/commands/_incomplete/` and is not
 available after a standard marketplace install.
 
+**v4.x correction:** the 17-tab web dashboard portal is fully deployed
+in v4.1.34 at port 18092 with a Regenerate button and Settings file
+upload.
+
 **Signal to use this response:** if you try `/portfolio dashboard` and
 get back `❌ Unknown command: dashboard` (or an equivalent "dashboard
 not available" signal from the skill router), switch to this canonical

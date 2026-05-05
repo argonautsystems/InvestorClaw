@@ -10,7 +10,7 @@ methodology, and data-source rules are identical.
 
 # InvestorClaw Capabilities
 
-v4.1.x | Financial Analysis + Data Connectivity | For portfolio owners, advisors, and developers
+v4.1.34 | Financial Analysis + Data Connectivity | For portfolio owners, advisors, and developers
 
 ## InvestorClaw Architecture
 
@@ -345,9 +345,11 @@ InvestorClaw imports portfolio data from multiple formats.
 Supported formats:
 
 - CSV (preferred): Schwab, Fidelity, Vanguard, UBS, E*TRADE export formats
+- TSV: Tab-delimited broker exports
 - Excel (.xls, .xlsx): Auto-detected columns (Symbol, Shares, Price, Cost Basis)
 - PDF: Broker statements (tabular data extraction)
 - JSON: FINOS CDM standard (machine-generated)
+- OFX / QFX: Bank and broker transaction exports
 
 InvestorClaw detects formats automatically.
 
@@ -374,19 +376,23 @@ InvestorClaw supports three update modes.
 
 #### On-demand
 
-Use this mode to fetch the latest prices immediately.
+Use this mode to fetch the latest prices immediately through the
+containerized MCP service.
 
 ```bash
-portfolio_holdings --refresh
+curl -sS -X POST http://127.0.0.1:18090/api/portfolio/holdings \
+  -H 'Content-Type: application/json' -d '{"refresh": true}'
 # Fetches latest prices immediately
 ```
 
 #### Cached
 
-Use this mode to reuse prices from the last fetch.
+Use this mode to reuse prices from the last fetch through the
+containerized MCP service.
 
 ```bash
-portfolio_holdings
+curl -sS -X POST http://127.0.0.1:18090/api/portfolio/holdings \
+  -H 'Content-Type: application/json' -d '{}'
 # Uses cached prices from last fetch (faster, cheaper on API quota)
 ```
 
@@ -396,7 +402,7 @@ Use this mode for background refreshes.
 
 - Zeroclaw daemon can refresh every N minutes.
 - Useful for dashboards.
-- Not required for CLI.
+- Not required for direct MCP/REST asks.
 
 ### News and Sentiment Aggregation
 
@@ -468,9 +474,9 @@ InvestorClaw checks API keys in a fixed order.
 This source has the highest priority.
 
 ```bash
-export FINNHUB_KEY="pk_live_xxx"
-export NEWSAPI_KEY="xxx"
-investorclaw holdings  # Uses FINNHUB_KEY
+export FINNHUB_API_KEY="pk_live_xxx"
+export NEWSAPI_API_KEY="xxx"
+# Containerized MCP service reads configured provider keys
 ```
 
 #### 2. `.env` file
@@ -479,9 +485,14 @@ InvestorClaw checks your home directory next.
 
 ```bash
 ~/.investorclaw/.env
-FINNHUB_KEY=pk_live_xxx
-NEWSAPI_KEY=xxx
+TOGETHER_API_KEY=xxx
+OPENAI_API_KEY=xxx
+FINNHUB_API_KEY=pk_live_xxx
+NEWSAPI_API_KEY=xxx
 FRED_API_KEY=xxx
+ALPHA_VANTAGE_API_KEY=xxx
+MASSIVE_API_KEY=xxx
+MARKETAUX_API_KEY=xxx
 ```
 
 #### 3. Setup wizard config
@@ -489,8 +500,10 @@ FRED_API_KEY=xxx
 InvestorClaw can collect keys during first-run setup.
 
 ```bash
-investorclaw setup
-# Prompts for optional API keys, saves to ~/.investorclaw/config.toml
+curl -sS -X POST http://127.0.0.1:18090/api/portfolio/keys_set \
+  -H 'Content-Type: application/json' \
+  -d '{"keys":{"TOGETHER_API_KEY":"xxx"}}'
+# Saves optional API keys to the containerized MCP service
 ```
 
 #### 4. Fallback
@@ -499,7 +512,8 @@ InvestorClaw still works with no keys.
 
 ```bash
 # Uses yfinance (unlimited, free, no registration)
-investorclaw holdings
+curl -sS -X POST http://127.0.0.1:18090/api/portfolio/holdings \
+  -H 'Content-Type: application/json' -d '{}'
 ```
 
 > [!NOTE]
@@ -508,6 +522,15 @@ investorclaw holdings
 ### Deployment Modes
 
 InvestorClaw supports three deployment modes.
+
+### Dashboard / web portal
+
+The deployed web portal runs at `localhost:18092` with 17 tabs:
+Overview · Holdings · Performance · WhatChanged · Scenarios · Bonds ·
+Optimize · Cashflow · Peer · Analyst · News · Markets · Lookup ·
+Synthesis · Reports · Settings · About. The Regenerate button fires
+`setup → refresh → 12 analyzers` as a background sweep, and the Settings
+upload form accepts `.csv .tsv .xls .xlsx .pdf .json .ofx .qfx`.
 
 #### Single-Investor
 

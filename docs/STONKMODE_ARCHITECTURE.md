@@ -1,7 +1,7 @@
 # 📺 Stonkmode Architecture
 
 **Status**: Production Ready  
-**Version**: 2.0.0  
+**Version**: v4.1.34  
 **Last Updated**: 2026-04-19
 
 ---
@@ -204,13 +204,13 @@ Even in strong bull market (weighted: high_energy 26%, digital 32.5%), all 8 arc
 ### Dashboard Refresh Lifecycle
 
 ```
-User clicks [⟳ Refresh] button
+User clicks [Regenerate] button
         ↓
-POST /api/refresh endpoint
+POST /api/portfolio/initialize endpoint
         ↓
-subprocess: portfolio_complete.py --auto
+setup → refresh → 12 analyzers background sweep
         ↓
-  Regenerates: complete_analysis.json (7 dimensions)
+  Regenerates: dashboard data across 17 portal tabs
         ↓
 subprocess: dashboard.py --auto --stonkmode
         ↓
@@ -222,7 +222,7 @@ subprocess: dashboard.py --auto --stonkmode
         ↓
 Returns: dashboard_path, generated_at
         ↓
-Browser: Reloads dashboard.html with fresh narration
+Browser: Updates the port-18092 dashboard with fresh narration
 ```
 
 ---
@@ -245,9 +245,9 @@ Browser: Reloads dashboard.html with fresh narration
 ## 10. Backwards Compatibility
 
 **Fallback behavior** (if stonkmode unavailable):
-- Dashboard still renders (no narration panel, no Market Commentary tab)
+- Dashboard still renders on port 18092 (no narration panel)
 - Dr. Stonk commentary absent
-- Refresh button works (no stonkmode regeneration)
+- Regenerate button works (no stonkmode regeneration)
 - All 7 dimension analyses intact
 
 **Feature flag**: `INVESTORCLAW_STONKMODE_DISABLED=true` disables stonkmode globally.
@@ -313,5 +313,5 @@ print(f"Archetype weights: {weights}")
 - **Personas**: `rendering/stonkmode_personas.py` (30 characters + archetypes)
 - **Pairings**: `rendering/stonkmode_pairings.py` (archetype pools, foil rules, 100+ dynamics)
 - **Dashboard**: `commands/dashboard.py` (market detection, weighting, narration)
-- **HTML template**: `rendering/pwa/dashboard.html` (4-tab UI + narration panel)
+- **HTML template**: `rendering/pwa/dashboard.html` (17-tab UI + narration panel)
 - **App logic**: `rendering/pwa/assets/app.js` (renderStonkmodeNarration)

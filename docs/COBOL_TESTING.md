@@ -444,6 +444,10 @@ at a time. Each ship landed against the same 250-prompt corpus:
   ownership signal forcing portfolio-strict for advice-style questions).
 - **v4.1.17:** Classifier fix (CONCEPT-STEM + NA-METRIC overrides ahead of
   OWNERSHIP) baked in. Pass rate 245-249/250 = 98-99% on baked images.
+- **v4.1.34:** 30-NLQ test suite refreshed against the deployed 17-tab
+  dashboard portal. The suite reached a **29/30 PASS** milestone with
+  the port-18092 web portal, Regenerate workflow, and Settings upload
+  surface in scope.
 
 The pattern is consistent: **each ship is gated by the same 250 prompts,
 the same strict verdict, the same multi-trial cobol harness.** Visible

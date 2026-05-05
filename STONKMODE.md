@@ -1,6 +1,6 @@
 # Stonkmode — Entertainment Mode + Dr. Stonk Financial Education
 
-**v1.0.1** | 30 fictional cable TV finance personalities + educational mode
+**v4.1.34** | 30 fictional cable TV finance personalities + educational mode
 
 ---
 

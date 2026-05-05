@@ -8,7 +8,7 @@
 
 Portfolio analysis and market intelligence for any MCP-capable agent.
 
-v4.1.x | Apache 2.0 + MIT-0 | Educational Use Only
+v4.1.34 | Apache 2.0 + MIT-0 | Educational Use Only
 
 InvestorClaw is a deterministic-first portfolio analyzer that does real
 money math: holdings snapshots, performance metrics (Sharpe + Sortino,
@@ -56,16 +56,22 @@ HMAC-signed envelope answer; it does not guess financial metrics.
 
 ## Quick Start
 
+ClawHub (Claw family):
+
 ```bash
-git clone https://github.com/mnemos-os/mnemos-ic-runtime.git ~/.investorclaw
-cd ~/.investorclaw
-mkdir -p portfolios     # IMPORTANT: pre-create so docker doesn't auto-create as root
-docker compose up -d    # uses the bundled compose.yml
+clawhub install perlowja/investorclaw
+```
+
+Claude Code (marketplace pending):
+
+```text
+/plugin marketplace add https://gitlab.com/argonautsystems/InvestorClaude.git
+/plugin install investorclaw@investorclaude
 ```
 
 That's it. The compose pulls
-`ghcr.io/argonautsystems/ic-engine:4.1.25-cpu` (publicly hosted, no
-auth) and runs it on `localhost:18090` (MCP + REST) and
+`ghcr.io/argonautsystems/ic-engine:4.1.34-cpu@sha256:7f07d516f107260b4518b6ceb7b074761843f0d7abab99d55298215e1d4cc9a9`
+(publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and
 `localhost:18092` (dashboard).
 
 After the container reports `init_state: ready`, ask your first
@@ -148,7 +154,7 @@ have moved:
 Refresh my portfolio.
 ```
 
-## Available MCP Tools (12 Total)
+## Available MCP Tools (13 Total)
 
 | Tool | Purpose |
 |---|---|
@@ -164,8 +170,9 @@ Refresh my portfolio.
 | `portfolio_response_get` | Retrieve a stored portfolio response by run_id |
 | `portfolio_response_list` | List recent stored responses |
 | `portfolio_response_delete` | Permanently delete a stored response |
+| `portfolio_response_flag_bad` | Flag a previous engine response as bad/incorrect for quality tracking |
 
-All 12 tools also have plain-HTTP REST endpoints at
+All 13 tools also have plain-HTTP REST endpoints at
 `http://127.0.0.1:18090/api/portfolio/*` — useful when MCP integration
 is flaky or you want to drive the engine from a shell.
 
@@ -182,10 +189,17 @@ but are available for power users:
 | `GET /api/portfolio/tools` | Self-describing tool catalog |
 | `POST /api/portfolio/keys_set` | Set provider keys without restart |
 
-The `dashboard` at `localhost:18092` is a single-page HTML UI with
-tabs for Holdings · Performance · Bonds · Analyst · News · Cashflow ·
-Optimize · Synthesis · What-changed · Tax · Scenarios · Peer · Reports
-· Settings · About.
+## Dashboard / web portal
+
+The dashboard / web portal runs at `localhost:18092`. It is a
+single-page HTML UI with tabs for Overview · Holdings · Performance ·
+WhatChanged · Scenarios · Bonds · Optimize · Cashflow · Peer · Analyst
+· News · Markets · Lookup · Synthesis · Reports · Settings · About.
+
+The Regenerate button fires `setup → refresh → 12 analyzers` as a
+background sweep. The Settings tab includes a multipart upload form for
+portfolio files and statements: `.csv .tsv .xls .xlsx .pdf .json .ofx
+.qfx`.
 
 ## Recommended Model Combinations
 
@@ -229,8 +243,8 @@ Anthropic's ToS). Fleet defaults:
 | Size | Required | Recommended | Why |
 |---|---|---|---|
 | **≤ 50 symbols** | `TOGETHER_API_KEY` (narrative) | — | yfinance handles quotes/history at this scale |
-| **50–200 symbols** | `TOGETHER_API_KEY` | `FINNHUB_KEY` (free 60/min) + `NEWSAPI_KEY` (free 100/day) | Real-time quotes + analyst + per-symbol news without yfinance throttle |
-| **200+ symbols** | `TOGETHER_API_KEY` + `MASSIVE_API_KEY` (Polygon, paid) | `FINNHUB_KEY` + `MARKETAUX_API_KEY` (free 100/day) + `FRED_API_KEY` (free, registration) + `ALPHA_VANTAGE_KEY` (free 25/day) | Yahoo's anonymous endpoint rate-limits globally on 200+ symbols; Polygon is required, the rest fill analyst + news + yields |
+| **50–200 symbols** | `TOGETHER_API_KEY` | `FINNHUB_API_KEY` (free 60/min) + `NEWSAPI_API_KEY` (free 100/day) | Real-time quotes + analyst + per-symbol news without yfinance throttle |
+| **200+ symbols** | `TOGETHER_API_KEY` + `MASSIVE_API_KEY` (Polygon, paid) | `FINNHUB_API_KEY` + `MARKETAUX_API_KEY` (free 100/day) + `FRED_API_KEY` (free, registration) + `ALPHA_VANTAGE_API_KEY` (free 25/day) + `OPENAI_API_KEY` (optional narrative/validation) | Yahoo's anonymous endpoint rate-limits globally on 200+ symbols; Polygon is required, the rest fill analyst + news + yields |
 
 `TOGETHER_API_KEY` is the only key that meaningfully changes output
 quality. Everything else is for scale or richness on larger portfolios.
@@ -248,7 +262,8 @@ Sign-up links (free tiers exist for everything except Polygon):
 
 ## How It Works
 
-1. You drop a portfolio (CSV / XLS / PDF / screenshot) into
+1. You drop a portfolio (CSV / TSV / XLS / XLSX / PDF / JSON / OFX /
+   QFX / screenshot) into
    `./portfolios/`, or attach one in your agent chat.
 2. Your agent calls `portfolio_setup` and `portfolio_ask` over MCP-HTTP
    on `localhost:18090`.
@@ -284,7 +299,7 @@ See [PRIVACY.md](PRIVACY.md) for the full data-handling policy and
 ## Documentation
 
 - [SKILL.md](SKILL.md) — agent-readable install + usage spec, full
-  12-tool catalog, first-run timeline, REST endpoints, troubleshooting
+  13-tool catalog, first-run timeline, REST endpoints, troubleshooting
 - [PRIVACY.md](PRIVACY.md) — full data-handling policy
 - [DISCLAIMER.md](DISCLAIMER.md) — educational-use disclaimer + provider
   data flows
@@ -308,7 +323,7 @@ See [PRIVACY.md](PRIVACY.md) for the full data-handling policy and
   30-persona avatar reference
 - [docs/EOD_REPORT.md](docs/EOD_REPORT.md) — end-of-day report feature walkthrough (what is in the report, how to generate, performance, optional email delivery)
 - [docs/MCP_TOOLS_REFERENCE.md](docs/MCP_TOOLS_REFERENCE.md) —
-  detailed per-tool reference for all 12 MCP tools (input / output
+  detailed per-tool reference for all 13 MCP tools (input / output
   schemas, latency, cache TTLs, allowlists, examples)
 - [docs/references/](docs/references/) — input / output / schema /
   consultative-LLM contracts (`contract-input.md`, `contract-output.md`,
@@ -317,7 +332,7 @@ See [PRIVACY.md](PRIVACY.md) for the full data-handling policy and
 - [docs/INSTALL_MODELS.md](docs/INSTALL_MODELS.md) — *why* the v4.x
   architecture splits along two install models
 - [docs/COBOL_TESTING.md](docs/COBOL_TESTING.md) — the Agentic COBOL
-  250-prompt regression suite that's the v4.x ship gate. Long-form
+  250-prompt regression suite that's the v4.1.34 ship gate. Long-form
   rationale at
   [techbroiler.net/all-our-tests-passed-the-agent-was-still-broken](https://techbroiler.net/all-our-tests-passed-the-agent-was-still-broken/).
 - [RFC-v0.1.md](RFC-v0.1.md) — full v4.x architecture specification
@@ -339,7 +354,7 @@ you skipped `mkdir -p portfolios` before `docker compose up -d`.
 
 ### "No portfolio found"
 
-Drop a CSV/XLS/PDF into `./portfolios/`, then call setup:
+Drop a CSV/TSV/XLS/XLSX/PDF/JSON/OFX/QFX into `./portfolios/`, then call setup:
 ```bash
 curl -X POST http://127.0.0.1:18090/api/portfolio/setup -d '{}'
 ```
@@ -366,7 +381,7 @@ See [SKILL.md § Troubleshooting](SKILL.md) for the full list.
 
 Production Ready | Apache 2.0 + MIT-0
 
-InvestorClaw v4.1.x. Portfolio analysis. Educational only. Not
+InvestorClaw v4.1.34. Portfolio analysis. Educational only. Not
 financial advice.
 
 ## Related repos

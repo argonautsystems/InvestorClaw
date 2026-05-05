@@ -1,6 +1,6 @@
 # MCP Tools Reference
 
-Detailed per-tool reference for the 12 MCP tools that ic-engine exposes
+Detailed per-tool reference for the 13 MCP tools that ic-engine exposes
 on `localhost:18090/mcp`. For the high-level "what can it do" overview,
 see [`CAPABILITIES.md`](../CAPABILITIES.md). For the agent-readable
 install / first-run / cookbook spec, see [`SKILL.md`](../SKILL.md).
@@ -28,6 +28,7 @@ shell.
 | [`portfolio_response_get`](#portfolio_response_get) | Retrieve a stored response by run_id | (new in v4.x) |
 | [`portfolio_response_list`](#portfolio_response_list) | List recent stored responses | (new in v4.x) |
 | [`portfolio_response_delete`](#portfolio_response_delete) | Permanently delete a stored response | (new in v4.x) |
+| [`portfolio_response_flag_bad`](#portfolio_response_flag_bad) | Flag a previous engine response as bad/incorrect for quality tracking | (new in v4.x) |
 
 ---
 
@@ -54,7 +55,7 @@ answer with envelope-quoted numbers — never fabricated.
   "narrative": "...",     // Human-readable answer
   "ic_result": {
     "hmac": "75ca79c...",  // HMAC signature of the envelope
-    "engine_version": "2.5.2",
+    "engine_version": "4.1.34",
     "command": "ask",
     "run_id": "299d36b0-..."
   }
@@ -186,7 +187,7 @@ holdings JSON without going through the narrator.
       "accounts": {...}
     },
     "hmac": "...",
-    "engine_version": "2.5.2"
+    "engine_version": "4.1.34"
   }
 }
 ```
@@ -293,9 +294,9 @@ Returns names only, never values.
 
 ```json
 {
-  "configured": ["TOGETHER_API_KEY", "FINNHUB_KEY"],
-  "settable": ["ALPHA_VANTAGE_KEY", "FRED_API_KEY", "MASSIVE_API_KEY",
-               "MARKETAUX_API_KEY", "NEWSAPI_KEY", "OPENAI_API_KEY"],
+  "configured": ["TOGETHER_API_KEY", "FINNHUB_API_KEY"],
+  "settable": ["ALPHA_VANTAGE_API_KEY", "FRED_API_KEY", "MASSIVE_API_KEY",
+               "MARKETAUX_API_KEY", "NEWSAPI_API_KEY", "OPENAI_API_KEY"],
   "missing": []
 }
 ```
@@ -321,7 +322,7 @@ atomically to `/data/keys.env` (mode 0600), takes effect on the next
 {
   "keys": {
     "TOGETHER_API_KEY": "tgp_v1_...",
-    "FINNHUB_KEY": "...",
+    "FINNHUB_API_KEY": "...",
     "FRED_API_KEY": "..."
   }
 }
@@ -331,7 +332,7 @@ atomically to `/data/keys.env` (mode 0600), takes effect on the next
 
 ```json
 {
-  "configured": ["FINNHUB_KEY", "FRED_API_KEY", "TOGETHER_API_KEY"],
+  "configured": ["FINNHUB_API_KEY", "FRED_API_KEY", "TOGETHER_API_KEY"],
   "rejected": [],
   "deleted": []
 }
@@ -348,8 +349,8 @@ response.
 | Size | Required | Recommended |
 |---|---|---|
 | ≤ 50 symbols | `TOGETHER_API_KEY` | — |
-| 50–200 | `TOGETHER_API_KEY` | `FINNHUB_KEY`, `NEWSAPI_KEY` |
-| 200+ | `TOGETHER_API_KEY` + `MASSIVE_API_KEY` | `FINNHUB_KEY`, `MARKETAUX_API_KEY`, `FRED_API_KEY`, `ALPHA_VANTAGE_KEY` |
+| 50–200 | `TOGETHER_API_KEY` | `FINNHUB_API_KEY`, `NEWSAPI_API_KEY` |
+| 200+ | `TOGETHER_API_KEY` + `MASSIVE_API_KEY` | `FINNHUB_API_KEY`, `MARKETAUX_API_KEY`, `FRED_API_KEY`, `ALPHA_VANTAGE_API_KEY` |
 
 See [`SKILL.md § Optional configuration`](../SKILL.md#optional-configuration)
 for the full key reference and free-tier limits.
@@ -451,6 +452,24 @@ generated and you don't want it polluting future audits.
 
 ```json
 { "deleted": "299d36b0-...", "ok": true }
+```
+
+---
+
+## `portfolio_response_flag_bad`
+
+Flags a previous engine response as bad/incorrect for quality tracking.
+
+### Input
+
+```json
+{ "run_id": "299d36b0-...", "reason": "incorrect benchmark value" }
+```
+
+### Output
+
+```json
+{ "run_id": "299d36b0-...", "flagged_bad": true, "ok": true }
 ```
 
 ---
