@@ -255,23 +255,34 @@ See [docs/MCP_TOOLS_REFERENCE.md](docs/MCP_TOOLS_REFERENCE.md) for the full comm
 
 Ask InvestorClaw to generate an HTML email report that summarizes your portfolio at end of day.
 
+<p align="center">
+  <picture>
+    <source srcset="assets/eod-report-sample.webp" type="image/webp">
+    <img src="assets/eod-report-sample.jpg" alt="InvestorClaw end-of-day portfolio report sample" width="420">
+  </picture>
+</p>
+
 ```text
 investorclaw ask "Generate my end-of-day portfolio report"
 investorclaw ask "Generate my end-of-day report and email it to you@example.com"
 ```
 
-For direct engine use, run:
+For direct engine use inside the v4.x container, run:
 
 ```bash
-investorclaw eod-report --email-to address@example.com
+docker exec ic-engine investorclaw eod-report --email-to address@example.com
 ```
+
+A live HTML preview is also available at `http://localhost:18092/reports/eod_report_<YYYYMMDD>.html` once the daily run finishes. A static sample of the rendered report ships at [`assets/eod-report-sample.html`](assets/eod-report-sample.html) — open it in a browser to see the layout without running a portfolio first.
 
 The report includes:
 
-- Real-time prices
-- Performance metrics
-- Sector breakdown
-- News sentiment
+- Real-time prices and net values
+- Performance metrics (Sharpe, Sortino, max drawdown, beta, VaR, period returns)
+- Sector + asset-class allocation
+- Per-symbol news sentiment with clickable headlines
+- Fixed income detail (YTM, duration, maturity ladder, coupon schedule)
+- 10 FA Discussion Topics (concentration risk, sector exposure, allocation drift, tax efficiency, news catalysts) with severity flags
 - Email-ready HTML with a dark theme
 - Mobile-responsive layout
 
