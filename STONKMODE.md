@@ -190,11 +190,17 @@ the persona narration. The deterministic pipeline runtime is unchanged.
 
 ## See also
 
+- [docs/STONKMODE.md](docs/STONKMODE.md) — deep Stonkmode reference
 - [docs/STONKMODE_ARCHITECTURE.md](docs/STONKMODE_ARCHITECTURE.md) —
   full pipeline, market-condition detection, archetype weighting
-- [docs/STONKMODE.md](docs/STONKMODE.md) — deep Stonkmode reference
+- [docs/STONKMODE_VALIDATION.md](docs/STONKMODE_VALIDATION.md) —
+  validation report (41 unit tests, 500-iteration pairing
+  distribution, compliance gates, deployment checklist)
+- [docs/STONKMODE_EXAMPLE_OUTPUT.md](docs/STONKMODE_EXAMPLE_OUTPUT.md)
+  — live cable-show transcripts (Blitz Thunderbuy + Victor Voss
+  riffing on a real portfolio), cohost modes, JSON envelope sample
 - [docs/STONKMODE_CHARACTER_REFERENCE.json](docs/STONKMODE_CHARACTER_REFERENCE.json)
-  — structured persona roster
+  — structured persona roster (31 entries)
 - [docs/STONKMODE_AVATAR_LEGEND.md](docs/STONKMODE_AVATAR_LEGEND.md) —
   30-persona avatar grid reference
 - [SKILL.md](SKILL.md) — agent-readable spec, model recommendations,

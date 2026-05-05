@@ -294,10 +294,16 @@ output into advice, fiduciary conduct, or a promise that the market will behave.
 
 ## See Also
 
-- [STONKMODE_CHARACTER_REFERENCE.json](STONKMODE_CHARACTER_REFERENCE.json) —
-  structured canonical roster
+- [STONKMODE_VALIDATION.md](STONKMODE_VALIDATION.md) — validation
+  report: persona roster integrity, 41 unit tests, 500-iteration
+  pairing distribution, compliance gates, deployment checklist
+- [STONKMODE_EXAMPLE_OUTPUT.md](STONKMODE_EXAMPLE_OUTPUT.md) — live
+  cable-show transcripts (Blitz Thunderbuy + Victor Voss riffing on
+  a real portfolio), pairing dynamic, cohost modes, JSON envelope sample
 - [STONKMODE_ARCHITECTURE.md](STONKMODE_ARCHITECTURE.md) — implementation
-  architecture
+  architecture, pipeline stages, market-condition detection
+- [STONKMODE_CHARACTER_REFERENCE.json](STONKMODE_CHARACTER_REFERENCE.json) —
+  structured canonical roster (31 entries: 30 cable-finance + Dr. Stonk)
 - [STONKMODE_AVATAR_LEGEND.md](STONKMODE_AVATAR_LEGEND.md) — avatar grid
   reference
 - [../STONKMODE.md](../STONKMODE.md) — entry-point summary
