@@ -2,6 +2,13 @@
 
 **30 fictional cable TV finance personalities + educational mode**
 
+<p align="center">
+  <picture>
+    <source srcset="../assets/stonkmode-banner.webp" type="image/webp">
+    <img src="../assets/stonkmode-banner.jpg" alt="Stonkmode — A silly feature for a serious skill" width="900">
+  </picture>
+</p>
+
 > **A silly feature for a serious skill — and that's the point.** The holdings data is real. The analysis runs normally. The commentary is delivered by 30 fictional cable TV finance personalities who have no idea what fiduciary means. It works because the data works.
 
 ---
@@ -112,8 +119,12 @@ avatar legend.
 
 ### Dr. Stonk — The 31st Persona
 
+<p align="center">
+  <img src="assets/stonkmode-characters/dr_stonk.jpg" alt="Dr. Stonk — From the planet Hephaestus" width="280">
+</p>
+
 **From the planet Hephaestus, Dr. Stonk is here for your logical financial
-education.**
+education.** *Logic. Data. Discipline. That's how we grow.*
 
 Dr. Stonk is the 31st persona: not another market host, but an educator mode
 that explains financial concepts without pretending to be a fiduciary, a
@@ -134,11 +145,25 @@ robo-advisor, or a crystal ball with better branding.
 
 ### 🔥 HIGH ENERGY
 
+<p align="center">
+  <img src="assets/stonkmode-characters/blitz_thunderbuy.jpg" alt="Blitz Thunderbuy" width="140">
+  <img src="assets/stonkmode-characters/brick_stonksworth.jpg" alt="Brick Stonksworth" width="140">
+  <img src="assets/stonkmode-characters/sal_decibelli.jpg" alt="Sal Decibelli" width="140">
+</p>
+
 - **Blitz Thunderbuy** — high_energy — lightning desk-slap energy
 - **Brick "Diamond Hands" Stonksworth** — high_energy — diamond hands conviction
 - **Sal "The Pit" Decibelli** — high_energy — trading pit volume
 
 ### 💼 SERIOUS
+
+<p align="center">
+  <img src="assets/stonkmode-characters/aldrich_whisperdeal.jpg" alt="Aldrich Whisperdeal" width="120">
+  <img src="assets/stonkmode-characters/prescott_pennington_smythe.jpg" alt="Prescott Pennington-Smythe" width="120">
+  <img src="assets/stonkmode-characters/dominique_valcourt.jpg" alt="Dominique Valcourt" width="120">
+  <img src="assets/stonkmode-characters/amara_osei.jpg" alt="Dr. Amara Osei-Bonsu" width="120">
+  <img src="assets/stonkmode-characters/carmen_torres.jpg" alt="Carmen Torres" width="120">
+</p>
 
 - **Aldrich Whisperdeal** — serious — quiet deal sources
 - **Prescott Pennington-Smythe** — serious — macro interview gravitas
@@ -148,16 +173,40 @@ robo-advisor, or a crystal ball with better branding.
 
 ### 👨‍🏫 MENTORS
 
+<p align="center">
+  <img src="assets/stonkmode-characters/big_jim_cashonly.jpg" alt="Big Jim Cashonly" width="140">
+  <img src="assets/stonkmode-characters/sunny_rainyday_fund.jpg" alt="Sunny Rainyday-Fund" width="140">
+  <img src="assets/stonkmode-characters/baron_von_cashflow.jpg" alt="Baron Von Cashflow" width="140">
+</p>
+
 - **Big Jim Cashonly** — mentors — coach-like tough love
 - **Sunny Rainyday-Fund** — mentors — rainy day fund calm
 - **Baron Von Cashflow** — mentors — cash-flow obsession
 
 ### 🏛️ POLICY VETERANS
 
+<p align="center">
+  <img src="assets/stonkmode-characters/biff_chadsworth_iii.jpg" alt="Biff Chadsworth III" width="160">
+  <img src="assets/stonkmode-characters/skip_contrarian.jpg" alt="Skip Contrarian" width="160">
+</p>
+
 - **Biff Chadsworth III** — policy_veterans — policy optimism
 - **Skip "Well, Actually" Contrarian** — policy_veterans — well-actually skepticism
 
 ### 🎭 WILDCARDS
+
+<p align="center">
+  <img src="assets/stonkmode-characters/dorin_goleli.jpg" alt="Dorin Goleli" width="100">
+  <img src="assets/stonkmode-characters/aria_7.jpg" alt="ARIA-7" width="100">
+  <img src="assets/stonkmode-characters/professor_goldbug.jpg" alt="Professor Goldbug" width="100">
+  <img src="assets/stonkmode-characters/chaz_leveridge.jpg" alt="Chaz Leveridge" width="100">
+  <img src="assets/stonkmode-characters/lafayette_beaumont.jpg" alt="Lafayette Beaumont" width="100">
+  <img src="assets/stonkmode-characters/glorb.jpg" alt="Glorb" width="100">
+  <img src="assets/stonkmode-characters/king_donny.jpg" alt="King Donny" width="100">
+  <img src="assets/stonkmode-characters/zsa_zsa_von_portfolio.jpg" alt="Zsa Zsa Von Portfolio" width="100">
+  <img src="assets/stonkmode-characters/wendell_the_pattern.jpg" alt="Wendell the Pattern" width="100">
+  <img src="assets/stonkmode-characters/professor_what.jpg" alt="Professor What?" width="100">
+</p>
 
 - **Dorin Goleli, Keeper of the Eternal Ledger** — wildcards — eternal ledger magic
 - **ARIA-7** — wildcards — sentient analysis unit
@@ -172,10 +221,21 @@ robo-advisor, or a crystal ball with better branding.
 
 ### 🌌 COSMIC
 
+<p align="center">
+  <img src="assets/stonkmode-characters/chico_reyes.jpg" alt="Chico Reyes" width="160">
+  <img src="assets/stonkmode-characters/farout_farley.jpg" alt="Far Out Farley" width="160">
+</p>
+
 - **Chico "The Vibe" Reyes** — cosmic — market vibe reader
 - **"Far Out" Farley McGee** — cosmic — cosmic market drift
 
 ### 💻 DIGITAL
+
+<p align="center">
+  <img src="assets/stonkmode-characters/krystal_kash.jpg" alt="Krystal Kash" width="140">
+  <img src="assets/stonkmode-characters/zara_zhao.jpg" alt="Zara Zhao" width="140">
+  <img src="assets/stonkmode-characters/priya_hodl.jpg" alt="Priya HODL" width="140">
+</p>
 
 - **Krystal "The Receipt" Kash** — digital — receipt-driven social proof
 - **Zara "Viral" Zhao** — digital — viral algorithm energy
@@ -183,10 +243,19 @@ robo-advisor, or a crystal ball with better branding.
 
 ### 🐻 BEARS
 
+<p align="center">
+  <img src="assets/stonkmode-characters/victor_voss.jpg" alt="Victor Voss" width="160">
+  <img src="assets/stonkmode-characters/hans_dieter_braun.jpg" alt="Hans-Dieter Braun" width="160">
+</p>
+
 - **Victor "The Vulture" Voss** — bears — vulture bear thesis
 - **Hans-Dieter Braun** — bears — disciplined doom spiral
 
 ### 🖖 EDUCATORS
+
+<p align="center">
+  <img src="assets/stonkmode-characters/dr_stonk.jpg" alt="Dr. Stonk" width="180">
+</p>
 
 - **Dr. Stonk** — educators — logical financial education
 

@@ -31,6 +31,12 @@ This document shows what a complete stonkmode narration looks like across a real
 
 ## The Show: Live Transcript
 
+<p align="center">
+  <img src="assets/stonkmode-characters/blitz_thunderbuy.jpg" alt="Blitz Thunderbuy — high_energy" width="220">
+  &nbsp;&nbsp;<strong>×</strong>&nbsp;&nbsp;
+  <img src="assets/stonkmode-characters/victor_voss.jpg" alt="Victor 'The Vulture' Voss — bears" width="220">
+</p>
+
 ### 📍 BLITZ THUNDERBUY (high_energy)
 
 > OKAY FOLKS HERE WE GO! Look at this portfolio — MSFT and AAPL are carrying the water here, 64% of the portfolio in pure tech blue-chips. That's what I CALL homework! You didn't chase meme stocks, you LISTENED, and you built a position in the engines that actually PRINT CASH. Now, is TSLA at 9% a gamble? Sure. Is it a STUPID gamble? No sir, that's a learning position. But here's what gets me — you're missing NVIDIA. You know what NVIDIA does? NVIDIA PRINTS THE FUTURE. Every AI chip ever made runs on JENSEN'S VISION. And you're sitting here with GOOGL and META but zero NVDA exposure. That's the HOMEWORK you need to do. Get some of that TSLA money and REALLOCATE. SERIOUSLY. This portfolio has potential but it's MISSING THE MOMENT.
@@ -42,6 +48,12 @@ This document shows what a complete stonkmode narration looks like across a real
 ---
 
 ## Wildcards x Wildcards: King Donny vs. Glorb
+
+<p align="center">
+  <img src="assets/stonkmode-characters/king_donny.jpg" alt="King Donny — The Deal Whisperer" width="220">
+  &nbsp;&nbsp;<strong>×</strong>&nbsp;&nbsp;
+  <img src="assets/stonkmode-characters/glorb.jpg" alt="Glorb — Senior Ledger-Keeper of the Seventh Vault" width="220">
+</p>
 
 This is a wildcards x wildcards pairing, which the foil-pool algorithm allows
 for maximum chaos when the show needs a synthetic portfolio yelled at by a deal
