@@ -386,3 +386,7 @@ See [LICENSE](LICENSE) for full Apache 2.0 terms.
 Author: Jason Perlow | Questions? [Open an issue on GitHub](https://github.com/argonautsystems/InvestorClaw/issues)
 
 v4.1.34 | Apache 2.0 + MIT-0 | Educational Use Only
+
+## Download History
+
+[![Download History](https://skill-history.com/chart/perlowja/investorclaw.svg)](https://skill-history.com/perlowja/investorclaw)
