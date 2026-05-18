@@ -68,7 +68,7 @@ InvestorClaw helps you understand your portfolio. thinkorswim helps you execute 
 |---|---|---|
 | Purpose | Portfolio analysis & insights | Active trading & execution |
 | Can trade? | ❌ No | ✅ Yes |
-| Data source | Free (yfinance, Polygon, Finnhub) | Real-time (proprietary) |
+| Data source | Free (yfinance) + optional paid (Massive, Finnhub) | Real-time (proprietary) |
 | Run locally? | ✅ Yes (Docker / yfinance fallback) | ❌ Cloud only |
 | Open source? | ✅ Yes (Apache 2.0) | ❌ Proprietary |
 | Target user | Individual investors + advisors | Professional/active traders |
