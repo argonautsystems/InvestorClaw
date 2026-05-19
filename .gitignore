@@ -19,8 +19,13 @@ portfolios/
 .env.backup*
 .env.provider-*
 !.env.example
+!skill/.env
 *.key
 *.pem
+keys.env
+api-keys.env
+secrets.*
+*.secret
 
 # Python
 __pycache__/
