@@ -8,12 +8,12 @@
 </p>
 
 <p align="center">
-Portfolio analysis and market intelligence | v4.1.34 | Apache 2.0 + MIT-0 | Educational Use Only
+Portfolio analysis and market intelligence | v4.4.2 | Apache 2.0 + MIT-0 | Educational Use Only
 </p>
 
 InvestorClaw is a self-contained containerized software package that any MCP-capable agent calls into. It is not a markdown skill. It is not a prompt injection. It is the adapter and distribution layer for a real portfolio engine, packaged for agent runtimes that know how to speak MCP.
 
-The deterministic engine lives in [`ic-engine`](https://github.com/argonautsystems/ic-engine). Foundation primitives live in [`clio`](https://github.com/argonautsystems/clio). The runtime container lives in [`mnemos-ic-runtime`](https://github.com/mnemos-os/mnemos-ic-runtime).
+The deterministic engine lives in [`ic-engine`](https://github.com/argonautsystems/ic-engine). Foundation primitives live in [`clio`](https://github.com/argonautsystems/clio). The runtime container lives in [`mnemos-ic-runtime`](https://github.com/ncz-os/mnemos-ic-runtime).
 
 Optional [Stonkmode](docs/STONKMODE_AVATAR_LEGEND.md) adds live commentary from 30 fictional cable TV finance personalities. It is entertainment and education on top of the portfolio surface, not a requirement.
 
@@ -26,7 +26,7 @@ InvestorClaw separates agent-facing commands from portfolio computation.
 - Containerized engine. The current runtime is a single Docker container with MCP-HTTP on port `18090` and the dashboard portal on port `18092`. Start the container, point an MCP-capable agent at it, and ask portfolio questions.
 - Deterministic computation. There is no LLM in the parse path. Holdings parsing, normalization, analytics, and envelopes are deterministic. Narration is optional, provider-swappable, and sits on top of structured output.
 - Six asset classes. InvestorClaw handles equities, bonds, ETFs, mutual funds, options, and cash.
-- Thirteen MCP tools. The live surface is `portfolio_ask`, `portfolio_initialize`, `portfolio_initialize_status`, `portfolio_holdings`, `portfolio_refresh`, `portfolio_setup`, `portfolio_keys_status`, `portfolio_keys_set`, `portfolio_keys_delete`, `portfolio_response_get`, `portfolio_response_list`, `portfolio_response_delete`, and `portfolio_response_flag_bad`.
+- Twenty MCP tools. The primary surface is `portfolio_ask`, `portfolio_initialize`, `portfolio_initialize_status`, `portfolio_holdings`, `portfolio_refresh`, `portfolio_setup`, `portfolio_keys_status`, `portfolio_keys_set`, `portfolio_keys_delete`, `portfolio_keys_recommend`, `portfolio_keys_backup`, `portfolio_keys_restore`, `portfolio_keys_backups_list`, `portfolio_response_get`, `portfolio_response_list`, `portfolio_response_delete`, `portfolio_response_flag_bad`, `portfolio_version_check`, `portfolio_export`, and `portfolio_import`.
 - 17-tab dashboard portal. Open `http://localhost:18092` for Overview, Holdings, Performance, WhatChanged, Scenarios, Bonds, Optimize, Cashflow, Peer, Analyst, News, Markets, Lookup, Synthesis, Reports, Settings, and About.
 - Regenerate from the browser. The Overview tab has a Regenerate button that fires setup, refresh, and all 12 analyzers as a background sweep.
 - Web upload form. Settings accepts multipart uploads for `.csv`, `.tsv`, `.xls`, `.xlsx`, `.pdf`, `.json`, `.ofx`, and `.qfx` portfolio files.
@@ -175,7 +175,7 @@ Summarize my portfolio performance.
 
 Use the runtime container directly when you want InvestorClaw without an agent-specific installer.
 
-Runtime source: [`mnemos-os/mnemos-ic-runtime`](https://github.com/mnemos-os/mnemos-ic-runtime).
+Runtime source: [`ncz-os/mnemos-ic-runtime`](https://github.com/ncz-os/mnemos-ic-runtime).
 
 ```bash
 docker compose up -d
@@ -385,4 +385,4 @@ See [LICENSE](LICENSE) for full Apache 2.0 terms.
 
 Author: Jason Perlow | Questions? [Open an issue on GitHub](https://github.com/argonautsystems/InvestorClaw/issues)
 
-v4.1.34 | Apache 2.0 + MIT-0 | Educational Use Only
+v4.4.2 | Apache 2.0 + MIT-0 | Educational Use Only

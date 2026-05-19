@@ -10,7 +10,7 @@ methodology, and data-source rules are identical.
 
 # InvestorClaw Capabilities
 
-v4.1.34 | Financial Analysis + Data Connectivity | For portfolio owners, advisors, and developers
+v4.4.2 | Financial Analysis + Data Connectivity | For portfolio owners, advisors, and developers
 
 ## InvestorClaw Architecture
 
