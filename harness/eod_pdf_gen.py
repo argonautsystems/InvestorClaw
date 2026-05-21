@@ -136,30 +136,66 @@ def _anon_acct(name):
     name = re.sub(r"\bROTH\b", "Roth IRA", name)
     return name.strip()
 
+_CUSIP_NAME_CACHE = {}
+
+def _load_cusip_names():
+    """Build CUSIP→name from uploaded portfolio CSVs via docker exec."""
+    import csv as _csv_m, re as _re_m
+    result = {}
+    try:
+        r = subprocess.run(["docker","exec","ic-engine","find","/data/portfolios","-name","*.csv"],
+                           capture_output=True, text=True, timeout=5)
+        for csv_path in r.stdout.strip().split("\n"):
+            if not csv_path.strip(): continue
+            r2 = subprocess.run(["docker","exec","ic-engine","cat",csv_path.strip()],
+                                capture_output=True, text=True, timeout=5)
+            lines = r2.stdout.splitlines()
+            if len(lines) < 2: continue
+            reader = _csv_m.DictReader(lines[1:])
+            for row in reader:
+                sym = row.get("SYMBOL","").strip()
+                cusip = row.get("CUSIP","").strip()
+                desc = row.get("DESCRIPTION","").strip()
+                if sym == "N/A" and len(cusip)==9 and cusip not in ("N/A",""):
+                    clean = _re_m.sub(r"\s+BE[/]R[/].*", "", desc)
+                    clean = _re_m.sub(r"\s+MATURES.*", "", clean)
+                    clean = _re_m.sub(r"\s*\([0-9A-Z]{9}\).*", "", clean)
+                    clean = clean.strip().title()
+                    for abbr in ("SC","TX","GA","IL","CA","CO","WA","NY","NJ","FL","PA","OH","MI","NC","VA","AZ","OR","WI","MN","NV","MD","MA"):
+                        clean = _re_m.sub(rf"\b{abbr.title()}\b", abbr, clean)
+                    result[cusip] = clean
+    except Exception:
+        pass
+    return result
+
 def _bond_name(b):
-    """Construct human-readable bond name from fields."""
+    """Return actual bond name from CSV lookup, falling back to constructed name."""
+    global _CUSIP_NAME_CACHE
+    if not _CUSIP_NAME_CACHE:
+        _CUSIP_NAME_CACHE = _load_cusip_names()
+    cusip = b.get("cusip") or b.get("symbol") or ""
+    if cusip and cusip in _CUSIP_NAME_CACHE:
+        return _CUSIP_NAME_CACHE[cusip]
+    # Fallback: construct from type + coupon + maturity
     atype = str(b.get("asset_type","")).lower()
     coupon = b.get("coupon_rate",0) or 0
-    mat = str(b.get("maturity_date",""))[:7]  # YYYY-MM
+    mat = str(b.get("maturity_date",""))[:7]
     try:
         year = mat[2:4]; month_n = int(mat[5:7])
         months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
         month = months[month_n-1] if 1<=month_n<=12 else ""
-        mat_str = f"{month} '{year}"
+        mat_str = f"{month} \'{year}"
     except Exception:
         mat_str = mat
     if atype == "treasury":
-        if coupon == 0:
-            return f"US T-Bill {mat_str}"
-        return f"US Treasury {coupon:.2f}% {mat_str}"
+        return f"US T-Bill {mat_str}" if coupon==0 else f"US Treasury {coupon:.2f}% {mat_str}"
     elif "municipal" in atype:
         return f"Muni Bond {coupon:.2f}% {mat_str}"
     elif "corporate" in atype:
         return f"Corp Bond {coupon:.2f}% {mat_str}"
     elif "agency" in atype:
         return f"Agency Bond {coupon:.2f}% {mat_str}"
-    else:
-        return f"{atype.replace('_',' ').title()} {coupon:.2f}% {mat_str}"
+    return f"{atype.replace('_',' ').title()} {coupon:.2f}% {mat_str}"
 
 def _layman_volatility(vol_pct):
     """Plain English volatility interpretation."""
