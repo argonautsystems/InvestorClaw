@@ -126,6 +126,42 @@ def batch_snapshot(symbols):
     tickers = ",".join(urllib.parse.quote(s) for s in symbols)
     return massive(f"/v2/snapshot/locale/us/markets/stocks/tickers?tickers={tickers}")
 
+def populate_markets_json():
+    """Pre-populate /data/reports/markets.json from Massive API index/crypto data."""
+    import json as _json, tempfile, os as _os
+    idx_tickers = ["SPY","QQQ","DIA","IWM","GLD","TLT","HYG","VNQ"]
+    snap = batch_snapshot(idx_tickers)
+    names_map = {"SPY":"S&P 500 ETF","QQQ":"Nasdaq 100 ETF","DIA":"Dow Jones ETF",
+                 "IWM":"Russell 2000 ETF","GLD":"Gold ETF","TLT":"20yr Treasury ETF",
+                 "HYG":"High Yield Bond","VNQ":"Real Estate ETF"}
+    indices = []
+    for t in snap.get("tickers",[]):
+        sym = t.get("ticker","")
+        last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p") or t.get("prevDay",{}).get("c")
+        chg = t.get("todaysChangePerc",0)
+        indices.append({"symbol":sym,"name":names_map.get(sym,sym),
+                        "price":round(float(last),2) if last else None,
+                        "change_pct":round(float(chg),3) if chg is not None else 0})
+    crypto_data = []
+    for ticker, cname in [("X:BTCUSD","Bitcoin"),("X:ETHUSD","Ethereum")]:
+        d = massive(f"/v2/snapshot/locale/global/markets/crypto/tickers/{ticker}")
+        t = d.get("ticker",{})
+        last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p")
+        chg = t.get("todaysChangePerc",0)
+        crypto_data.append({"symbol":ticker.replace("X:",""),"name":cname,
+                            "price":round(float(last),2) if last else None,
+                            "change_pct":round(float(chg),3) if chg is not None else 0})
+    mkt = {"as_of":datetime.datetime.now().isoformat(),"data":{"indices":indices,"crypto":crypto_data}}
+    with tempfile.NamedTemporaryFile(mode="w",suffix=".json",delete=False) as tmp:
+        _json.dump(mkt,tmp); tmp_path = tmp.name
+    import subprocess as _sp
+    _sp.run(["docker","cp",tmp_path,"ic-engine:/data/reports/markets.json"],
+            capture_output=True, timeout=10)
+    _os.unlink(tmp_path)
+    print(f"  markets.json: {len(indices)} indices, {len(crypto_data)} crypto")
+
+
+
 
 def _anon_acct(name):
     """Strip personal first names from account names."""
@@ -1291,52 +1327,12 @@ def main():
     runs = load_surface_log()[-2:]
     print(f"Loaded {len(runs)} surface test records")
 
-
-def populate_markets_json():
-    """Fetch market index/crypto snapshots from Massive and write markets.json."""
-    import json as _json
-    # Index ETF proxies
-    idx_tickers = ["SPY","QQQ","DIA","IWM","GLD","TLT","HYG","VNQ"]
-    snap = batch_snapshot(idx_tickers)
-    indices = []
-    for t in snap.get("tickers",[]):
-        sym = t.get("ticker","")
-        last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p") or t.get("prevDay",{}).get("c")
-        chg = t.get("todaysChangePerc",0)
-        names = {"SPY":"S&P 500 ETF","QQQ":"Nasdaq 100 ETF","DIA":"Dow Jones ETF",
-                 "IWM":"Russell 2000 ETF","GLD":"Gold ETF","TLT":"20yr Treasury ETF",
-                 "HYG":"High Yield Bond","VNQ":"Real Estate ETF"}
-        indices.append({"symbol":sym,"name":names.get(sym,sym),
-                        "price":round(float(last),2) if last else None,
-                        "change_pct":round(float(chg),3) if chg is not None else 0})
-    # Crypto
-    crypto_data = []
-    for ticker, name in [("X:BTCUSD","Bitcoin"),("X:ETHUSD","Ethereum")]:
-        d = massive(f"/v2/snapshot/locale/global/markets/crypto/tickers/{ticker}")
-        t = d.get("ticker",{})
-        last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p")
-        chg = t.get("todaysChangePerc",0)
-        crypto_data.append({"symbol":ticker.replace("X:",""),"name":name,
-                            "price":round(float(last),2) if last else None,
-                            "change_pct":round(float(chg),3) if chg is not None else 0})
-    mkt_json = {"as_of": datetime.datetime.now().isoformat(),
-                "data": {"indices": indices, "crypto": crypto_data}}
-    # Write via docker cp
-    import tempfile, os
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
-        _json.dump(mkt_json, tmp)
-        tmp_path = tmp.name
-    subprocess.run(["docker","cp",tmp_path,"ic-engine:/data/reports/markets.json"],
-                   capture_output=True, timeout=10)
-    os.unlink(tmp_path)
-    print(f"  markets.json written ({len(indices)} indices, {len(crypto_data)} crypto)")
-
-    # Wait for ic-engine to be fully initialized before screenshots
+    # Wait for ic-engine init_state=ready
     import urllib.request as _ur2
     print("Waiting for ic-engine init_state=ready...")
-    for _attempt in range(30):
+    for _attempt in range(20):
         try:
-            with _ur2.urlopen(f"{IC_URL.replace(':8090',':8092').replace('172.19.0.2','localhost')}/healthz", timeout=5) as _r:
+            with _ur2.urlopen("http://localhost:18092/healthz", timeout=5) as _r:
                 _h = json.loads(_r.read())
             if _h.get("init_state") == "ready":
                 print(f"  Engine ready (attempt {_attempt+1})")
@@ -1345,14 +1341,14 @@ def populate_markets_json():
             pass
         time.sleep(4)
     else:
-        print("  Warning: engine not ready after 120s, proceeding anyway")
+        print("  Warning: engine not ready, proceeding anyway")
 
-    # Pre-populate markets.json from Massive API
+    # Pre-populate markets.json
     print("Populating markets.json from Massive API...")
     try:
         populate_markets_json()
-    except Exception as e:
-        print(f"  markets.json population failed: {e}")
+    except Exception as _me:
+        print(f"  markets.json failed: {_me}")
 
     # Capture dashboard screenshots
     screenshots = []
