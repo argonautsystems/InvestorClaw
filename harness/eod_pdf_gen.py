@@ -126,6 +126,81 @@ def batch_snapshot(symbols):
     tickers = ",".join(urllib.parse.quote(s) for s in symbols)
     return massive(f"/v2/snapshot/locale/us/markets/stocks/tickers?tickers={tickers}")
 
+
+def _anon_acct(name):
+    """Strip personal first names from account names."""
+    # Remove personal names before account type keywords
+    name = re.sub(r"\bJason\s+", "", name, flags=re.IGNORECASE)
+    name = re.sub(r"\bRachel[-\s]", "", name, flags=re.IGNORECASE)
+    # Strip generic "ROTH" → "Roth IRA" for readability
+    name = re.sub(r"\bROTH\b", "Roth IRA", name)
+    return name.strip()
+
+def _bond_name(b):
+    """Construct human-readable bond name from fields."""
+    atype = str(b.get("asset_type","")).lower()
+    coupon = b.get("coupon_rate",0) or 0
+    mat = str(b.get("maturity_date",""))[:7]  # YYYY-MM
+    try:
+        year = mat[2:4]; month_n = int(mat[5:7])
+        months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+        month = months[month_n-1] if 1<=month_n<=12 else ""
+        mat_str = f"{month} '{year}"
+    except Exception:
+        mat_str = mat
+    if atype == "treasury":
+        if coupon == 0:
+            return f"US T-Bill {mat_str}"
+        return f"US Treasury {coupon:.2f}% {mat_str}"
+    elif "municipal" in atype:
+        return f"Muni Bond {coupon:.2f}% {mat_str}"
+    elif "corporate" in atype:
+        return f"Corp Bond {coupon:.2f}% {mat_str}"
+    elif "agency" in atype:
+        return f"Agency Bond {coupon:.2f}% {mat_str}"
+    else:
+        return f"{atype.replace('_',' ').title()} {coupon:.2f}% {mat_str}"
+
+def _layman_volatility(vol_pct):
+    """Plain English volatility interpretation."""
+    if vol_pct is None: return ""
+    v = float(vol_pct)
+    if v < 10: level = "very low (conservative portfolio)"
+    elif v < 20: level = "low (typical balanced portfolio is 10-15%)"
+    elif v < 35: level = "moderate (typical diversified equity portfolio)"
+    elif v < 50: level = "high (growth/concentrated portfolio)"
+    else: level = "very high (similar to individual speculative stocks)"
+    return f"Your portfolio swings about {v:.0f}% per year — {level}"
+
+def _layman_sharpe(sharpe):
+    """Plain English Sharpe ratio."""
+    if sharpe is None: return ""
+    s = float(sharpe)
+    if s < 0: desc = "losing money relative to risk — below cash returns"
+    elif s < 0.5: desc = "poor risk-adjusted return — taking more risk than reward"
+    elif s < 1.0: desc = "acceptable risk-adjusted return"
+    elif s < 2.0: desc = "good risk-adjusted return"
+    else: desc = "excellent risk-adjusted return"
+    return f"Sharpe ratio {s:.2f}: {desc}"
+
+def _layman_drawdown(dd_pct):
+    """Plain English max drawdown."""
+    if dd_pct is None: return ""
+    d = abs(float(dd_pct))
+    return f"Largest peak-to-trough loss since start of period: -{d:.1f}%"
+
+def _layman_beta(beta):
+    """Plain English beta."""
+    if beta is None: return ""
+    b = float(beta)
+    if abs(b) < 0.2: desc = "moves largely independently of the market"
+    elif b < 0: desc = "tends to move opposite to the market (defensive)"
+    elif b < 0.8: desc = "less volatile than the overall market"
+    elif b < 1.2: desc = "moves roughly in line with the market"
+    else: desc = "amplifies market moves (more volatile than market)"
+    return f"Beta {b:.2f}: portfolio {desc}"
+
+
 # ── Dashboard Screenshots ──────────────────────────────────────────────────
 SCREENSHOT_TABS = [
     ("Overview",     "/"),
@@ -233,7 +308,7 @@ def zeroclaw_nlq(question, tkey=None, model=None):
             for name, data in (accts.items() if isinstance(accts,dict) else []):
                 val = data.get("value",0); pct = data.get("weight_pct",0)
                 ftype = data.get("financial_type","?"); pos = data.get("position_count",0)
-                lines.append(f"  {name}: {f(val,dollar=True)} ({f(pct,pct=True)}) — {ftype}, {pos} positions")
+                lines.append(f"  {_anon_acct(name)}: {f(val,dollar=True)} ({f(pct,pct=True)}) — {ftype}, {pos} positions")
             answer = "\n".join(lines) if len(lines)>1 else "Account detail available in Holdings tab."
 
         elif "full asset alloc" in q or ("asset alloc" in q and "full" in q) or ("equity" in q and "fixed" in q and "cash" in q):
@@ -397,7 +472,7 @@ def zeroclaw_nlq(question, tkey=None, model=None):
             if ira_accts:
                 answer = "IRA accounts (Massive prices):\n"
                 for name, data in ira_accts.items():
-                    answer += f"  {name}: {f(data.get('value'),dollar=True)} ({data.get('position_count','?')} positions, {data.get('financial_type','?')})\n"
+                    answer += f"  {_anon_acct(name)}: {f(data.get('value'),dollar=True)} ({data.get('position_count','?')} positions, {data.get('financial_type','?')})\n"
                 total_ira = sum(v.get("value",0) for v in ira_accts.values())
                 answer += f"Total IRA value: {f(total_ira,dollar=True)}"
             else:
@@ -410,7 +485,7 @@ def zeroclaw_nlq(question, tkey=None, model=None):
             if tax_accts:
                 answer = "Taxable accounts:\n"
                 for name, data in tax_accts.items():
-                    answer += f"  {name}: {f(data.get('value'),dollar=True)} — {data.get('financial_type','?')}, {data.get('position_count','?')} positions\n"
+                    answer += f"  {_anon_acct(name)}: {f(data.get('value'),dollar=True)} — {data.get('financial_type','?')}, {data.get('position_count','?')} positions\n"
             else:
                 answer = "Taxable account detail available in Holdings tab."
 
@@ -426,7 +501,7 @@ def zeroclaw_nlq(question, tkey=None, model=None):
             accts = hfull.get("accounts",{})
             answer = "Portfolio pulse — account values (Massive prices):\n"
             for name, data in (sorted(accts.items(), key=lambda x: x[1].get("value",0), reverse=True) if isinstance(accts,dict) else []):
-                answer += f"  {name}: {f(data.get('value'),dollar=True)} ({f(data.get('weight_pct'),pct=True,d=1)} of portfolio)\n"
+                answer += f"  {_anon_acct(name)}: {f(data.get('value'),dollar=True)} ({f(data.get('weight_pct'),pct=True,d=1)} of portfolio)\n"
 
         elif "intraday change" in q and "215" in q or ("aggregate" in q and "position" in q):
             syms = top_symbols(15)
@@ -821,12 +896,15 @@ def zeroclaw_nlq(question, tkey=None, model=None):
             sh = ps.get("weighted_sharpe"); ar = ps.get("weighted_annual_return")
             md = ps.get("weighted_max_drawdown"); vo = ps.get("weighted_volatility"); be = ps.get("weighted_beta_to_market")
             answer = "Performance vs S&P 500 (from Massive price data):\n"
-            if ar: answer += f"  Annualized return: {f((ar-1)*100,pct=True)}\n"
-            if sh: answer += f"  Sharpe ratio: {f(sh,d=2)}\n"
-            if vo: answer += f"  Annualized volatility: {f(vo*100,pct=True)}\n"
-            if md: answer += f"  Max drawdown: {f(md,pct=True)}\n"
-            if be: answer += f"  Beta vs S&P 500: {f(be,d=2)}\n"
-            answer += "  (YTD vs benchmark available in Performance tab)"
+            if ar:
+                ar_pct = (ar-1)*100 if ar > 0.1 else ar*100
+                direction = "up" if ar_pct > 0 else "down"
+                answer += f"  Annual return: {f(ar_pct,pct=True)} year-over-year\n"
+            if sh: answer += f"  {_layman_sharpe(sh)}\n"
+            if vo: answer += f"  {_layman_volatility(vo*100)}\n"
+            if md: answer += f"  {_layman_drawdown(md)}\n"
+            if be: answer += f"  {_layman_beta(be)}\n"
+            answer += "  (YTD vs S&P 500 chart in Performance tab)"
 
         elif "risk" in q and ("profile" in q or "volatil" in q or "drawdown" in q or "beta" in q):
             p = dc("/data/reports/performance.json")
@@ -838,15 +916,16 @@ def zeroclaw_nlq(question, tkey=None, model=None):
                                for sym,v in perf.items() if isinstance(v,dict) and v.get("volatility",{}).get("_valid")],
                               key=lambda x: x[1], reverse=True)[:5]
             answer = "Portfolio risk profile:\n"
-            if vo: answer += f"  Annualized volatility: {f(vo*100,pct=True)}\n"
-            if md: answer += f"  Max drawdown: {f(md,pct=True)}\n"
-            if be: answer += f"  Beta vs market: {f(be,d=2)}\n"
-            if so: answer += f"  Sortino ratio: {f(so,d=2)}\n"
-            if highrisk: answer += "  Highest volatility: " + ", ".join(f"{s} ({f(v*100,pct=True,d=0)})" for s,v in highrisk)
+            if vo: answer += f"  {_layman_volatility(vo*100)}\n"
+            if md: answer += f"  {_layman_drawdown(md)}\n"
+            if be: answer += f"  {_layman_beta(be)}\n"
+            if so: answer += f"  Sortino ratio {f(so,d=2)}: measures return vs downside risk only (higher = better; above 2 = strong)\n"
+            if highrisk: answer += "  High-volatility positions: " + ", ".join(f"{s} ({f(v*100,pct=True,d=0)} annual swing)" for s,v in highrisk)
 
         elif "bond" in q and ("duration" in q or "fixed income" in q or "ytm" in q):
             ba = dc("/data/reports/bond_analysis.json")
             bs = ba.get("data",{}).get("portfolio_summary",{})
+            bonds_list = ba.get("data",{}).get("individual_bonds",[])
             bp = hs.get("bond_pct",0)
             answer = (f"Fixed income: {f(bp,pct=True)} of portfolio, "
                       f"{f(bs.get('total_value'),dollar=True)} total, {bs.get('bond_count','?')} bonds.\n"
@@ -854,6 +933,11 @@ def zeroclaw_nlq(question, tkey=None, model=None):
                       f"Avg duration: {f(bs.get('weighted_avg_duration'),d=1)} yrs ({bs.get('duration_risk','?')} risk)\n"
                       f"  Avg credit: {bs.get('average_credit_quality','?')} | "
                       f"Tax savings: {f(bs.get('total_annual_muni_tax_savings'),dollar=True)}/yr")
+            if bonds_list:
+                top_bonds = sorted(bonds_list, key=lambda b: b.get('market_value',0), reverse=True)[:5]
+                answer += "\n  Top holdings by value:"
+                for b in top_bonds:
+                    answer += f"\n    {_bond_name(b)}: {f(b.get('market_value'),dollar=True)} | YTM {f(b.get('ytm'),pct=True,d=2)}" 
 
         elif "analyst" in q and ("buy" in q or "rating" in q or "strong" in q):
             an = dc("/data/reports/analyst_recommendations_summary.json")
@@ -916,11 +1000,19 @@ def zeroclaw_nlq(question, tkey=None, model=None):
             bm = pe.get("benchmark","SPY"); betas = pe.get("beta_matrix",{})
             asvs = pe.get("active_share"); over = pe.get("overweight_sectors",[])[:3]
             answer = f"vs {bm} benchmark (Massive price data):\n"
-            answer += f"  Active share: {f(asvs*100 if asvs else None,pct=True)} | "
-            answer += f"Beta SPY={f(betas.get('vs_spy'),d=2)} QQQ={f(betas.get('vs_qqq'),d=2)} AGG={f(betas.get('vs_agg'),d=2)}\n"
+            if asvs is not None:
+                as_pct = asvs*100
+                if as_pct < 20: overlap = "very similar to index (closet indexer)"
+                elif as_pct < 60: overlap = "partially active management"
+                else: overlap = "highly active — significantly different from index"
+                answer += f"  Active share: {f(as_pct,pct=True)} — {overlap}\n"
+            bspy = betas.get('vs_spy'); bqqq = betas.get('vs_qqq')
+            if bspy:
+                beta_desc = "moves with market" if 0.8 <= float(bspy) <= 1.2 else ("less volatile than market" if float(bspy) < 0.8 else "more volatile than market")
+                answer += f"  Beta vs S&P 500: {f(bspy,d=2)} ({beta_desc})\n"
             if over:
                 over_fmt = ", ".join(f"{s.get('sector','?')} (+{f(s.get('delta',0)*100,pct=True,d=1)})" if isinstance(s,dict) else str(s) for s in over)
-                answer += f"  Overweight vs benchmark: {over_fmt}"
+                answer += f"  Overweight sectors vs benchmark: {over_fmt}"
 
         elif "market" in q and ("trend" in q or "context" in q or "macro" in q or "affect" in q):
             ne = dc("/data/reports/portfolio_news.json")
