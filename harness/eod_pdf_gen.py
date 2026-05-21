@@ -1343,6 +1343,17 @@ def main():
     else:
         print("  Warning: engine not ready, proceeding anyway")
 
+    # Refresh news data (avoids stale "LAST FETCH yesterday" on News tab)
+    print("Refreshing portfolio news...")
+    try:
+        subprocess.run(
+            ["docker", "exec", "ic-engine",
+             "/opt/ic-engine/.venv/bin/investorclaw", "news"],
+            capture_output=True, timeout=45)
+        print("  news refreshed")
+    except Exception as _ne:
+        print(f"  news refresh failed: {_ne}")
+
     # Pre-populate markets.json
     print("Populating markets.json from Massive API...")
     try:
