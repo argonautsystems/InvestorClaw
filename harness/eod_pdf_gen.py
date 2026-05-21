@@ -239,18 +239,18 @@ def _layman_beta(beta):
 
 # ── Dashboard Screenshots ──────────────────────────────────────────────────
 SCREENSHOT_TABS = [
-    ("Overview",     "/"),
-    ("Holdings",     "/dashboard/holdings"),
-    ("Performance",  "/dashboard/performance"),
-    ("Bonds",        "/dashboard/bonds"),
-    ("Analyst",      "/dashboard/analyst"),
-    ("News",         "/dashboard/news"),
-    ("Scenarios",    "/dashboard/scenarios"),
-    ("Optimize",     "/dashboard/optimize"),
-    ("Cashflow",     "/dashboard/cashflow"),
-    ("Peer",         "/dashboard/peer"),
-    ("Markets",      "/dashboard/markets"),
-    ("Synthesis",    "/dashboard/synthesis"),
+    ("Overview",       "/"),
+    ("Holdings",       "/dashboard/holdings"),
+    ("Bonds",          "/dashboard/bonds"),
+    ("Scenarios",      "/dashboard/scenarios"),
+    ("Optimize",       "/dashboard/optimize"),
+    ("Cashflow",       "/dashboard/cashflow"),
+    ("Peer",           "/dashboard/peer"),
+    ("News",           "/dashboard/news"),
+    ("What Changed",   "/dashboard/whatchanged"),
+    ("Analyst",        "/dashboard/analyst"),
+    ("Markets",        "/dashboard/markets"),
+    ("Synthesis",      "/dashboard/synthesis"),
 ]
 
 LIGHT_CSS = """<style>
@@ -1290,6 +1290,69 @@ def main():
     print(f"EOD PDF generator starting — {datetime.datetime.now().isoformat()}")
     runs = load_surface_log()[-2:]
     print(f"Loaded {len(runs)} surface test records")
+
+
+def populate_markets_json():
+    """Fetch market index/crypto snapshots from Massive and write markets.json."""
+    import json as _json
+    # Index ETF proxies
+    idx_tickers = ["SPY","QQQ","DIA","IWM","GLD","TLT","HYG","VNQ"]
+    snap = batch_snapshot(idx_tickers)
+    indices = []
+    for t in snap.get("tickers",[]):
+        sym = t.get("ticker","")
+        last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p") or t.get("prevDay",{}).get("c")
+        chg = t.get("todaysChangePerc",0)
+        names = {"SPY":"S&P 500 ETF","QQQ":"Nasdaq 100 ETF","DIA":"Dow Jones ETF",
+                 "IWM":"Russell 2000 ETF","GLD":"Gold ETF","TLT":"20yr Treasury ETF",
+                 "HYG":"High Yield Bond","VNQ":"Real Estate ETF"}
+        indices.append({"symbol":sym,"name":names.get(sym,sym),
+                        "price":round(float(last),2) if last else None,
+                        "change_pct":round(float(chg),3) if chg is not None else 0})
+    # Crypto
+    crypto_data = []
+    for ticker, name in [("X:BTCUSD","Bitcoin"),("X:ETHUSD","Ethereum")]:
+        d = massive(f"/v2/snapshot/locale/global/markets/crypto/tickers/{ticker}")
+        t = d.get("ticker",{})
+        last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p")
+        chg = t.get("todaysChangePerc",0)
+        crypto_data.append({"symbol":ticker.replace("X:",""),"name":name,
+                            "price":round(float(last),2) if last else None,
+                            "change_pct":round(float(chg),3) if chg is not None else 0})
+    mkt_json = {"as_of": datetime.datetime.now().isoformat(),
+                "data": {"indices": indices, "crypto": crypto_data}}
+    # Write via docker cp
+    import tempfile, os
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
+        _json.dump(mkt_json, tmp)
+        tmp_path = tmp.name
+    subprocess.run(["docker","cp",tmp_path,"ic-engine:/data/reports/markets.json"],
+                   capture_output=True, timeout=10)
+    os.unlink(tmp_path)
+    print(f"  markets.json written ({len(indices)} indices, {len(crypto_data)} crypto)")
+
+    # Wait for ic-engine to be fully initialized before screenshots
+    import urllib.request as _ur2
+    print("Waiting for ic-engine init_state=ready...")
+    for _attempt in range(30):
+        try:
+            with _ur2.urlopen(f"{IC_URL.replace(':8090',':8092').replace('172.19.0.2','localhost')}/healthz", timeout=5) as _r:
+                _h = json.loads(_r.read())
+            if _h.get("init_state") == "ready":
+                print(f"  Engine ready (attempt {_attempt+1})")
+                break
+        except Exception:
+            pass
+        time.sleep(4)
+    else:
+        print("  Warning: engine not ready after 120s, proceeding anyway")
+
+    # Pre-populate markets.json from Massive API
+    print("Populating markets.json from Massive API...")
+    try:
+        populate_markets_json()
+    except Exception as e:
+        print(f"  markets.json population failed: {e}")
 
     # Capture dashboard screenshots
     screenshots = []
