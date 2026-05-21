@@ -1250,28 +1250,24 @@ def generate_pdf(qa_pairs, runs, screenshots):
 
         # 2 screenshots per page max, full width
         from reportlab.platypus import PageBreak as _PB
-        img_w = 6.5*inch; img_h = 4.3*inch
-        pair = []
+        img_w = 6.5*inch; img_h = 4.15*inch  # slightly reduced: 2×(label+img+space)=9.5in < 9.8in page
+        items = []
         for name, path in screenshots:
             if not os.path.exists(path): continue
             try:
-                img = Image(path, width=img_w, height=img_h)
-                pair.append((name, img))
-                if len(pair) == 2:
-                    for nm, im in pair:
-                        story.append(_p(f"<b>{nm}</b>", alignment=1, fontSize=10, textColor=TEAL))
-                        story.append(Spacer(1, 0.04*inch))
-                        story.append(im)
-                        story.append(Spacer(1, 0.08*inch))
-                    story.append(_PB())
-                    pair = []
+                items.append((name, Image(path, width=img_w, height=img_h)))
             except Exception as e:
                 print(f"  Image embed error for {name}: {e}")
-        for nm, im in pair:
-            story.append(_p(f"<b>{nm}</b>", alignment=1, fontSize=10, textColor=TEAL))
-            story.append(Spacer(1, 0.04*inch))
-            story.append(im)
-        if pair:
+        # Pair up; KeepTogether prevents each pair from splitting across pages
+        for i in range(0, len(items), 2):
+            chunk = items[i:i+2]
+            block = []
+            for nm, im in chunk:
+                block.append(_p(f"<b>{nm}</b>", alignment=1, fontSize=10, textColor=TEAL))
+                block.append(Spacer(1, 0.05*inch))
+                block.append(im)
+                block.append(Spacer(1, 0.1*inch))
+            story.append(KeepTogether(block))
             story.append(_PB())
 
     # — NLQ Section —
