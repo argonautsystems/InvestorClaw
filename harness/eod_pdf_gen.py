@@ -134,23 +134,35 @@ def populate_markets_json():
     names_map = {"SPY":"S&P 500 ETF","QQQ":"Nasdaq 100 ETF","DIA":"Dow Jones ETF",
                  "IWM":"Russell 2000 ETF","GLD":"Gold ETF","TLT":"20yr Treasury ETF",
                  "HYG":"High Yield Bond","VNQ":"Real Estate ETF"}
+    def _safe_chg(t, cap=10.0):
+        """Compute intraday % change from prevDay→day, capped at ±cap%."""
+        try:
+            prev = float(t.get("prevDay",{}).get("c") or 0)
+            curr = float(t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p") or 0)
+            if prev > 0 and curr > 0:
+                chg = (curr - prev) / prev * 100
+                return round(max(-cap, min(cap, chg)), 3)
+        except Exception:
+            pass
+        return 0.0
+
     indices = []
     for t in snap.get("tickers",[]):
         sym = t.get("ticker","")
         last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p") or t.get("prevDay",{}).get("c")
-        chg = t.get("todaysChangePerc",0)
+        chg = _safe_chg(t, cap=8.0)  # equity ETFs cap at ±8%
         indices.append({"symbol":sym,"name":names_map.get(sym,sym),
                         "price":round(float(last),2) if last else None,
-                        "change_pct":round(float(chg),3) if chg is not None else 0})
+                        "change_pct":chg})
     crypto_data = []
     for ticker, cname in [("X:BTCUSD","Bitcoin"),("X:ETHUSD","Ethereum")]:
         d = massive(f"/v2/snapshot/locale/global/markets/crypto/tickers/{ticker}")
         t = d.get("ticker",{})
         last = t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p")
-        chg = t.get("todaysChangePerc",0)
+        chg = _safe_chg(t, cap=20.0)  # crypto cap at ±20%
         crypto_data.append({"symbol":ticker.replace("X:",""),"name":cname,
                             "price":round(float(last),2) if last else None,
-                            "change_pct":round(float(chg),3) if chg is not None else 0})
+                            "change_pct":chg})
     mkt = {"as_of":datetime.datetime.now().isoformat(),"data":{"indices":indices,"crypto":crypto_data}}
     with tempfile.NamedTemporaryFile(mode="w",suffix=".json",delete=False) as tmp:
         _json.dump(mkt,tmp); tmp_path = tmp.name
@@ -1326,7 +1338,7 @@ def main():
     # Wait for ic-engine init_state=ready
     import urllib.request as _ur2
     print("Waiting for ic-engine init_state=ready...")
-    for _attempt in range(20):
+    for _attempt in range(90):  # up to 6 min (90 × 4s) — engine auto-init takes 3-5 min
         try:
             with _ur2.urlopen("http://localhost:18092/healthz", timeout=5) as _r:
                 _h = json.loads(_r.read())
