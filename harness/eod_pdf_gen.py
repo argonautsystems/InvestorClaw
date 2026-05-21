@@ -134,17 +134,20 @@ def populate_markets_json():
     names_map = {"SPY":"S&P 500 ETF","QQQ":"Nasdaq 100 ETF","DIA":"Dow Jones ETF",
                  "IWM":"Russell 2000 ETF","GLD":"Gold ETF","TLT":"20yr Treasury ETF",
                  "HYG":"High Yield Bond","VNQ":"Real Estate ETF"}
-    def _safe_chg(t, cap=10.0):
-        """Compute intraday % change from prevDay→day, capped at ±cap%."""
+    def _safe_chg(t, cap=8.0):
+        """Compute intraday % change from prevDay→day, capped at ±cap%.
+        Returns as a percentage value (e.g. 1.5 = +1.5%) NOT decimal.
+        Dashboard _block() multiplies by 100 if |v|<=1, so store as pct."""
         try:
             prev = float(t.get("prevDay",{}).get("c") or 0)
             curr = float(t.get("day",{}).get("c") or t.get("lastTrade",{}).get("p") or 0)
             if prev > 0 and curr > 0:
-                chg = (curr - prev) / prev * 100
-                return round(max(-cap, min(cap, chg)), 3)
+                chg_pct = (curr - prev) / prev * 100
+                capped = max(-cap, min(cap, chg_pct))
+                return round(capped, 3)  # e.g. 1.5 for +1.5%
         except Exception:
             pass
-        return 0.0
+        return None  # None → dashboard shows "—"
 
     indices = []
     for t in snap.get("tickers",[]):
