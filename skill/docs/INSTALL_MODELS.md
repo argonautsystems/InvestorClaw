@@ -69,7 +69,7 @@ That contract is **MCP-HTTP**.
    ┌─────────────────────────────────────────┐
    │  ic-engine container                    │
    │  ────────────────                       │
-   │  ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c  │
+   │  ghcr.io/argonautsystems/ic-engine:4.6.0-cpu  │
    │                                         │
    │  - Python 3.12 venv (uv-managed)        │
    │  - Engine source (ic-engine HEAD)       │

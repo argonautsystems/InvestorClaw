@@ -3,7 +3,7 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer for OpenClaw via MCP-HTTP at localhost:18090. Holdings, performance, Sharpe + Sortino, FRED yields, bond duration, scenario rebalancing.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.5.3","runtime":"openclaw","image":"ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c","mcp-endpoint":"http://localhost:18090/mcp"}
+metadata: {"license":"MIT-0","version":"4.5.3","runtime":"openclaw","image":"ghcr.io/argonautsystems/ic-engine:4.6.0-cpu","mcp-endpoint":"http://localhost:18090/mcp"}
 ---
 
 <!--

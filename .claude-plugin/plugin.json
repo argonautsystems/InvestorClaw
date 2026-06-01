@@ -1,6 +1,6 @@
 {
   "name": "investorclaw",
-  "version": "4.5.3",
+  "version": "4.6.0",
   "description": "Deterministic portfolio analysis and market intelligence. Ask anything in natural language through ic-engine's signed-envelope pipeline: holdings, performance, bonds, analyst consensus, news sentiment, multi-factor synthesis, portfolio optimization, CME futures, and CSV/Excel reporting. Direct file upload (CSV/XLS/XLSX/PDF) and vision extraction of broker statements. Container-first: pulls the public ic-engine image and connects over MCP-HTTP. Guardrails: educational-only, no investment advice.",
   "author": {
     "name": "Jason Perlow",
