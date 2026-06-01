@@ -37,6 +37,8 @@ from pathlib import Path
 
 # provider -> OpenAI-compatible base URL, model, and the env var holding its key
 # (env file is `export <NAME>_API_KEY=...`, sourced before this runs).
+# Narrator targets (Stage 3). NGC/nvidia dropped — 40 RPM free tier + dev-only
+# ToS is unacceptable for a portfolio app and not ours to ship.
 PROVIDERS = {
     "together":   ("https://api.together.xyz/v1",                  "meta-llama/Llama-3.3-70B-Instruct-Turbo", "TOGETHER_API_KEY"),
     "groq":       ("https://api.groq.com/openai/v1",               "llama-3.3-70b-versatile",                 "GROQ_API_KEY"),
@@ -44,8 +46,17 @@ PROVIDERS = {
     "claude":     ("https://api.anthropic.com/v1",                 "claude-sonnet-4-6",                       "ANTHROPIC_API_KEY"),
     "perplexity": ("https://api.perplexity.ai",                    "sonar-pro",                               "PERPLEXITY_API_KEY"),
     "xai":        ("https://api.x.ai/v1",                          "grok-4-1-fast",                           "XAI_API_KEY"),
-    "nvidia":     ("https://integrate.api.nvidia.com/v1",          "meta/llama-3.3-70b-instruct",             "NVIDIA_API_KEY"),
     "gemini":     ("https://generativelanguage.googleapis.com/v1beta/openai", "gemini-3.1-pro-preview",       "GEMINI_API_KEY"),
+    "deepseek":   ("https://api.deepseek.com/v1",                  "deepseek-v4-pro",                         "DEEPSEEK_API_KEY"),
+    "siliconflow":("https://api.siliconflow.com/v1",               "deepseek-ai/DeepSeek-V4-Pro",             "SILICONFLOW_API_KEY"),
+}
+
+# Consultant options (Stage 2) — fixed per battery run, compresses the stripped
+# feed. gemma-4-31B proven; deepseek-v4-flash is the cheap alternative.
+CONSULTANTS = {
+    "gemma_together":  ("https://api.together.xyz/v1", "google/gemma-4-31B-it", "TOGETHER_API_KEY"),
+    "deepseek_flash":  ("https://api.deepseek.com/v1", "deepseek-v4-flash",     "DEEPSEEK_API_KEY"),
+    "none":            (None, None, None),
 }
 
 TICKER_RE = re.compile(r"\b[A-Z]{1,5}\d?\b")           # equities + CME futures roots (ESH7)
@@ -140,8 +151,10 @@ def route_ok(intent: str, expected: list[str], answer: str) -> bool:
     return any(s[:5] in a for s in stems if len(s) >= 4)
 
 
-def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str, timeout: int) -> tuple[str, str]:
-    """Return (stdout, stderr) of one engine `ask` with the narrator pinned."""
+def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str,
+               timeout: int, consultant: str = "none") -> tuple[str, str]:
+    """Return (stdout, stderr) of one engine `ask` with the narrator pinned to
+    `prov` and the consultant (Stage 2) pinned to `consultant`."""
     endpoint, model, key_env = PROVIDERS[prov]
     env = os.environ.get(key_env, "")
     cmd = [
@@ -152,6 +165,15 @@ def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str,
         "-e", f"INVESTORCLAW_NARRATIVE_ENDPOINT={endpoint}",
         "-e", f"INVESTORCLAW_NARRATIVE_MODEL={model}",
         "-e", f"INVESTORCLAW_NARRATIVE_API_KEY={env}",
+    ]
+    c_ep, c_model, c_key_env = CONSULTANTS.get(consultant, (None, None, None))
+    if c_ep:
+        cmd += [
+            "-e", f"INVESTORCLAW_CONSULTANT_ENDPOINT={c_ep}",
+            "-e", f"INVESTORCLAW_CONSULTANT_MODEL={c_model}",
+            "-e", f"INVESTORCLAW_CONSULTANT_API_KEY={os.environ.get(c_key_env, '')}",
+        ]
+    cmd += [
         "-e", "INVESTORCLAW_PORTFOLIO_DIR=/data/portfolios",
         "-e", "IC_PORTFOLIO_DIR=/data/portfolios",
         "-v", f"{data}:/data",
@@ -173,8 +195,10 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--prompts", type=Path, default=Path(__file__).with_name("nlq-prompts.json"))
     ap.add_argument("--providers", default=",".join(PROVIDERS))
+    ap.add_argument("--consultant", default="none", choices=list(CONSULTANTS))
     ap.add_argument("--timeout", type=int, default=180)
     args = ap.parse_args()
+    consultant = args.consultant
 
     args.out.mkdir(parents=True, exist_ok=True)
     prompts = json.loads(args.prompts.read_text())["prompts"]
@@ -184,7 +208,7 @@ def main() -> None:
     if not list((reports / ".cache").glob("envelope.*.json")):
         print("warming envelope (cold ~150s) ...", flush=True)
         run_prompt(args.image, args.data, args.massive_key, "groq",
-                   "What is in my portfolio right now?", args.timeout)
+                   "What is in my portfolio right now?", args.timeout, consultant)
     envelope = load_envelope(reports)
     nums, tickers = grounded_values(envelope)
     futures_section = envelope.get("sections", {}).get("futures") or envelope.get("sections", {}).get("holdings", {})
@@ -199,7 +223,7 @@ def main() -> None:
         rows = []
         t0 = time.time()
         for p in prompts:
-            out, err = run_prompt(args.image, args.data, args.massive_key, prov, p["prompt"], args.timeout)
+            out, err = run_prompt(args.image, args.data, args.massive_key, prov, p["prompt"], args.timeout, consultant)
             blob = out + "\n" + err
             hmac_valid = bool(re.search(r'"hmac":\s*"[0-9a-f]{32,}"', blob) or re.search(r"ic_result\.hmac:\s*[0-9a-f]{32,}", blob))
             source = "heuristic" if any(m in blob for m in HEURISTIC_MARKERS) else "llm"
@@ -215,7 +239,7 @@ def main() -> None:
                 "narration_source": source, "hallucination": halluc,
                 "ungrounded": examples,
             })
-            print(f"  [{prov}] {p['id']:<22} pass={passed} hmac={hmac_valid} route={r_ok} "
+            print(f"  [{consultant}/{prov}] {p['id']:<22} pass={passed} hmac={hmac_valid} route={r_ok} "
                   f"src={source} halluc={halluc}", flush=True)
         npass = sum(r["pass"] for r in rows)
         nllm = sum(r["narration_source"] == "llm" for r in rows)
@@ -225,10 +249,10 @@ def main() -> None:
             "hallucinations": sum(r["hallucination"] for r in rows),
             "elapsed_s": int(time.time() - t0),
         }
-        (args.out / f"{prov}.json").write_text(json.dumps({"provider": prov, "rows": rows, **summary[prov]}, indent=2))
+        (args.out / f"{consultant}__{prov}.json").write_text(json.dumps({"consultant": consultant, "provider": prov, "rows": rows, **summary[prov]}, indent=2))
         print(f"== {prov}: {summary[prov]} ==\n", flush=True)
 
-    (args.out / "summary.json").write_text(json.dumps(summary, indent=2))
+    (args.out / f"summary__{consultant}.json").write_text(json.dumps({"consultant": consultant, "providers": summary}, indent=2))
     print("=== BATTERY SUMMARY ===")
     print(json.dumps(summary, indent=2))
 
