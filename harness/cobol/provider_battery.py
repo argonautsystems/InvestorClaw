@@ -165,9 +165,11 @@ def score_hallucination(answer: str, gsorted: list[float], tickers: set[str]) ->
     Numbers use tolerance matching; 'infinity'/'inf' is allowed (degenerate
     Sharpe). Percent-like small values (<10) are too noisy to score."""
     ungrounded: list[str] = []
-    upper = answer.upper()
-    for t in set(TICKER_RE.findall(upper)):
-        if t in STOPWORD_TOKENS or t in tickers or t.isdigit():
+    # match tickers in ORIGINAL case — real tickers (KLAC, ESH7) are uppercase
+    # in narration; uppercasing the whole answer turns every word ("is","of")
+    # into a false ticker. Require 2+ chars to skip stray single capitals.
+    for t in set(TICKER_RE.findall(answer)):
+        if len(t) < 2 or t in STOPWORD_TOKENS or t in tickers or t.isdigit():
             continue
         ungrounded.append(f"ticker:{t}")
     for m in MONEY_RE.findall(answer):
