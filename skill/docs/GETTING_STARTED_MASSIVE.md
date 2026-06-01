@@ -34,7 +34,7 @@ Ask Claude to install it **directly from the Git repo** — no ClawHub needed:
 
    > "Set up InvestorClaw and show me my holdings."
 
-   Claude runs the skill's setup, which **pulls `ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc`**
+   Claude runs the skill's setup, which **pulls `ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c`**
    and starts it (MCP-HTTP on `localhost:18090`, dashboard on `localhost:18092`).
    No build, no `uv`, no source clone.
 
@@ -64,7 +64,7 @@ the agent any portfolio question. Add `MASSIVE_API_KEY` to the mounted
 Pull the public image (no registry login required):
 
 ```bash
-docker pull ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc
+docker pull ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c
 ```
 
 Use it via the one-shot CLI (below) or run the full service (§"Full service").
@@ -95,7 +95,7 @@ docker run --rm \
   -e IC_PORTFOLIO_DIR=/data/portfolios \
   -v "$PWD/ic-data:/data" \
   --entrypoint /opt/ic-engine/.venv/bin/investorclaw \
-  ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc holdings
+  ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c holdings
 ```
 
 `INVESTORCLAW_PRICE_PROVIDER=massive` forces **Massive as the only data
@@ -132,7 +132,7 @@ The default entrypoint serves an MCP-HTTP API and an interactive dashboard:
 docker run --rm -p 18090:8090 -p 18092:8092 \
   -e INVESTORCLAW_PRICE_PROVIDER=massive \
   -v "$PWD/ic-data:/data" \
-  ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc
+  ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c
 # health: curl http://localhost:18090/healthz   • dashboard: http://localhost:18092
 ```
 

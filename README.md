@@ -15,7 +15,7 @@ InvestorClaw is a self-contained containerized software package that any MCP-cap
 
 The deterministic engine lives in [`ic-engine`](https://github.com/argonautsystems/ic-engine). Foundation primitives live in [`clio`](https://github.com/argonautsystems/clio). The runtime container lives in [`mnemos-ic-runtime`](https://github.com/ncz-os/mnemos-ic-runtime).
 
-**New to InvestorClaw?** The fastest path is the prebuilt container — see **[Getting Started](docs/GETTING_STARTED.md)**: `docker pull ghcr.io/argonautsystems/ic-engine:4.5.0-cpu`, mount a portfolio CSV, done. No source build. Works with any market-data provider (free `yfinance` by default).
+**New to InvestorClaw?** The fastest path is the prebuilt container — see **[Getting Started](docs/GETTING_STARTED.md)**: `docker pull ghcr.io/argonautsystems/ic-engine:4.5.2-cpu`, mount a portfolio CSV, done. No source build. Works with any market-data provider (free `yfinance` by default).
 
 Optional [Stonkmode](docs/STONKMODE_AVATAR_LEGEND.md) adds live commentary from 30 fictional cable TV finance personalities. It is entertainment and education on top of the portfolio surface, not a requirement.
 

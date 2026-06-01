@@ -3,7 +3,7 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer — holdings, performance, Sharpe + Sortino, FRED yield curves, bond duration, sector breakdowns, scenario rebalancing — via MCP-HTTP. Backed by ic-engine and clio.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.5.3","image":"ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc","mcp-endpoint":"http://localhost:18090/mcp","transport":"streamable-http"}
+metadata: {"license":"MIT-0","version":"4.5.3","image":"ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c","mcp-endpoint":"http://localhost:18090/mcp","transport":"streamable-http"}
 ---
 
 <!--
@@ -151,7 +151,7 @@ container goes into `init_state=failed`. Pre-creating the directory
 as the host user sidesteps the docker bind-mount UID inheritance
 quirk.
 
-The compose pulls `ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc` (publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and `localhost:18092` (dashboard).
+The compose pulls `ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c` (publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and `localhost:18092` (dashboard).
 
 ### If Docker isn't installed
 
@@ -196,7 +196,7 @@ your agent talks to it. Expect this timeline on a fresh install:
 
 | Phase | Time | What's happening | What you'll see |
 |---|---|---|---|
-| Image extract | 5–30 s | First-time pull of `ic-engine:4.5.1-cpu` (~600 MB) | docker compose progress bars |
+| Image extract | 5–30 s | First-time pull of `ic-engine:4.5.2-cpu` (~600 MB) | docker compose progress bars |
 | Bridge boot | 2–3 s | FastMCP server binds `:18090`, dashboard binds `:18092` | `/healthz` returns 200, `init_state: not_started` |
 | `portfolio_setup` | 1–60 s | Auto-discover portfolio files in `./portfolios/` | `init_state: initializing`, `current_stage: setup` |
 | `portfolio_refresh` | 30–120 s | Pull quotes / analyst / news / FRED yields for each symbol | `init_state: initializing`, `current_stage: refresh` |
@@ -818,7 +818,7 @@ privacy model (what stays local vs what goes to which provider) see
 
 - Service code: Apache 2.0 (`mnemos-os/mnemos-ic-runtime`)
 - Distribution-edge artifacts (this `SKILL.md`, `compose.yml`, `install.yaml`, `agent-skills/**`): **MIT-0** (MIT No Attribution — `LICENSE-MIT-0`). Required for ClawHub plugin publishing; the no-attribution clause means downstream skill registries can re-host without preserving copyright notice.
-- Image: `ghcr.io/argonautsystems/ic-engine:4.5.1-cpu@sha256:d2b7275d62d50d8ff57af121286dc35e11cb0f33fa3aceced64835291e851bcc` (multi-arch amd64+arm64; also at `:latest`)
+- Image: `ghcr.io/argonautsystems/ic-engine:4.5.2-cpu@sha256:ae8d711f8725e18ef3cbd8e8878c88a3eadbc241c808fa7cef80de7c37a3635c` (multi-arch amd64+arm64; also at `:latest`)
 - RFC: see `RFC-v0.1.md` in this bundle (`mnemos-os/mnemos-ic-runtime` GitHub repository)
 - Cross-project contract: `mnemos-os/mcp-contracts` GitHub repository
 
