@@ -63,6 +63,14 @@ TICKER_RE = re.compile(r"\b[A-Z]{1,5}\d?\b")           # equities + CME futures 
 MONEY_RE = re.compile(r"\$?\s?(\d[\d,]*\.?\d*)")        # $ amounts / bare numbers
 HEURISTIC_MARKERS = ("heuristic fallback", "I have holdings summary data in the envelope")
 
+# stdout lines that are banner/progress noise, not the narrative
+_NOISE_PREFIXES = (
+    "📦", "Runtime:", "Detection", "openclaw", "zeroclaw", "hermes",
+    "git clone", "Changelog:", "Running your portfolio", "Analyst data:",
+    "Please wait", "✓", "💡", "⚠️", "🔒", "====", "IMPORTANT:",
+    "ic_result.hmac:", "Refresh complete",
+)
+
 # Common words that match TICKER_RE but are not tickers — don't flag as hallucinated.
 STOPWORD_TOKENS = {
     "I", "A", "THE", "AND", "OR", "OK", "USD", "ETF", "CME", "YTM", "P", "E",
@@ -183,6 +191,7 @@ def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str,
         "docker", "run", "--rm",
         "-e", "INVESTORCLAW_PRICE_PROVIDER=massive",
         "-e", f"MASSIVE_API_KEY={massive_key}",
+        "-e", "IC_ENGINE_VERSION=4.5.3",
         "-e", "INVESTORCLAW_NARRATIVE_ENABLED=true",
         "-e", f"INVESTORCLAW_NARRATIVE_ENDPOINT={endpoint}",
         "-e", f"INVESTORCLAW_NARRATIVE_MODEL={model}",
@@ -218,7 +227,7 @@ def main() -> None:
     ap.add_argument("--prompts", type=Path, default=Path(__file__).with_name("nlq-prompts.json"))
     ap.add_argument("--providers", default=",".join(PROVIDERS))
     ap.add_argument("--consultant", default="none", choices=list(CONSULTANTS))
-    ap.add_argument("--timeout", type=int, default=180)
+    ap.add_argument("--timeout", type=int, default=240)
     args = ap.parse_args()
     consultant = args.consultant
 
@@ -251,10 +260,17 @@ def main() -> None:
             # save raw stdout for free offline re-scoring
             (raw_dir / f"{consultant}__{prov}__{p['id']}.txt").write_text(out)
             hmac_valid = bool(re.search(r"hmac['\"]?\s*[:=]\s*['\"]?[0-9a-f]{16,}", blob, re.I))
-            source = "heuristic" if any(m in blob for m in HEURISTIC_MARKERS) else "llm"
-            # narrative = stdout minus the json/footer lines
-            answer = "\n".join(l for l in out.splitlines()
-                               if not l.strip().startswith("{") and "IMPORTANT:" not in l and "====" not in l)
+            timed_out = err.strip() == "TIMEOUT"
+            source = ("timeout" if timed_out
+                      else "heuristic" if any(m in blob for m in HEURISTIC_MARKERS)
+                      else "llm")
+            # narrative = stdout minus the upgrade banner / progress / json / footer noise
+            answer = "\n".join(
+                l for l in out.splitlines()
+                if l.strip()
+                and not l.strip().startswith("{")
+                and not any(l.strip().startswith(p) for p in _NOISE_PREFIXES)
+            )
             halluc, examples = score_hallucination(answer, gsorted, tickers)
             expected = p["expected_routes"].get("investorclaw", [])
             r_ok = route_ok(p["intent"], expected, answer)
