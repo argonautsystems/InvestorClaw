@@ -78,6 +78,30 @@ STOPWORD_TOKENS = {
 }
 
 
+_PROGRESS_END_MARKERS = ("Please wait", "Analyst data:", "second time you ask",
+                         "respond instantly")
+_FOOTER_START = ("ic_result", '{"ic_result', "IMPORTANT:", "====", "Discuss these")
+
+
+def extract_narrative(out: str) -> str:
+    """Isolate the LLM narrative: the block AFTER the last progress/banner line
+    and BEFORE the ic_result JSON / disclaimer footer. Avoids scoring stray
+    numbers from the upgrade banner + progress messages (e.g. '249/249',
+    'v4.5.3', '30-60 seconds') as hallucinations."""
+    lines = out.splitlines()
+    start = 0
+    for i, l in enumerate(lines):
+        if any(m in l for m in _PROGRESS_END_MARKERS):
+            start = i + 1
+    end = len(lines)
+    for i in range(start, len(lines)):
+        s = lines[i].strip()
+        if any(s.startswith(p) or p in s for p in _FOOTER_START):
+            end = i
+            break
+    return "\n".join(lines[start:end]).strip()
+
+
 def load_envelope(reports_dir: Path) -> dict:
     """Load the freshest cached signed envelope (ground truth)."""
     cache = reports_dir / ".cache"
@@ -270,13 +294,7 @@ def main() -> None:
             source = ("timeout" if timed_out
                       else "heuristic" if any(m in blob for m in HEURISTIC_MARKERS)
                       else "llm")
-            # narrative = stdout minus the upgrade banner / progress / json / footer noise
-            answer = "\n".join(
-                l for l in out.splitlines()
-                if l.strip()
-                and not l.strip().startswith("{")
-                and not any(l.strip().startswith(p) for p in _NOISE_PREFIXES)
-            )
+            answer = extract_narrative(out)
             halluc, examples = score_hallucination(answer, gsorted, tickers)
             expected = p["expected_routes"].get("investorclaw", [])
             r_ok = route_ok(p["intent"], expected, answer)
