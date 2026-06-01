@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import subprocess
@@ -82,6 +83,8 @@ def grounded_values(envelope: dict) -> tuple[set[str], set[str]]:
                 walk(v)
         elif isinstance(o, (int, float)):
             f = float(o)
+            if not math.isfinite(f):
+                return
             # record the integer + 1-2dp rounded forms so "1728062.22",
             # "1728062", "1,728,062" all match
             for s in (f"{f:.2f}", f"{f:.1f}", f"{f:.0f}", f"{int(f)}"):
@@ -113,7 +116,7 @@ def score_hallucination(answer: str, nums: set[str], tickers: set[str]) -> tuple
             f = float(raw)
         except ValueError:
             continue
-        if f < 10:           # tiny ints (counts, percents 0-9) too noisy — skip
+        if not math.isfinite(f) or f < 10:   # tiny ints / non-finite too noisy — skip
             continue
         forms = {f"{f:.2f}", f"{f:.1f}", f"{f:.0f}", f"{int(f)}"}
         if forms & nums:
