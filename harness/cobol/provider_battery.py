@@ -54,8 +54,12 @@ PROVIDERS = {
 # Consultant options (Stage 2) — fixed per battery run, compresses the stripped
 # feed. gemma-4-31B proven; deepseek-v4-flash is the cheap alternative.
 CONSULTANTS = {
-    "gemma_together":  ("https://api.together.xyz/v1", "google/gemma-4-31B-it", "TOGETHER_API_KEY"),
-    "deepseek_flash":  ("https://api.deepseek.com/v1", "deepseek-v4-flash",     "DEEPSEEK_API_KEY"),
+    "gemma_together":  ("https://api.together.xyz/v1", "google/gemma-4-31B-it",       "TOGETHER_API_KEY"),
+    "deepseek_flash":  ("https://api.deepseek.com/v1", "deepseek-v4-flash",           "DEEPSEEK_API_KEY"),
+    "llama33_groq":    ("https://api.groq.com/openai/v1", "llama-3.3-70b-versatile",  "GROQ_API_KEY"),
+    "gpt52_openai":    ("https://api.openai.com/v1",   "gpt-5.2-chat-latest",         "OPENAI_API_KEY"),
+    "claude_sonnet":   ("https://api.anthropic.com/v1", "claude-sonnet-4-6",          "ANTHROPIC_API_KEY"),
+    "gemini_google":   ("https://generativelanguage.googleapis.com/v1beta/openai", "gemini-3.1-pro-preview", "GEMINI_API_KEY"),
     "none":            (None, None, None),
 }
 
