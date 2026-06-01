@@ -27,17 +27,17 @@ ic-engine (deterministic, HMAC-signed envelope)
 
 | Narrator | mean halluc | narrated (llm) | pass | notes |
 |---|---:|---:|---:|---|
-| **gemini** (gemini-3.1-pro) | **0.0** | 3/6* | 3/6 | small sample |
-| **deepseek** (v4-pro) | **0.5** | 2/6* | 1/6 | small sample |
+| **gemini** (gemini-3.1-pro) | **0.3** | 21/30 | 17/30 | **best overall — cleanest with high coverage** |
 | **claude** (sonnet-4-6) | **0.6** | 15/30 | 11/30 | narrates ~half via anthropic endpoint; rest → safe heuristic |
 | **openai** (gpt-5.2) | **0.6** | 15/30 | 11/30 | slow; ~half time out → safe heuristic |
+| **deepseek** (v4-pro) | 1.1 | 15/25 | 3/25 | |
 | **groq** (llama-3.3-70b) | 1.3 | 21/30 | 5/30 | high coverage |
 | **together** (llama-3.3-70b) | 1.3 | **23/30** | 6/30 | highest coverage |
 | **xai** (grok-4-1-fast) | 1.3 | 20/30 | 5/30 | |
+| **siliconflow** (deepseek-v4-pro) | 1.7 | 16/25 | 3/25 | |
 | **perplexity** (sonar-pro) | **1.8** | 22/30 | 5/30 | **most fabrication** |
-| **siliconflow** (deepseek-v4-pro) | 3.0 | 3/6* | 1/6 | small sample |
 
-\* gemini/deepseek/siliconflow were still accumulating at report time (6/30 prompts).
+Full-sample (25-30 prompts/narrator). Consultant = gemma-4-31B fixed.
 
 ## Findings
 
@@ -46,12 +46,13 @@ ic-engine (deterministic, HMAC-signed envelope)
    that restates only signed data → `halluc=0`. No provider can fabricate past
    the signed envelope; the worst case is degraded prose, not wrong numbers.
 2. **Hallucination is low across the board** (mean < 2 ungrounded numbers per
-   answer for 8/9) but **measurably ranked**: `perplexity` (1.8) and
-   `siliconflow` fabricate most; `openai`/`claude` least among full-sample
-   narrators; the llama-3.3-70b pair (groq/together) sit mid at 1.3.
-3. **Coverage ≠ cleanliness.** `together`/`groq` narrate the most (20-23/30) but
-   at mid hallucination; `openai`/`claude` narrate less (slow / API-format) but
-   cleaner when they do.
+   answer) but **measurably ranked**: `perplexity` (1.8) and `siliconflow` (1.7)
+   fabricate most; `gemini` (0.3), `openai`/`claude` (0.6) least; the
+   llama-3.3-70b pair (groq/together) + xai + deepseek sit mid at 1.1-1.3.
+3. **`gemini` is the best overall narrator** — cleanest (0.3) *and* high coverage
+   (21/30), the only provider strong on both axes. `together`/`groq` narrate the
+   most (21-23/30) but at mid hallucination; `openai`/`claude` narrate less
+   (slow / API-format) but clean when they do.
 4. **Two providers under-narrate via the OpenAI-compat path**: gpt-5.2 (slow →
    timeout) and claude (Anthropic API isn't OpenAI-format). Both degrade to the
    safe heuristic rather than producing wrong output.
