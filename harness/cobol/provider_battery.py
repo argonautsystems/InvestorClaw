@@ -182,9 +182,11 @@ def route_ok(intent: str, expected: list[str], answer: str) -> bool:
 
 
 def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str,
-               timeout: int, consultant: str = "none") -> tuple[str, str]:
+               timeout: int, consultant: str = "none", no_refresh: bool = True) -> tuple[str, str]:
     """Return (stdout, stderr) of one engine `ask` with the narrator pinned to
-    `prov` and the consultant (Stage 2) pinned to `consultant`."""
+    `prov` and the consultant (Stage 2) pinned to `consultant`. With
+    no_refresh=True the engine loads the cached signed envelope and skips the
+    ~200s yfinance/analyst rebuild — only the consultant+narrator LLM calls run."""
     endpoint, model, key_env = PROVIDERS[prov]
     env = os.environ.get(key_env, "")
     cmd = [
@@ -209,8 +211,11 @@ def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str,
         "-e", "IC_PORTFOLIO_DIR=/data/portfolios",
         "-v", f"{data}:/data",
         "--entrypoint", "/opt/ic-engine/.venv/bin/investorclaw",
-        image, "ask", prompt,
+        image, "ask",
     ]
+    if no_refresh:
+        cmd.append("--no-refresh")
+    cmd.append(prompt)
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         return p.stdout, p.stderr
@@ -235,11 +240,12 @@ def main() -> None:
     prompts = json.loads(args.prompts.read_text())["prompts"]
     reports = args.data / "reports"
 
-    # ground truth from the signed envelope (warm it first with one run if absent)
+    # ground truth from the signed envelope (warm it first with one full run if absent)
     if not list((reports / ".cache").glob("envelope.*.json")):
-        print("warming envelope (cold ~150s) ...", flush=True)
+        print("warming envelope (cold ~200s, full refresh) ...", flush=True)
         run_prompt(args.image, args.data, args.massive_key, "groq",
-                   "What is in my portfolio right now?", args.timeout, consultant)
+                   "What is in my portfolio right now?", max(args.timeout, 300),
+                   "none", no_refresh=False)
     envelope = load_envelope(reports)
     gsorted, tickers = grounded_values(envelope)
     raw_dir = args.out / "raw"
