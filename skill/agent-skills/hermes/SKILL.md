@@ -220,26 +220,27 @@ but worth knowing):
 
 ## Install pointer
 
-**Quick install via ClawHub:**
+**Hermes does not use ClawHub** — ClawHub is the OpenClaw / ZeroClaw
+skill registry. Running `clawhub install` drops the skill into an
+openclaw path, not Hermes (and `hermes skills install investorclaw`
+won't find it — it isn't in a Hermes registry). Install into Hermes
+manually:
 
-```bash
-clawhub install investorclaw
-```
+1. Copy this skill directory into `~/.hermes/skills/investorclaw/`.
+2. Bring up the InvestorClaw container (the engine):
+   `cd ~/.investorclaw && docker compose up -d`.
+3. Paste the MCP block from `config-snippet.yaml` into
+   `~/.hermes/config.yaml`, then restart Hermes.
 
-**Claude Code / Claude Desktop:**
+`INSTALL.md` next to this file has the full step-by-step (skill drop,
+compose up, config block, restart, verify).
 
-```
-/plugin marketplace add argonautsystems/InvestorClaw
-/plugin install investorclaw
-```
+> The **dashboard** (`http://localhost:18092`) and the agent's MCP
+> tools both come from the container in step 2 — the skill itself is
+> only the agent-side pointer, so Docker must be running either way.
 
-Claude Code and Claude Desktop use this repo's container-first plugin;
-see `docs/GETTING_STARTED.md`.
-
-See `INSTALL.md` next to this file for the full hermes 0.12+ install
-flow (skill drop, compose up, config.yaml MCP block, restart).
-`config-snippet.yaml` has the exact YAML to paste into your
-`~/.hermes/config.yaml`.
+(Claude Code / Claude Desktop users instead install the marketplace
+plugin from `argonautsystems/InvestorClaw`; see `docs/GETTING_STARTED.md`.)
 
 ## What this skill does NOT do
 
