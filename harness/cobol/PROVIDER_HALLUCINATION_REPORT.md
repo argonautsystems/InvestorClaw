@@ -57,6 +57,32 @@ Full-sample (25-30 prompts/narrator). Consultant = gemma-4-31B fixed.
    timeout) and claude (Anthropic API isn't OpenAI-format). Both degrade to the
    safe heuristic rather than producing wrong output.
 
+## Consultant axis — cost + quality
+
+The consultant (Stage 2) was also swept. On matched narrators, **the cheap
+`deepseek-v4-flash` (direct DeepSeek API) consultant matches or beats the proven
+`gemma-4-31B` consultant** — same or lower narrator hallucination, with higher
+narration coverage:
+
+| narrator | gemma consultant (halluc / llm) | deepseek-flash consultant (halluc / llm) |
+|---|---:|---:|
+| groq | 1.3 / 21·30 | **0.9 / 30·30** |
+| together | 1.3 / 23·30 | **1.1 / 30·30** |
+| openai | 0.6 / 15·30 | 0.7 / 15·30 |
+
+**Cost** (per M tokens; consultant input is the reused ~15k-token feed → highly
+cacheable, output ~900 tokens):
+
+| Consultant | input | output | cached input |
+|---|---:|---:|---:|
+| **deepseek-v4-flash** (direct) | $0.14 | $0.28 | **$0.0028** |
+| gemma-4-31B (cheapest host, ~Google) | $0.12 | $0.37 | — |
+| gemma-4-31B (Together — original baseline) | ~$0.80 | ~$0.80 | — |
+
+**Recommendation: consultant = `deepseek-v4-flash` via the direct DeepSeek API** —
+matches gemma quality at a fraction of the cost (and gemma, if used, should run on
+its cheapest host, not Together).
+
 ## Caveats
 
 - **Coverage is timeout-limited** (~30% of runs): container start + per-`ask`
