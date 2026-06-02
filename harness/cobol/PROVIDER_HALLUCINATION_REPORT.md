@@ -59,16 +59,23 @@ Full-sample (25-30 prompts/narrator). Consultant = gemma-4-31B fixed.
 
 ## Consultant axis — cost + quality
 
-The consultant (Stage 2) was also swept. On matched narrators, **the cheap
+The consultant (Stage 2) was also swept across **all 9 narrators**. **The cheap
 `deepseek-v4-flash` (direct DeepSeek API) consultant matches or beats the proven
-`gemma-4-31B` consultant** — same or lower narrator hallucination, with higher
-narration coverage:
+`gemma-4-31B` consultant** — same/lower narrator hallucination, and notably
+**higher narration coverage** (most narrators reach 30/30 under deepseek vs
+15-23/30 under gemma):
 
 | narrator | gemma consultant (halluc / llm) | deepseek-flash consultant (halluc / llm) |
 |---|---:|---:|
+| gemini | 0.3 / 21·30 | 0.5 / **30·30** |
+| claude | 0.6 / 15·30 | 0.7 / 15·30 |
+| openai | 0.6 / 15·30 | 0.7 / 15·30 |
 | groq | 1.3 / 21·30 | **0.9 / 30·30** |
 | together | 1.3 / 23·30 | **1.1 / 30·30** |
-| openai | 0.6 / 15·30 | 0.7 / 15·30 |
+| deepseek | 1.1 / 15·25 | 1.3 / **30·30** |
+| xai | 1.3 / 20·30 | 1.3 / **30·30** |
+| siliconflow | 1.7 / 16·25 | **1.3 / 30·30** |
+| perplexity | 1.8 / 22·30 | **1.4 / 30·30** |
 
 **Cost** (per M tokens; consultant input is the reused ~15k-token feed → highly
 cacheable, output ~900 tokens):
