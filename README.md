@@ -33,7 +33,7 @@ InvestorClaw separates agent-facing commands from portfolio computation.
 - 17-tab dashboard portal. Open `http://localhost:18092` for Overview, Holdings, Performance, WhatChanged, Scenarios, Bonds, Optimize, Cashflow, Peer, Analyst, News, Markets, Lookup, Synthesis, Reports, Settings, and About.
 - Regenerate from the browser. The Overview tab has a Regenerate button that fires setup, refresh, and all 12 analyzers as a background sweep.
 - Web upload form. Settings accepts multipart uploads for `.csv`, `.tsv`, `.xls`, `.xlsx`, `.pdf`, `.json`, `.ofx`, and `.qfx` portfolio files.
-- Pluggable narrative providers. The default narration stack is Together AI with `MiniMaxAI/MiniMax-M2.7`. Swap it for any OpenAI-compatible endpoint if your runtime or policy wants something else.
+- Pluggable, battery-tuned narration. Narration is two-stage — a **consultant** compresses the signed envelope into a fact-faithful summary, then a **narrator** enriches it. The 30-prompt COBOL hallucination battery ([`harness/cobol/PROVIDER_HALLUCINATION_REPORT.md`](harness/cobol/PROVIDER_HALLUCINATION_REPORT.md)) settled the defaults: **consultant = `deepseek-v4-flash` via the direct DeepSeek API** (cheapest, and matches `gemma-4-31B` on hallucination with better coverage); **narrator = `gemini-3.1-pro`** (lowest fabrication) or `llama-3.3-70b` on Groq/Together (max coverage). Any OpenAI-compatible endpoint works — set `INVESTORCLAW_CONSULTANT_*` and `INVESTORCLAW_NARRATIVE_*` (see [Getting Started](docs/GETTING_STARTED.md)).
 - Safe fallback defaults. InvestorClaw can start with no API keys and use the `yfinance` fallback. Optional keys improve news, ratings, and premium data coverage.
 - HMAC-signed envelopes. Outputs are tamper-evident. They are not encrypted.
 - No fabrication path. The engine returns what it can prove from data, marks gaps, and avoids pretending that missing facts exist.
@@ -51,7 +51,7 @@ See [docs/AGENT-COMPARISON.md](docs/AGENT-COMPARISON.md) *(coming soon)* for the
 >
 > Claude Code is different. Anthropic subscriptions continue to apply normally there at standard rates.
 >
-> The fleet default stack for non-Claude-Code runtimes is therefore MiniMax-via-Together for narrative and Gemma4 for consultation. Use Claude Code if you want Claude.
+> Battery-validated narration stack ([`harness/cobol/PROVIDER_HALLUCINATION_REPORT.md`](harness/cobol/PROVIDER_HALLUCINATION_REPORT.md)): **consultant `deepseek-v4-flash`** (direct DeepSeek API — cheapest, matches Gemma-4-31B), **narrator `gemini-3.1-pro`** (lowest fabrication) or `llama-3.3-70b` via Groq/Together (coverage). Use Claude Code if you want Claude.
 >
 > Sources: [PYMNTS 2026-04-04](https://www.pymnts.com/artificial-intelligence-2/2026/third-party-agents-lose-access-as-anthropic-tightens-claude-usage-rules/), [VentureBeat](https://venturebeat.com/technology/anthropic-cuts-off-the-ability-to-use-claude-subscriptions-with-openclaw-and)
 

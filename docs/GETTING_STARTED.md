@@ -205,6 +205,43 @@ resolves it at startup — keys live only in your mounted volume.
 
 ---
 
+## Narration models (consultant + narrator)
+
+Narration is two-stage and **independent of the price provider**: a *consultant*
+compresses the signed envelope into a fact-faithful summary, then a *narrator*
+enriches it into the answer. The signed envelope is ground truth — neither stage
+can fabricate past it. The 30-prompt hallucination battery
+([`harness/cobol/PROVIDER_HALLUCINATION_REPORT.md`](../harness/cobol/PROVIDER_HALLUCINATION_REPORT.md))
+settled the recommended defaults:
+
+| Stage | Recommended | Why | Env vars |
+|---|---|---|---|
+| **Consultant** | `deepseek-v4-flash` (direct DeepSeek API) | Cheapest ($0.14/$0.28 per M, $0.0028 cached) and matches `gemma-4-31B` quality with better coverage | `INVESTORCLAW_CONSULTANT_ENDPOINT`, `_MODEL`, `_API_KEY` |
+| **Narrator** | `gemini-3.1-pro` (lowest fabrication) — or `llama-3.3-70b` on Groq/Together for max coverage | Cleanest narration; llama for high throughput/low cost | `INVESTORCLAW_NARRATIVE_ENDPOINT`, `_MODEL`, `_API_KEY` |
+
+```bash
+# consultant — DeepSeek direct (cheapest)
+INVESTORCLAW_CONSULTANT_ENDPOINT=https://api.deepseek.com/v1
+INVESTORCLAW_CONSULTANT_MODEL=deepseek-v4-flash
+INVESTORCLAW_CONSULTANT_API_KEY=<your DeepSeek key>
+# narrator — Gemini (cleanest)
+INVESTORCLAW_NARRATIVE_ENDPOINT=https://generativelanguage.googleapis.com/v1beta/openai
+INVESTORCLAW_NARRATIVE_MODEL=gemini-3.1-pro-preview
+INVESTORCLAW_NARRATIVE_API_KEY=<your Gemini key>
+```
+
+**All-DeepSeek budget stack:** for the cheapest end-to-end setup, use
+`deepseek-v4-pro` as the narrator too (set `INVESTORCLAW_NARRATIVE_MODEL=deepseek-v4-pro`
+against the DeepSeek endpoint). Its hallucination is mid-pack (≈1.1 ungrounded
+numbers/answer vs gemini's 0.3) but at a fraction of the cost — a reasonable
+trade when budget dominates.
+
+Both stages take any OpenAI-compatible endpoint. Omit the consultant vars to
+narrate directly from the compressed feed (single LLM call); on any LLM failure
+the engine falls back to a heuristic that restates only signed data.
+
+---
+
 ## Provider reference
 
 InvestorClaw treats whichever paid provider you set as its market-data source
