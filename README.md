@@ -300,6 +300,47 @@ Set the usual SMTP environment variables for delivery, including `SMTP_HOST`, `S
 
 ---
 
+## Narrator providers (grounding battery)
+
+> **Scope.** The recommendation below is for the **non-Claude provider
+> path** -- openclaw / zeroclaw / hermes bringing an external narrator
+> API key (`TOGETHER_API_KEY`, `GEMINI_API_KEY`, etc.). On **Claude Code
+> / Claude Desktop**, do **not** wire an external narrator API key:
+> the agent narrates with its own Claude over its OAuth subscription
+> (Sonnet 4.6 for narrative, Opus 4.7 for escalation), which is both
+> the highest-quality and the lowest-friction path.
+
+A 540-run battery (2 consultants x 9 non-Claude narrator providers x 30
+NLQ prompts) measured how faithfully each narrator quotes the signed
+envelope without inventing numbers (`pass` = grounded + on-intent / 30;
+`halluc` = mean ungrounded numbers per answer):
+
+| narrator | pass / 30 | mean halluc |
+|---|---:|---:|
+| **gemini** | **17.0** | **0.36** |
+| groq | 7.5 | 0.92 |
+| together | 7.5 | 1.06 |
+| perplexity | 6.5 | 1.38 |
+| siliconflow | 5.0 | 1.30 |
+| claude-sonnet-4-6 (via API) | 5.0 | 1.45 |
+| xai | 4.0 | 1.07 |
+| deepseek | 3.5 | 1.15 |
+| gpt-5.2-chat | 2.5 | 1.23 |
+
+- **gemini is the best-grounded external narrator** under both
+  consultants: highest pass, lowest hallucination.
+- The strongest chat models hallucinate the **most** -- fluent
+  embellishment is a liability in a strict grounding task, even with a
+  "quote every number verbatim" system prompt. (claude-sonnet here is
+  the raw external-API narrator with no validator gate; on Claude Code
+  the built-in validator pass corrects this -- another reason Claude
+  agents should stay on their own OAuth Claude.)
+- Consultant reliability: `deepseek_flash` 0%% timeout vs
+  `gemma_together` 31%% (Together serverless latency).
+- **Recommended (non-Claude agents): `deepseek_flash` consultant +
+  `gemini` narrator.**
+
+
 ## Documentation
 
 InvestorClaw runs as a containerized MCP package for multiple agent runtimes. Every runtime — Claude Code, Claude Desktop, OpenClaw, ZeroClaw, Hermes — installs the same skill and drives the same `ic-engine` container; only the installer command differs.
