@@ -91,7 +91,7 @@ def extract_narrative(out: str) -> str:
     """Isolate the LLM narrative: the block AFTER the last progress/banner line
     and BEFORE the ic_result JSON / disclaimer footer. Avoids scoring stray
     numbers from the upgrade banner + progress messages (e.g. '249/249',
-    'v4.5.3', '30-60 seconds') as hallucinations."""
+    'v4.7.1', '30-60 seconds') as hallucinations."""
     lines = out.splitlines()
     start = 0
     for i, l in enumerate(lines):
@@ -223,7 +223,7 @@ def run_prompt(image: str, data: Path, massive_key: str, prov: str, prompt: str,
         "docker", "run", "--rm",
         "-e", "INVESTORCLAW_PRICE_PROVIDER=massive",
         "-e", f"MASSIVE_API_KEY={massive_key}",
-        "-e", "IC_ENGINE_VERSION=4.5.3",
+        "-e", "IC_ENGINE_VERSION=4.7.1",
         "-e", "INVESTORCLAW_NARRATIVE_ENABLED=true",
         "-e", f"INVESTORCLAW_NARRATIVE_ENDPOINT={endpoint}",
         "-e", f"INVESTORCLAW_NARRATIVE_MODEL={model}",

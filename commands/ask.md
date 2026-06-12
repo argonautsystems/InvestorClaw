@@ -12,7 +12,7 @@ public image; subsequent calls reuse it. Provider keys are read from the mounted
 **Execute:**
 ```bash
 IC_HOME="${IC_HOME:-$HOME/.investorclaw}"
-IC_IMAGE="${IC_ENGINE_IMAGE:-ghcr.io/argonautsystems/ic-engine:4.6.0-cpu}"
+IC_IMAGE="${IC_ENGINE_IMAGE:-ghcr.io/argonautsystems/ic-engine:4.7.1-cpu}"
 mkdir -p "$IC_HOME/data/portfolios" "$IC_HOME/data/reports"
 [ -f "$IC_HOME/data/keys.env" ] || touch "$IC_HOME/data/keys.env"
 if ! docker image inspect "$IC_IMAGE" >/dev/null 2>&1; then
