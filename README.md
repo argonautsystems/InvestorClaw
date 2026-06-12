@@ -1,5 +1,7 @@
 # InvestorClaw
 
+[![skills.sh](https://skills.sh/b/argonautsystems/InvestorClaw)](https://skills.sh/argonautsystems/InvestorClaw)
+
 <p align="center">
   <picture>
     <source srcset="assets/investorclaw-logo.webp" type="image/webp">

@@ -3,7 +3,7 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer — holdings, performance, Sharpe + Sortino, FRED yield curves, bond duration, sector breakdowns, scenario rebalancing.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.1.31","upstream-runtime":"https://github.com/mnemos-os/mnemos-ic-runtime","upstream-engine":"https://github.com/argonautsystems/ic-engine"}
+metadata: {"license":"MIT-0","version":"4.7.2","upstream-runtime":"https://github.com/mnemos-os/mnemos-ic-runtime","upstream-engine":"https://github.com/argonautsystems/ic-engine"}
 ---
 
 <!--
