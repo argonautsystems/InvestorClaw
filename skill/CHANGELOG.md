@@ -9,6 +9,15 @@ Distribution-edge artifacts (`SKILL.md`, `compose.yml`, `install.yaml`,
 `agent-skills/**`) are MIT-0; substantive code (bridge, dashboard,
 Dockerfile, tests) is Apache 2.0.
 
+## [4.7.2] — 2026-06-11
+
+### Security
+
+- Scrubbed the repo owner's real brokerage account numbers/labels from
+  `fetch_holdings.py` ACCOUNT_LABELS docstring examples (now fake
+  placeholders). No data was ever baked into the image; this removes
+  identifying examples from source. Pins `ic-engine:4.7.2-cpu`.
+
 ## [4.7.1] — 2026-06-11
 
 ### Fixed

@@ -77,7 +77,7 @@ docker compose up -d    # uses the bundled compose.yml
 ```
 
 That's it. The compose pulls
-`ghcr.io/argonautsystems/ic-engine:4.7.1-cpu` (publicly hosted, no
+`ghcr.io/argonautsystems/ic-engine:4.7.2-cpu` (publicly hosted, no
 auth) and runs it on `localhost:18090` (MCP + REST) and
 `localhost:18092` (dashboard).
 

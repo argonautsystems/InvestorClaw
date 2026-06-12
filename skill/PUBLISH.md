@@ -6,4 +6,4 @@ investorclaw` delivers. Publish from here:
     clawhub skill publish --slug investorclaw --version <X.Y.Z> --tags latest --changelog "..." .
 
 (skill-card.md / _meta.json are ClawHub-generated — never commit.)
-Current: 4.7.1 -> pins ghcr.io/argonautsystems/ic-engine:4.7.1-cpu (Massive-branded).
+Current: 4.7.1 -> pins ghcr.io/argonautsystems/ic-engine:4.7.2-cpu (Massive-branded).
