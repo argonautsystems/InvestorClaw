@@ -9,7 +9,7 @@ Distribution-edge artifacts (`SKILL.md`, `compose.yml`, `install.yaml`,
 `agent-skills/**`) are MIT-0; substantive code (bridge, dashboard,
 Dockerfile, tests) is Apache 2.0.
 
-## [4.7.6] — 2026-06-14
+## [4.7.7] — 2026-06-14
 
 ### Changed
 - **Narrator: temporal-hedge recovery.** Time-window questions ("how did my
