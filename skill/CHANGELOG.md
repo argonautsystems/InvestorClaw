@@ -31,7 +31,7 @@ Dockerfile, tests) is Apache 2.0.
   - Equities whose name contains "cash" (e.g. FIRSTCASH HLDGS INC / FCFS) were
     misclassified into the cash bucket via a substring match. The cash keyword
     is now word-boundaried, so such tickers stay equities.
-- Pins `ghcr.io/argonautsystems/ic-engine:4.7.1-cpu`.
+- Pins `ghcr.io/argonautsystems/ic-engine:4.7.6-cpu`.
 
 ## [4.1.35] — 2026-05-06
 

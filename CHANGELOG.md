@@ -9,6 +9,38 @@ Distribution-edge artifacts (`SKILL.md`, `compose.yml`, `install.yaml`,
 `agent-skills/**`) are MIT-0; substantive code (bridge, dashboard,
 Dockerfile, tests) is Apache 2.0.
 
+## [4.7.6] — 2026-06-14
+
+### Changed
+- **Narrator: temporal-hedge recovery.** Time-window questions ("how did my
+  portfolio do last week", "what moved this week") that the narrator answered
+  with a non-sentinel hedge are now recovered from the signed envelope's
+  `whatchanged`/`performance` sections (verbatim, still validated — no
+  fabrication). Complements the 4.7.5 OUT_OF_SCOPE recovery.
+
+## [4.7.5] — 2026-06-14
+
+### Fixed
+- **Narrator phrasing-recovery.** When the LLM narrator spuriously refused a
+  valid portfolio question (`OUT_OF_SCOPE`) despite the envelope holding the
+  data, recover deterministically from `performance`/`whatchanged` verbatim;
+  `validate_narration` still runs so the anti-fabrication guarantee holds.
+
+### Docs
+- **Recommended narration config** updated to the hallucination-battery winner:
+  consultant `deepseek-v4-flash` (direct) + narrator `gemini`. `gemma-4-31B` is
+  now a legacy/offline alternative.
+- **yfinance fallback** documented with a large-portfolio timeout disclaimer.
+
+## [4.7.4] — 2026-06-14
+
+### Changed
+- **Market data → Massive everywhere.** Performance, analyst, news, cashflow,
+  peer, treasury and price paths migrated to the Massive API (fast, realtime).
+  **Yahoo Finance (`yfinance`) is retained as the last-resort fallback** so
+  deployments without a `MASSIVE_API_KEY` still work (slower; large portfolios
+  may time out).
+
 ## [4.1.29] — 2026-05-04
 
 ### Added

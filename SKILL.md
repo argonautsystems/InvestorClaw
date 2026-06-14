@@ -3,7 +3,7 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer — holdings, performance, Sharpe + Sortino, FRED yield curves, bond duration, sector breakdowns, scenario rebalancing. Free by default (Yahoo Finance), no API key required; optional Massive key for futures/premium data.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.7.2","upstream-runtime":"https://github.com/mnemos-os/mnemos-ic-runtime","upstream-engine":"https://github.com/argonautsystems/ic-engine"}
+metadata: {"license":"MIT-0","version":"4.7.6","upstream-runtime":"https://github.com/mnemos-os/mnemos-ic-runtime","upstream-engine":"https://github.com/argonautsystems/ic-engine"}
 ---
 
 <!--
@@ -34,7 +34,7 @@ docker compose up -d
 ```
 
 The compose pulls
-\`ghcr.io/argonautsystems/ic-engine:4.7.2-cpu\` (publicly hosted, no
+\`ghcr.io/argonautsystems/ic-engine:4.7.6-cpu\` (publicly hosted, no
 auth) and runs it on \`localhost:18090\` (MCP + REST) and
 \`localhost:18092\` (dashboard).
 

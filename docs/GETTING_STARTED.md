@@ -44,7 +44,7 @@ with the matching key var (e.g. `massive` / `MASSIVE_API_KEY`).
 
 Pick the path that matches how you work. **All paths run the same container** —
 the agent paths just automate the Docker steps and wire up the MCP connection.
-The image is public (`ghcr.io/argonautsystems/ic-engine:4.7.2-cpu`); no registry
+The image is public (`ghcr.io/argonautsystems/ic-engine:4.7.6-cpu`); no registry
 login, no source clone, no `uv`.
 
 ### A. From Claude (Claude Code / Claude Desktop)
@@ -91,7 +91,7 @@ question. Add `<PROVIDER>_API_KEY` to the mounted `keys.env` the same way as abo
 Pull the public image (no registry login required):
 
 ```bash
-docker pull ghcr.io/argonautsystems/ic-engine:4.7.2-cpu
+docker pull ghcr.io/argonautsystems/ic-engine:4.7.6-cpu
 ```
 
 Use it via the one-shot CLI (below) or run the full service (§[Full service](#full-service--mcp--dashboard)).
@@ -126,7 +126,7 @@ docker run --rm \
   -e IC_PORTFOLIO_DIR=/data/portfolios \
   -v "$PWD/ic-data:/data" \
   --entrypoint /opt/ic-engine/.venv/bin/investorclaw \
-  ghcr.io/argonautsystems/ic-engine:4.7.2-cpu holdings
+  ghcr.io/argonautsystems/ic-engine:4.7.6-cpu holdings
 ```
 
 `INVESTORCLAW_PRICE_PROVIDER=<provider>` forces **that provider as the only data
@@ -195,7 +195,7 @@ The default entrypoint serves an MCP-HTTP API and an interactive dashboard:
 docker run --rm -p 18090:8090 -p 18092:8092 \
   -e INVESTORCLAW_PRICE_PROVIDER=<provider> \
   -v "$PWD/ic-data:/data" \
-  ghcr.io/argonautsystems/ic-engine:4.7.2-cpu
+  ghcr.io/argonautsystems/ic-engine:4.7.6-cpu
 # health: curl http://localhost:18090/healthz   • dashboard: http://localhost:18092
 # MCP endpoint for any client: http://localhost:18090/mcp
 ```
