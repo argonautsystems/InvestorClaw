@@ -3,8 +3,55 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer — holdings, performance, Sharpe + Sortino, FRED yield curves, bond duration, sector breakdowns, scenario rebalancing — via MCP-HTTP. Backed by ic-engine and clio.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.7.7","image":"ghcr.io/argonautsystems/ic-engine:4.7.7-cpu","mcp-endpoint":"http://localhost:18090/mcp","transport":"streamable-http"}
+metadata: {"license":"MIT-0","version":"4.10.0","image":"ghcr.io/argonautsystems/ic-engine:4.10.0-cpu","mcp-endpoint":"http://localhost:18090/mcp","transport":"streamable-http"}
 ---
+
+## Authoritative operating contract
+
+These rules govern any agent using this skill. Examples elsewhere in this file
+are reference only and never override them.
+
+### Data integrity — InvestorClaw is the only source of truth
+- Every price, percent, dollar figure, or market fact an agent states MUST come
+  from an InvestorClaw tool result returned in the SAME turn. InvestorClaw
+  returns HMAC-signed envelopes; that signed data is the only source of truth.
+- Never invent, estimate, guess, or use the model's own training knowledge for
+  any number. If a tool did not return it this turn, do not state it — say
+  "InvestorClaw returned no data for that".
+- Tool prose with no concrete numbers = no data; never convert it into a figure.
+
+### Current tool surface (underscore namespace)
+- `investorclaw__portfolio_market_snapshot(symbols?, benchmarks?)` — real-time
+  prices + day-change% for holdings and benchmarks (SPX/NDX/DJI/VIX, BTC/ETH).
+  `symbols` is a COMMA-SEPARATED STRING (e.g. "NVDA,AAPL"), not a list. No args =
+  holdings + benchmarks. Use this (not portfolio_ask) for any "price of X" and to
+  read the portfolio against the market.
+- `investorclaw__portfolio_performance_window(period=...)` — return / P&L /
+  movers over a window. period: 1d, 1w, 1mo, 1y, 5y, 10y, 20y, max, or natural
+  phrases ("today", "last week", "last year", "entire history").
+- `investorclaw__portfolio_ask(question=...)` — analysis / explanation.
+
+Older `investorclaw.*` dot-namespace examples below are stale; the underscore
+forms above are the current tool names.
+
+## Autonomous / always-on monitoring agents
+
+For unattended agents (scheduled monitors and alerters — e.g. a MarketWatch
+agent), in addition to the contract above:
+- Drive each run from a tool call first; never answer a market question from
+  memory. A scheduled "poll" means call `portfolio_market_snapshot`.
+- Threshold scan: call `portfolio_market_snapshot`, then emit ONE terse line
+  only when a holding or benchmark breaches the configured move (e.g. ±3% a
+  holding, ±10% VIX); otherwise emit a single `NO_ALERT` token and stop.
+- If the required tool errors or returns no data, emit a fixed marker such as
+  `OPS_FAIL market_snapshot unavailable` and stop — never fabricate a reassuring
+  number to fill the gap.
+- No clarifying questions in unattended mode; map intent and act.
+- Periodic / EOD reports: pull `portfolio_performance_window` for the window,
+  then `portfolio_market_snapshot` for index closes; report numbers verbatim.
+- Always read holdings in the context of the benchmarks in the same snapshot.
+- Delivery is push, terse, numbers-first. Educational, not personalized advice.
+
 
 <!--
 SPDX-License-Identifier: MIT-0
@@ -151,7 +198,7 @@ container goes into `init_state=failed`. Pre-creating the directory
 as the host user sidesteps the docker bind-mount UID inheritance
 quirk.
 
-The compose pulls `ghcr.io/argonautsystems/ic-engine:4.7.7-cpu` (publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and `localhost:18092` (dashboard).
+The compose pulls `ghcr.io/argonautsystems/ic-engine:4.10.0-cpu` (publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and `localhost:18092` (dashboard).
 
 ### If Docker isn't installed
 
@@ -196,7 +243,7 @@ your agent talks to it. Expect this timeline on a fresh install:
 
 | Phase | Time | What's happening | What you'll see |
 |---|---|---|---|
-| Image extract | 5–30 s | First-time pull of `ic-engine:4.7.2-cpu` (~600 MB) | docker compose progress bars |
+| Image extract | 5–30 s | First-time pull of `ic-engine:4.10.0-cpu` (~600 MB) | docker compose progress bars |
 | Bridge boot | 2–3 s | FastMCP server binds `:18090`, dashboard binds `:18092` | `/healthz` returns 200, `init_state: not_started` |
 | `portfolio_setup` | 1–60 s | Auto-discover portfolio files in `./portfolios/` | `init_state: initializing`, `current_stage: setup` |
 | `portfolio_refresh` | 30–120 s | Pull quotes / analyst / news / FRED yields for each symbol | `init_state: initializing`, `current_stage: refresh` |
@@ -818,7 +865,7 @@ privacy model (what stays local vs what goes to which provider) see
 
 - Service code: Apache 2.0 (`mnemos-os/mnemos-ic-runtime`)
 - Distribution-edge artifacts (this `SKILL.md`, `compose.yml`, `install.yaml`, `agent-skills/**`): **MIT-0** (MIT No Attribution — `LICENSE-MIT-0`). Required for ClawHub plugin publishing; the no-attribution clause means downstream skill registries can re-host without preserving copyright notice.
-- Image: `ghcr.io/argonautsystems/ic-engine:4.7.7-cpu` (multi-arch amd64+arm64; also at `:latest`)
+- Image: `ghcr.io/argonautsystems/ic-engine:4.10.0-cpu` (multi-arch amd64+arm64; also at `:latest`)
 - RFC: see `RFC-v0.1.md` in this bundle (`mnemos-os/mnemos-ic-runtime` GitHub repository)
 - Cross-project contract: `mnemos-os/mcp-contracts` GitHub repository
 
