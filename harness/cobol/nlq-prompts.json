@@ -450,6 +450,144 @@
           "ask"
         ]
       }
+    },
+    {
+      "id": "w01-window-1y",
+      "intent": "perf-window",
+      "prompt": "How did my portfolio do over the last year?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w02-window-5y",
+      "intent": "perf-window",
+      "prompt": "What is my total return over the last 5 years?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w03-window-1w",
+      "intent": "perf-window",
+      "prompt": "How have I done this past week?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w04-window-1d",
+      "intent": "perf-window",
+      "prompt": "What was my profit and loss yesterday?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w05-window-3mo",
+      "intent": "perf-window",
+      "prompt": "Show my performance over the last three months.",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w06-window-max",
+      "intent": "perf-window",
+      "prompt": "How has the portfolio done over its entire history?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w07-window-movers-1mo",
+      "intent": "perf-window",
+      "prompt": "What were my top movers last month?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_performance_window",
+          "performance-window"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w08-market-context",
+      "intent": "market-snapshot",
+      "prompt": "How is my portfolio doing versus the market right now?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_market_snapshot"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w09-last-poll",
+      "intent": "market-snapshot",
+      "prompt": "What was the last poll?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_market_snapshot"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
+    },
+    {
+      "id": "w10-indices",
+      "intent": "market-snapshot",
+      "prompt": "How are the S&P 500, Nasdaq, and VIX doing today?",
+      "expected_routes": {
+        "investorclaw": [
+          "portfolio_market_snapshot"
+        ],
+        "investorclaude": [
+          "ask"
+        ]
+      }
     }
-  ]
+  ],
+  "$comment_window": "Added 10 window/temporal + market-snapshot prompts (w01-w10) to exercise performance_window + indices feature set (ic-engine 4.10.x)."
 }
