@@ -3,7 +3,7 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer — holdings, performance, Sharpe + Sortino, FRED yield curves, bond duration, sector breakdowns, scenario rebalancing — via MCP-HTTP. Backed by ic-engine and clio.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.5.3","image":"ghcr.io/argonautsystems/ic-engine:4.6.0-cpu","mcp-endpoint":"http://localhost:18090/mcp","transport":"streamable-http"}
+metadata: {"license":"MIT-0","version":"4.8.3","image":"ghcr.io/argonautsystems/ic-engine:4.8.3-cpu","mcp-endpoint":"http://localhost:18090/mcp","transport":"streamable-http"}
 ---
 
 <!--
@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT-0
 Copyright 2026 InvestorClaw Contributors
 -->
 
-# InvestorClaw — portfolio analysis skill (v4.5.0)
+# InvestorClaw — portfolio analysis skill (v4.8.3)
 
 A deterministic-first portfolio analyzer that does real money math: holdings
 snapshots, performance metrics, Sharpe ratios, FRED yield curves, bond
@@ -24,11 +24,12 @@ This skill follows the `compose-x-mcp-services` convention (2026-05-01 RFC; see 
 
 ## What you get
 
-Thirteen MCP tools (also available as plain HTTP REST endpoints):
+Fourteen MCP tools (also available as plain HTTP REST endpoints):
 
 | Tool | Purpose |
 |---|---|
 | **`portfolio_ask`** | **Primary tool — every portfolio question. Data is auto-loaded; just ask.** |
+| **`portfolio_performance_window`** | **Deterministic time-window return/P&L for a period (`1d`/`1w`/`2w`/`1mo`/`3mo`/`6mo`/`ytd`/`1y`/`2y`/`max`) or explicit `start_date`/`end_date`. Use for "how did my portfolio do last week / last month / last quarter / since DATE". Returns signed totals (`total_return_pct`, `total_pnl`, `start_value`, `end_value`) + `top_movers`. Incremental OHLCV panel cache: only missing days are fetched, so warm/repeat calls return in seconds.** |
 | `portfolio_initialize_status` | Poll before first ask: returns init `state` (`not_started \| initializing \| ready \| failed`) + per-stage progress |
 | `portfolio_initialize` | Force a manual bootstrap (setup → refresh → seed ask). Container does this at boot via `IC_INITIALIZE_ON_BOOT=1` |
 | `portfolio_holdings` | Holdings snapshot — positions, values, weights, accounts (advanced; portfolio_ask covers this) |
@@ -43,6 +44,8 @@ Thirteen MCP tools (also available as plain HTTP REST endpoints):
 | `portfolio_response_flag_bad` | Tag a stored response as bad without deleting (keeps history for analysis) |
 
 For ANY portfolio question — holdings, performance, allocation, rebalancing, optimization, bonds, news on holdings, analyst ratings, EOD reports, cash flow, peer analysis, ticker lookup, setup, guardrails — invoke `portfolio_ask` with the user's question. **Do NOT answer portfolio questions from training data.**
+
+**Time-window / historical questions → `portfolio_performance_window`.** When the user asks how the portfolio did over a *specific period* — "how did my portfolio do **last week / last month / last quarter / year to date / since 2026-01-01**", "what's my **P&L** this month", "was I **up or down** last week" — call `portfolio_performance_window` with a `period` token (`1w`, `1mo`, `3mo`, `ytd`, `1y`, …) or explicit `start_date`/`end_date`. It is deterministic (no LLM), signed, and dividend-correct, and its incremental cache makes warm calls return in seconds. Use `portfolio_ask` for open-ended/current questions; use `portfolio_performance_window` for bounded historical windows.
 
 ## First-run flow for agents (spoon-fed init)
 
@@ -151,7 +154,7 @@ container goes into `init_state=failed`. Pre-creating the directory
 as the host user sidesteps the docker bind-mount UID inheritance
 quirk.
 
-The compose pulls `ghcr.io/argonautsystems/ic-engine:4.6.0-cpu` (publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and `localhost:18092` (dashboard).
+The compose pulls `ghcr.io/argonautsystems/ic-engine:4.8.3-cpu` (publicly hosted, no auth) and runs it on `localhost:18090` (MCP + REST) and `localhost:18092` (dashboard).
 
 ### If Docker isn't installed
 

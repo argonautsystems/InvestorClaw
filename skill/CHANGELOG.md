@@ -9,6 +9,21 @@ Distribution-edge artifacts (`SKILL.md`, `compose.yml`, `install.yaml`,
 `agent-skills/**`) are MIT-0; substantive code (bridge, dashboard,
 Dockerfile, tests) is Apache 2.0.
 
+## [4.8.3] — 2026-06-15
+
+### Added
+
+- **`portfolio_performance_window` tool.** Deterministic time-window return/P&L for
+  a `period` token (`1d`/`1w`/`2w`/`1mo`/`3mo`/`6mo`/`ytd`/`1y`/`2y`/`max`) or an
+  explicit `start_date`/`end_date`. Answers "how did my portfolio do last week /
+  last month / last quarter / since DATE" with signed totals (`total_return_pct`,
+  `total_pnl`, `start_value`, `end_value`) and `top_movers` — no LLM, dividend-
+  correct. Backed by an incremental per-symbol OHLCV panel cache that fetches only
+  missing days, so warm/repeat calls return in seconds. SKILL.md cookbook routes
+  bounded historical/temporal questions to this tool; `portfolio_ask` remains the
+  primary tool for open-ended/current questions.
+- Engine image pinned to `ghcr.io/argonautsystems/ic-engine:4.8.3-cpu`.
+
 ## [4.1.35] — 2026-05-06
 
 ### Fixed
