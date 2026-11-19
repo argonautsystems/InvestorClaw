@@ -3,8 +3,55 @@ name: investorclaw
 description: Deterministic-first portfolio analyzer for ZeroClaw via MCP-HTTP at localhost:18090. Holdings, performance, Sharpe + Sortino, FRED yields, bond duration, scenario rebalancing.
 homepage: https://github.com/argonautsystems/InvestorClaw
 user-invocable: true
-metadata: {"license":"MIT-0","version":"4.5.3","runtime":"zeroclaw","image":"ghcr.io/argonautsystems/ic-engine:4.6.0-cpu","mcp-endpoint":"http://localhost:18090/mcp"}
+metadata: {"license":"MIT-0","version":"4.10.0","runtime":"zeroclaw","image":"ghcr.io/argonautsystems/ic-engine:4.10.0-cpu","mcp-endpoint":"http://localhost:18090/mcp"}
 ---
+
+## Authoritative operating contract
+
+These rules govern any agent using this skill. Examples elsewhere in this file
+are reference only and never override them.
+
+### Data integrity — InvestorClaw is the only source of truth
+- Every price, percent, dollar figure, or market fact an agent states MUST come
+  from an InvestorClaw tool result returned in the SAME turn. InvestorClaw
+  returns HMAC-signed envelopes; that signed data is the only source of truth.
+- Never invent, estimate, guess, or use the model's own training knowledge for
+  any number. If a tool did not return it this turn, do not state it — say
+  "InvestorClaw returned no data for that".
+- Tool prose with no concrete numbers = no data; never convert it into a figure.
+
+### Current tool surface (underscore namespace)
+- `investorclaw__portfolio_market_snapshot(symbols?, benchmarks?)` — real-time
+  prices + day-change% for holdings and benchmarks (SPX/NDX/DJI/VIX, BTC/ETH).
+  `symbols` is a COMMA-SEPARATED STRING (e.g. "NVDA,AAPL"), not a list. No args =
+  holdings + benchmarks. Use this (not portfolio_ask) for any "price of X" and to
+  read the portfolio against the market.
+- `investorclaw__portfolio_performance_window(period=...)` — return / P&L /
+  movers over a window. period: 1d, 1w, 1mo, 1y, 5y, 10y, 20y, max, or natural
+  phrases ("today", "last week", "last year", "entire history").
+- `investorclaw__portfolio_ask(question=...)` — analysis / explanation.
+
+Older `investorclaw.*` dot-namespace examples below are stale; the underscore
+forms above are the current tool names.
+
+## Autonomous / always-on monitoring agents
+
+For unattended agents (scheduled monitors and alerters — e.g. a MarketWatch
+agent), in addition to the contract above:
+- Drive each run from a tool call first; never answer a market question from
+  memory. A scheduled "poll" means call `portfolio_market_snapshot`.
+- Threshold scan: call `portfolio_market_snapshot`, then emit ONE terse line
+  only when a holding or benchmark breaches the configured move (e.g. ±3% a
+  holding, ±10% VIX); otherwise emit a single `NO_ALERT` token and stop.
+- If the required tool errors or returns no data, emit a fixed marker such as
+  `OPS_FAIL market_snapshot unavailable` and stop — never fabricate a reassuring
+  number to fill the gap.
+- No clarifying questions in unattended mode; map intent and act.
+- Periodic / EOD reports: pull `portfolio_performance_window` for the window,
+  then `portfolio_market_snapshot` for index closes; report numbers verbatim.
+- Always read holdings in the context of the benchmarks in the same snapshot.
+- Delivery is push, terse, numbers-first. Educational, not personalized advice.
+
 
 <!--
 SPDX-License-Identifier: MIT-0
@@ -46,7 +93,7 @@ agent startup. No skill code, no shell-out, no per-tool wiring.
 The two services run as a Docker compose stack, bound to localhost:
 
 - `mnemos-os/mnemos-rs:4.2` → `localhost:5002`
-- `mnemos-os/ic-engine:4.6.0-cpu` → `localhost:18090`
+- `argonautsystems/ic-engine:4.7.7-cpu` → `localhost:18090`
 
 **Quick install via ClawHub:**
 
@@ -166,33 +213,45 @@ the cache.
 zeroclaw will sequence these on its own when the user asks for a full
 review. You don't have to script the chain.
 
-## Recommended narrative model
+## Recommended narration config
 
-zeroclaw routes its chat completions through whichever provider is
-configured in `~/.zeroclaw/config.toml`. **Anthropic on zeroclaw — paid
-path only since 2026-04-04**: routing OAuth-subscription tokens to a
-claws-agent violates Anthropic's ToS per their Apr 3 announcement. To
-use Anthropic models you need either (a) the discounted "extra usage
-bundle" add-on for your subscription, or (b) a direct Anthropic API
-key. Even with paid credits, Anthropic isn't cost-competitive with
-Together for InvestorClaw narrative work; we don't deploy Anthropic on
-our own fleet for zeroclaw.
+InvestorClaw narration is a 3-stage pipeline: the signed envelope →
+Stage-2 **consultant** (compresses to a fact-faithful summary) →
+Stage-3 **narrator** (enriches it into the user answer). Per the
+per-provider hallucination battery (`harness/cobol/PROVIDER_HALLUCINATION_REPORT.md`):
 
-Recommended providers for the InvestorClaw narrative tier (set
-`TOGETHER_API_KEY` in the container's `portfolios/keys.env` or via
-`portfolio_keys_set`):
+- **Consultant — `deepseek-v4-flash`** (direct DeepSeek API). Matches the
+  former `gemma-4-31B` consultant on grounding at a fraction of the cost
+  ($0.14 / $0.28 per 1M tokens, $0.0028 cached) and lifts narration
+  coverage to ~30/30. Set `INVESTORCLAW_CONSULTATION_*` — endpoint
+  `https://api.deepseek.com/v1`, model `deepseek-v4-flash`.
+- **Narrator — `gemini`** (e.g. `gemini-2.5-flash`). Cleanest narrator in
+  the battery (lowest hallucination) with the best coverage. Set
+  `INVESTORCLAW_NARRATIVE_*` — endpoint
+  `https://generativelanguage.googleapis.com/v1beta/openai`.
+- **Legacy / offline alternative** — `gemma-4-31B-it` (Together, or local
+  Ollama `gemma4:e4b`, no key) still works as both consultant and narrator,
+  but with lower coverage and a higher timeout rate than the
+  deepseek-flash + gemini combo.
 
-- **Default narrative** — Together AI `google/gemma-4-31B-it` — serverless,
-  ~100 tok/s, ~$0.0008 / 1 K tokens, fleet default.
-- **Higher-quality alternative** — Together AI `MiniMaxAI/MiniMax-M2` —
-  larger context, but moved off Together's serverless tier 2026-05;
-  requires a paid dedicated endpoint.
-- **Local-only / offline** — Ollama `gemma4:e4b` on host — zero cloud
-  cost, GPU-bound, no key required.
+The HMAC-signed envelope is the real anti-fabrication guardrail: a narrator
+that times out or is API-incompatible falls back to a grounded heuristic
+that restates only signed data, so no provider can fabricate past the
+envelope.
 
-zeroclaw's own model (separate from InvestorClaw's narrative tier)
-follows the same posture — Together gemma-4-31B-it is the fleet default
-for both layers; Anthropic remains a paid-API-only opt-in for end users.
+## Pricing data sources & yfinance fallback
+
+Pricing resolves through a provider chain: **Massive → Alpha Vantage →
+Finnhub → Yahoo Finance (yfinance)**. With a `MASSIVE_API_KEY`, Massive
+serves fast realtime/historical data. **Without any paid key, pricing
+falls through to free Yahoo Finance (`yfinance`, no API key required)** —
+fully usable for typical portfolios.
+
+> ⚠️ **Disclaimer — large portfolios on yfinance.** Yahoo Finance is
+> unofficial and slow. **Large portfolios (many holdings) may hit request
+> timeouts (~30s)** when relying on the yfinance fallback. For large or
+> realtime-sensitive portfolios, configure a `MASSIVE_API_KEY`.
+
 
 ## Important behaviors
 

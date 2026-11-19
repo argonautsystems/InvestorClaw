@@ -9,6 +9,30 @@ Distribution-edge artifacts (`SKILL.md`, `compose.yml`, `install.yaml`,
 `agent-skills/**`) are MIT-0; substantive code (bridge, dashboard,
 Dockerfile, tests) is Apache 2.0.
 
+## [4.7.2] — 2026-06-11
+
+### Security
+
+- Scrubbed the repo owner's real brokerage account numbers/labels from
+  `fetch_holdings.py` ACCOUNT_LABELS docstring examples (now fake
+  placeholders). No data was ever baked into the image; this removes
+  identifying examples from source. Pins `ic-engine:4.7.2-cpu`.
+
+## [4.7.1] — 2026-06-11
+
+### Fixed
+
+- **UBS unrealized gain/loss now matches the broker statement.** Two engine
+  bugs caused total unrealized G/L to under-report (e.g. $379,359.64 vs the
+  broker's $642,400.41 on a multi-account portfolio):
+  - Multi-account holdings collapsed by ticker summed market value and shares
+    but kept only the first account's broker-reported unrealized G/L. Now the
+    broker `UNREALIZED GAIN/LOSS $` column is summed across all accounts.
+  - Equities whose name contains "cash" (e.g. FIRSTCASH HLDGS INC / FCFS) were
+    misclassified into the cash bucket via a substring match. The cash keyword
+    is now word-boundaried, so such tickers stay equities.
+- Pins `ghcr.io/argonautsystems/ic-engine:4.7.7-cpu`.
+
 ## [4.8.3] — 2026-06-15
 
 ### Added
